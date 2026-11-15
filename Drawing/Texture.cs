@@ -3,51 +3,75 @@ namespace microgl;
 using System;
 using System.Numerics;
 using SDL3;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 public struct Texture : IDisposable
 {
     internal readonly nint _surfacePtr;
-    internal readonly nint _texturePtr;
-    private readonly IRenderer _boundRenderer;
+    private readonly Dictionary<nint, nint> _textureCache;
 
-    public nint NativeTexture => _texturePtr;
     public nint NativeSurface => _surfacePtr;
-    public IRenderer BoundRenderer => _boundRenderer;
 
-    public Texture(nint surface, IRenderer renderer)
+    public Texture(nint surface)
     {
         if (surface == nint.Zero)
             throw new Exception("Surface points to NULL or didn't load correctly");
 
         _surfacePtr = surface;
-        _boundRenderer = renderer ?? throw new ArgumentNullException("Renderer required to create new texture");
-        if (renderer.GetNativePointer() == IntPtr.Zero) throw new ArgumentException("Renderer points to NULL");
-        _texturePtr = _createNativeTexture(surface, renderer);
+        _textureCache = new Dictionary<nint, nint>();
     }
 
-    public static Texture FromPNG(IRenderer r, string filename) => new(SDL.LoadPNG(filename), r);
-    public static Texture FromPNG(Drawer d, string filename) => new(SDL.LoadPNG(filename), d.Renderer);
-    public static Texture FromBMP(IRenderer r, string filename) => new(SDL.LoadBMP(filename), r);
-    public static Texture FromBMP(Drawer d, string filename) => new(SDL.LoadBMP(filename), d.Renderer);
+    public static Texture FromPNG(string filename) => new(SDL.LoadPNG(filename));
+    public static Texture FromBMP(string filename) => new(SDL.LoadBMP(filename));
 
-    public Texture CreateFor(IRenderer renderer)
+    public nint GetTextureForRenderer(IRenderer renderer)
     {
-        if (renderer == null)
-            throw new ArgumentNullException("Renderer required to create new texture");
+        if (renderer == null || !renderer.IsValid())
+            throw new ArgumentNullException("Renderer is NULL or invalid");
 
-        nint duplicatedSurface = SDL.DuplicateSurface(_surfacePtr);
-        if (duplicatedSurface == nint.Zero)
-            throw new Exception($"Failed to duplicate surface: {SDL.GetError()}");
-
-        return new Texture(duplicatedSurface, renderer);
-    }
-
-    private static nint _createNativeTexture(nint surface, IRenderer renderer)
-    {
         nint rendererPtr = renderer.GetNativePointer();
         if (rendererPtr == nint.Zero)
-            throw new Exception("Renderer points to NULL");
+            throw new ArgumentException("Renderer points to NULL");
 
+        if (_textureCache.TryGetValue(rendererPtr, out nint cachedTexture))
+            return cachedTexture;
+
+        nint newTexture = _createNativeTexture(_surfacePtr, rendererPtr);
+        _textureCache[rendererPtr] = newTexture;
+        return newTexture;
+    }
+
+    public Vector2 Size
+    {
+        get
+        {
+            if (field == default) {
+                // Reading few bytes from surface
+                var w = Marshal.ReadInt32(_surfacePtr, 8);
+                var h = Marshal.ReadInt32(_surfacePtr, 12);
+                field = new Vector2(w, h);
+            }
+            return field;
+        }
+    }
+
+    public void ClearCache()
+    {
+        if (_textureCache == null)
+            return;
+
+        foreach (nint texPtr in _textureCache.Values)
+        {
+            if (texPtr != nint.Zero)
+                SDL.DestroyTexture(texPtr);
+        }
+
+        _textureCache.Clear();
+    }
+
+    private static nint _createNativeTexture(nint surface, nint rendererPtr)
+    {
         nint texture = SDL.CreateTextureFromSurface(rendererPtr, surface);
         if (texture == nint.Zero)
             throw new Exception($"Texture initialization from surface wasn't successful: {SDL.GetError()}");
@@ -57,19 +81,9 @@ public struct Texture : IDisposable
 
     public void Dispose()
     {
-        if (_texturePtr != nint.Zero)
-            SDL.DestroyTexture(_texturePtr);
+        ClearCache();
 
         if (_surfacePtr != nint.Zero)
             SDL.DestroySurface(_surfacePtr);
-    }
-
-    public Vector2 Size
-    {
-        get
-        {
-            SDL.GetTextureSize(_texturePtr, out var x, out var y);
-            return new Vector2(x, y);
-        }
     }
 }

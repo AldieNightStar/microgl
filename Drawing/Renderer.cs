@@ -59,10 +59,10 @@ public struct SoftwareRenderer : IRenderer
         if (SDLRenderer == IntPtr.Zero) throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());
     }
 
-    public Texture ProduceTexture(IRenderer renderer)
+    public Texture ProduceTexture()
     {
         SDL.RenderPresent(SDLRenderer);
-        var tex = new Texture(SDL.DuplicateSurface(SDLSurface), renderer);
+        var tex = new Texture(SDL.DuplicateSurface(SDLSurface));
         SDL.RenderClear(SDLRenderer);
         return tex;
     }
