@@ -37,7 +37,7 @@ public class Drawer : IDisposable
     {
         Clear();
         Scale = Vector2.One;
-        Matrix = Matrix4x4.Identity;
+        Transform = Transform.Identity;
         FontColor = Color.White;
     }
 
@@ -48,7 +48,7 @@ public class Drawer : IDisposable
         Color = Color.White;
     }
 
-    public Matrix4x4 Matrix { get; set; } = Matrix4x4.Identity;
+    public Transform Transform { get; set; } = Transform.Identity;
 
     public Color Color
     {
@@ -107,21 +107,21 @@ public class Drawer : IDisposable
 
     public void DrawLine(Vector2 vec1, Vector2 vec2)
     {
-        var p1 = Vector2.Transform(vec1, Matrix);
-        var p2 = Vector2.Transform(vec2, Matrix);
+        var p1 = Vector2.Transform(vec1, Transform.Matrix);
+        var p2 = Vector2.Transform(vec2, Transform.Matrix);
         SDL.RenderLine(_renderer, p1.X, p1.Y, p2.X, p2.Y);
     }
 
     public void DrawDebugText(string text, Vector2 vec)
     {
-        var vec2 = Vector2.Transform(vec, Matrix);
+        var vec2 = Vector2.Transform(vec, Transform.Matrix);
         SDL.RenderDebugText(_renderer, vec2.X, vec2.Y, text);
     }
 
     public void DrawText(string text, Vector2 vec)
     {
         // TODO Cache textObject
-        var vec2 = Vector2.Transform(vec, Matrix);
+        var vec2 = Vector2.Transform(vec, Transform.Matrix);
         var textObject = TTF.CreateText(_textEngine, Font._fontResource, text, 0);
         var color = FontColor;
 
@@ -137,10 +137,11 @@ public class Drawer : IDisposable
 
     private void _FillQuad(Rectangle rect, float u0, float v0, float u1, float v1)
     {
-        var p0 = Vector2.Transform(new Vector2(rect.Left, rect.Top), Matrix);
-        var p1 = Vector2.Transform(new Vector2(rect.Right, rect.Top), Matrix);
-        var p2 = Vector2.Transform(new Vector2(rect.Right, rect.Bottom), Matrix);
-        var p3 = Vector2.Transform(new Vector2(rect.Left, rect.Bottom), Matrix);
+        var matrix = Transform.Matrix;
+        var p0 = Vector2.Transform(new Vector2(rect.Left, rect.Top), matrix);
+        var p1 = Vector2.Transform(new Vector2(rect.Right, rect.Top), matrix);
+        var p2 = Vector2.Transform(new Vector2(rect.Right, rect.Bottom), matrix);
+        var p3 = Vector2.Transform(new Vector2(rect.Left, rect.Bottom), matrix);
 
         var fcolor = _toFColor(Color);
 
