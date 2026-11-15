@@ -45,7 +45,7 @@ public class Drawer : IDisposable
         }
     } = Color.White;
 
-    public Color FontColor { get; set; }
+    public Color FontColor { get; set; } = Color.White;
 
     public Vector2 Scale
     {
@@ -147,12 +147,6 @@ public class Drawer : IDisposable
         A = c.A / 255f,
     };
 
-    public void Dispose()
-    {
-        TTF.DestroyRendererTextEngine(_textEngine.GetEngineForRenderer(Renderer));
-        Renderer?.Dispose();
-    }
-
     public IRenderer Renderer
     {
         get
@@ -184,7 +178,6 @@ public class Drawer : IDisposable
     {
         // Reuse software renderer
         Renderer = _softRenderer;
-        
         Reset();
 
         action(this);
@@ -197,9 +190,15 @@ public class Drawer : IDisposable
     private bool _isRendererNeedToClose(IRenderer? r)
     {
         if (r == null) return false;
-        
+
         var ptr = r?.GetNativePointer() ?? 0;
         if (ptr == _gpuRenderer.GetNativePointer() || ptr == _softRenderer.GetNativePointer()) return false;
         return true;
+    }
+
+    public void Dispose()
+    {
+        _textEngine.Dispose();
+        Renderer?.Dispose();
     }
 }
