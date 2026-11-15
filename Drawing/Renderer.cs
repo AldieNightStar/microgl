@@ -6,39 +6,47 @@ public interface IRenderer : IDisposable
 {
     nint GetNativePointer();
     void RenderPresent();
+    bool IsValid();
 }
 
-public readonly struct GPURenderer : IRenderer
+public struct GPURenderer : IRenderer
 {
-    private nint _resource { get; init; }
+    private nint _rendererPtr;
 
     public GPURenderer(nint renderer)
     {
-        _resource = renderer;
+        _rendererPtr = renderer;
+        if (_rendererPtr == IntPtr.Zero) throw new ArgumentException("GPU Renderer is not initialized well");
     }
 
     public void Dispose()
     {
-        SDL.DestroyRenderer(_resource);
+        SDL.DestroyRenderer(_rendererPtr);
+        _rendererPtr = IntPtr.Zero;
     }
 
     public nint GetNativePointer()
     {
-        return _resource;
+        return _rendererPtr;
     }
 
     public void RenderPresent()
     {
-        SDL.RenderPresent(_resource);
+        SDL.RenderPresent(_rendererPtr);
+    }
+
+    public bool IsValid()
+    {
+        return _rendererPtr != IntPtr.Zero;
     }
 }
 
-public readonly struct SoftwareRenderer : IRenderer
+public struct SoftwareRenderer : IRenderer
 {
-    public nint SDLRenderer { get; init; }
-    public nint SDLSurface { get; init; }
-    public ushort Width { get; init; }
-    public ushort Height { get; init; }
+    public nint SDLRenderer { get; private set; }
+    public readonly nint SDLSurface { get; init; }
+    public readonly ushort Width { get; init; }
+    public readonly ushort Height { get; init; }
 
     public SoftwareRenderer(ushort w, ushort h)
     {
@@ -51,19 +59,21 @@ public readonly struct SoftwareRenderer : IRenderer
         if (SDLRenderer == IntPtr.Zero) throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());
     }
 
-    public Texture ProduceTexture()
+    public Texture ProduceTexture(IRenderer renderer)
     {
         SDL.RenderPresent(SDLRenderer);
-        nint sdlTexture = SDL.CreateTextureFromSurface(SDLRenderer, SDLSurface);
-        if (sdlTexture == nint.Zero)
-            throw new InvalidOperationException($"Failed to create texture: {SDL.GetError()}");
-        return new Texture(sdlTexture);
+        var tex = new Texture(SDL.DuplicateSurface(SDLSurface), renderer);
+        SDL.RenderClear(SDLRenderer);
+        return tex;
     }
 
     public void Dispose()
     {
+        if (SDLRenderer == IntPtr.Zero) return;
+
         SDL.DestroySurface(SDLSurface);
         SDL.DestroyRenderer(SDLRenderer);
+        SDLRenderer = IntPtr.Zero;
     }
 
     public nint GetNativePointer()
@@ -74,5 +84,10 @@ public readonly struct SoftwareRenderer : IRenderer
     public void RenderPresent()
     {
         SDL.RenderPresent(SDLRenderer);
+    }
+
+    public bool IsValid()
+    {
+        return SDLRenderer != IntPtr.Zero;
     }
 }

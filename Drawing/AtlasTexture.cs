@@ -20,23 +20,16 @@ public readonly struct AtlasTexture : IDisposable
         _texture.Dispose();
     }
 
-    public static AtlasTexture[] FromPNG(Drawer d, string filename, Vector2 tileSize)
+    public static AtlasTexture[] FromTexture(Texture t, Vector2 tileSize)
     {
-        var texture = Texture.FromPNG(d, filename);
-        return _fromTexture(texture, d, filename, tileSize).ToArray();
+        return _fromTexture(t, tileSize).ToArray();
     }
 
-    public static AtlasTexture[] FromBMP(Drawer d, string filename, Vector2 tileSize)
+    private static IEnumerable<AtlasTexture> _fromTexture(Texture texture, Vector2 tileSize)
     {
-        var texture = Texture.FromBMP(d, filename);
-        return _fromTexture(texture, d, filename, tileSize).ToArray();
-    }
-
-    private static IEnumerable<AtlasTexture> _fromTexture(Texture texture, Drawer d, string filename, Vector2 tileSize)
-    {
-        SDL.GetTextureSize(texture._texturePtr, out var texW, out var texH);
-        var countX = (int) (texW / tileSize.X);
-        var countY = (int) (texW / tileSize.Y);
+        var size = texture.Size;
+        var countX = (int) (size.X / tileSize.X);
+        var countY = (int) (size.Y / tileSize.Y);
         var rects = _getRectangles((int) tileSize.X, (int) tileSize.Y, countX, countY);
         foreach (var rect in rects)
         {

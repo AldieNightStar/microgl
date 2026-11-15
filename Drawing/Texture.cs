@@ -1,9 +1,10 @@
 namespace microgl;
 
 using System;
+using System.Numerics;
 using SDL3;
 
-public readonly struct Texture : IDisposable
+public struct Texture : IDisposable
 {
     internal readonly nint _surfacePtr;
     internal readonly nint _texturePtr;
@@ -20,10 +21,13 @@ public readonly struct Texture : IDisposable
 
         _surfacePtr = surface;
         _boundRenderer = renderer ?? throw new ArgumentNullException("Renderer required to create new texture");
+        if (renderer.GetNativePointer() == IntPtr.Zero) throw new ArgumentException("Renderer points to NULL");
         _texturePtr = _createNativeTexture(surface, renderer);
     }
 
+    public static Texture FromPNG(IRenderer r, string filename) => new(SDL.LoadPNG(filename), r);
     public static Texture FromPNG(Drawer d, string filename) => new(SDL.LoadPNG(filename), d.Renderer);
+    public static Texture FromBMP(IRenderer r, string filename) => new(SDL.LoadBMP(filename), r);
     public static Texture FromBMP(Drawer d, string filename) => new(SDL.LoadBMP(filename), d.Renderer);
 
     public Texture CreateFor(IRenderer renderer)
@@ -58,5 +62,14 @@ public readonly struct Texture : IDisposable
 
         if (_surfacePtr != nint.Zero)
             SDL.DestroySurface(_surfacePtr);
+    }
+
+    public Vector2 Size
+    {
+        get
+        {
+            SDL.GetTextureSize(_texturePtr, out var x, out var y);
+            return new Vector2(x, y);
+        }
     }
 }
