@@ -1,4 +1,5 @@
-﻿using SDL3;
+﻿using System.Numerics;
+using SDL3;
 
 namespace microgl;
 
@@ -68,21 +69,16 @@ public class Game : IDisposable
             SDLCalcDelta(ref _deltaTime, ref _lastTime);
             while (SDL.PollEvent(out _event))
             {
-                if (_event.Type == (uint)SDL.EventType.Quit)
-                {
-                    running = false;
-                    break;
-                }
-
+                _processEvents(ref _event, ref running);
                 gotEvent = true;
-                _game.Update(ref _event, _deltaTime);
+                _game.Update(_drawer, ref _event, _deltaTime);
             }
 
             // When no events
             if (!gotEvent)
             {
                 _event = default;
-                _game.Update(ref _event, _deltaTime);
+                _game.Update(_drawer, ref _event, _deltaTime);
             }
 
             _drawer.Reset();
@@ -99,5 +95,25 @@ public class Game : IDisposable
         var currentTime = SDL.GetTicks();
         dt = ((float)(currentTime - lastTime)) / 1000;
         lastTime = currentTime;
+    }
+
+    private void _processEvents(ref SDL.Event ev, ref bool running)
+    {
+        // Process exit
+        if (ev.Type == (uint)SDL.EventType.Quit)
+        {
+            running = false;
+        }
+        
+        else if (ev.Type == (uint)SDL.EventType.MouseMotion)
+        {
+            ProcessMouseEvent(ref ev);
+        }
+    }
+
+    private void ProcessMouseEvent(ref SDL.Event ev)
+    {
+        SDL.ConvertEventToRenderCoordinates(_drawer._gpuRenderer.GetNativePointer(), ref ev);
+        Mouse.LastPosition = new Vector2(ev.Motion.X, ev.Motion.Y);
     }
 }

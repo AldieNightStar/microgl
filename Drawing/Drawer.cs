@@ -6,7 +6,7 @@ namespace microgl;
 
 public class Drawer : IDisposable
 {
-    private GPURenderer _gpuRenderer;
+    internal GPURenderer _gpuRenderer;
 
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private static readonly int[] _indices = [0, 1, 2, 0, 2, 3];
