@@ -34,7 +34,7 @@ public readonly struct AtlasTexture : IDisposable
 
     private static IEnumerable<AtlasTexture> _fromTexture(Texture texture, Drawer d, string filename, Vector2 tileSize)
     {
-        SDL.GetTextureSize(texture._resource, out var texW, out var texH);
+        SDL.GetTextureSize(texture._texturePtr, out var texW, out var texH);
         var countX = (int) (texW / tileSize.X);
         var countY = (int) (texW / tileSize.Y);
         var rects = _getRectangles((int) tileSize.X, (int) tileSize.Y, countX, countY);

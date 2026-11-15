@@ -64,7 +64,7 @@ public class Drawer : IDisposable
 
         if (srcRect is Rectangle src)
         {
-            SDL.GetTextureSize(texture._resource, out float texW, out float texH);
+            SDL.GetTextureSize(texture._texturePtr, out float texW, out float texH);
             u0 = src.X / texW;
             v0 = src.Y / texH;
             u1 = (src.X + src.Width) / texW;
@@ -72,7 +72,7 @@ public class Drawer : IDisposable
         }
 
         _FillQuad(dstRect, u0, v0, u1, v1);
-        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), texture._resource, _verts, 4, _indices, 6))
+        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), texture._texturePtr, _verts, 4, _indices, 6))
         {
             throw new Exception($"Render failed for geometry: {SDL.GetError()}");
         }
