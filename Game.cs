@@ -34,7 +34,8 @@ public class Game : IDisposable
         }
 
         var (w, h) = _winSize;
-        if (!SDL.CreateWindowAndRenderer(_title, w, h, 0, out _windowHandle, out var renderer))
+        var winFlags = SDL.WindowFlags.Resizable;
+        if (!SDL.CreateWindowAndRenderer(_title, w, h, winFlags, out _windowHandle, out var renderer))
         {
             throw new Exception($"Can't open window: {SDL.GetError()}");
         }
@@ -48,7 +49,10 @@ public class Game : IDisposable
         }
 
         // Make pixel perfect rendering without uggly mipmapping
-        SDL.SetDefaultTextureScaleMode(_renderer.GetNativePointer(), SDL.ScaleMode.Nearest);
+        SDL.SetDefaultTextureScaleMode(renderer, SDL.ScaleMode.Nearest);
+
+        // Setup resizing logic
+        SDL.SetRenderLogicalPresentation(renderer, w, h, SDL.RendererLogicalPresentation.Letterbox);
 
         // Initialization
         _drawer = new Drawer(_renderer);
@@ -64,7 +68,7 @@ public class Game : IDisposable
             SDLCalcDelta(ref _deltaTime, ref _lastTime);
             while (SDL.PollEvent(out _event))
             {
-                if (_event.Type == (uint) SDL.EventType.Quit)
+                if (_event.Type == (uint)SDL.EventType.Quit)
                 {
                     running = false;
                     break;
