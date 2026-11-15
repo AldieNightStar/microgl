@@ -58,4 +58,10 @@ internal class TextEngine : IDisposable
     {
         if (!TTF.Init()) throw new Exception($"SDL TTF wasn't initialized successfully: {SDL.GetError()}");
     }
+
+    public static void FreeEngineForRenderer(nint enginePtr, IRenderer renderer)
+    {
+        if (renderer is GPURenderer) return;
+        TTF.DestroyRendererTextEngine(enginePtr);
+    }
 }

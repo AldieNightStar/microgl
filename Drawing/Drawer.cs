@@ -121,7 +121,7 @@ public class Drawer : IDisposable
             throw new Exception($"Can't draw text: {SDL.GetError()}");
         }
         TTF.DestroyText(textObject);
-        TTF.DestroyRendererTextEngine(textEnginePtr);
+        TextEngine.FreeEngineForRenderer(textEnginePtr, Renderer);
     }
 
     private void _FillQuad(Rectangle rect, float u0, float v0, float u1, float v1)
@@ -182,10 +182,10 @@ public class Drawer : IDisposable
 
     public Texture GenerateTexture(ushort w, ushort h, Action<Drawer> action)
     {
-        Reset();
-
         // Reuse software renderer
         Renderer = _softRenderer;
+        
+        Reset();
 
         action(this);
         var texture = _softRenderer.ProduceTexture(w, h);
