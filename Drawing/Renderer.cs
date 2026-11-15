@@ -1,3 +1,4 @@
+using System.Drawing;
 using SDL3;
 
 namespace microgl;
@@ -44,15 +45,17 @@ public struct GPURenderer : IRenderer
 public struct SoftwareRenderer : IRenderer
 {
     public nint SDLRenderer { get; private set; }
-    public readonly nint SDLSurface { get; init; }
-    public readonly ushort Width { get; init; }
-    public readonly ushort Height { get; init; }
+    public nint SDLSurface { get; private set; }
+    public static ushort PX_SIZE = 1024;
 
-    public SoftwareRenderer(ushort w, ushort h)
+    public SoftwareRenderer()
     {
-        Width = w;
-        Height = h;
-        SDLSurface = SDL.CreateSurface(w, h, SDL.PixelFormat.RGBA8888);
+        Init();
+    }
+
+    private void Init()
+    {
+        SDLSurface = SDL.CreateSurface(PX_SIZE, PX_SIZE, SDL.PixelFormat.RGBA8888);
         if (SDLSurface == IntPtr.Zero) throw new Exception("Can't create SDL surface: " + SDL.GetError());
 
         SDLRenderer = SDL.CreateSoftwareRenderer(SDLSurface);
@@ -61,21 +64,28 @@ public struct SoftwareRenderer : IRenderer
         SDL.SetDefaultTextureScaleMode(SDLRenderer, SDL.ScaleMode.Nearest);
     }
 
-    public Texture ProduceTexture()
+    public Texture ProduceTexture(ushort w, ushort h)
     {
         SDL.RenderPresent(SDLRenderer);
-        var tex = new Texture(Texture.DuplicateSurface(SDLSurface));
+        var region = new Rectangle(0, 0, w, h);
+        var tex = new Texture(TextureUtil.ExtractRegion(SDLSurface, region));
         SDL.RenderClear(SDLRenderer);
         return tex;
     }
 
     public void Dispose()
     {
-        if (SDLRenderer == IntPtr.Zero) return;
+        if (SDLRenderer != IntPtr.Zero)
+        {
+            SDL.DestroyRenderer(SDLRenderer);
+            SDLRenderer = IntPtr.Zero;
+        }
 
-        SDL.DestroySurface(SDLSurface);
-        SDL.DestroyRenderer(SDLRenderer);
-        SDLRenderer = IntPtr.Zero;
+        if (SDLSurface != IntPtr.Zero)
+        {
+            SDL.DestroySurface(SDLSurface);
+            SDLSurface = IntPtr.Zero;
+        }
     }
 
     public nint GetNativePointer()

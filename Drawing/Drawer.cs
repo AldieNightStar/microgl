@@ -174,24 +174,44 @@ public class Drawer : IDisposable
         }
         set
         {
-            // Do not allow to assign GPU Renderer into this variable
-            if (value?.GetNativePointer() == _gpuRenderer.GetNativePointer()) return;
-
-            if (field != null) field.Dispose();
+            // Do not close default renderers
+            if (_isRendererNeedToClose(field)) field?.Dispose();
             field = value;
+        }
+    }
+
+    internal SoftwareRenderer _softRenderer
+    {
+        get
+        {
+            if (field.SDLRenderer == IntPtr.Zero)
+            {
+                field = new SoftwareRenderer();
+            }
+            return field;
         }
     }
 
     public Texture GenerateTexture(ushort w, ushort h, Action<Drawer> action)
     {
         Reset();
-        using var soft = new SoftwareRenderer(w, h);
-        
-        Renderer = soft;
+
+        // Reuse software renderer
+        Renderer = _softRenderer;
+
         action(this);
-        var texture = soft.ProduceTexture();
-        
+        var texture = _softRenderer.ProduceTexture(w, h);
+
         Renderer = null;
         return texture;
+    }
+
+    private bool _isRendererNeedToClose(IRenderer? r)
+    {
+        if (r == null) return false;
+        
+        var ptr = r?.GetNativePointer() ?? 0;
+        if (ptr == _gpuRenderer.GetNativePointer() || ptr == _softRenderer.GetNativePointer()) return false;
+        return true;
     }
 }

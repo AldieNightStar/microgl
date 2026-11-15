@@ -95,11 +95,8 @@ public struct Texture : IDisposable
         return _surfacePtr != IntPtr.Zero;
     }
 
-    public static nint DuplicateSurface(nint surface)
+    public static (int, int) GetSurfaceSize(nint surface)
     {
-        if (surface == IntPtr.Zero) throw new ArgumentException("Can't duplicate NULL surface");
-        var dupSurface = SDL.DuplicateSurface(surface);
-        if (dupSurface == IntPtr.Zero) throw new ArgumentException($"Wasn't able to duplicate surface: {SDL.GetError()}");
-        return dupSurface;
+        return (Marshal.ReadInt32(surface, 8), Marshal.ReadInt32(surface, 12));
     }
 }
