@@ -1,99 +1,62 @@
-using System.Diagnostics;
-using SDL3;
-
 namespace microgl;
 
 using System;
 using SDL3;
 
-public struct Texture : IDisposable
+public readonly struct Texture : IDisposable
 {
     internal readonly nint _surfacePtr;
-    internal nint _texturePtr;
-    private IRenderer _boundRenderer;
+    internal readonly nint _texturePtr;
+    private readonly IRenderer _boundRenderer;
 
-    public readonly nint NativeTexture => _texturePtr;
-    public readonly nint NativeSurface => _surfacePtr;
+    public nint NativeTexture => _texturePtr;
+    public nint NativeSurface => _surfacePtr;
+    public IRenderer BoundRenderer => _boundRenderer;
 
-    public Texture(nint surface)
+    public Texture(nint surface, IRenderer renderer)
     {
         if (surface == nint.Zero)
             throw new Exception("Surface points to NULL or didn't load correctly");
 
         _surfacePtr = surface;
-        _texturePtr = nint.Zero;
-        _boundRenderer = null;
+        _boundRenderer = renderer ?? throw new ArgumentNullException("Renderer required to create new texture");
+        _texturePtr = _createNativeTexture(surface, renderer);
     }
 
-    public Texture(nint surface, IRenderer renderer) : this(surface)
+    public static Texture FromPNG(Drawer d, string filename) => new(SDL.LoadPNG(filename), d.Renderer);
+    public static Texture FromBMP(Drawer d, string filename) => new(SDL.LoadBMP(filename), d.Renderer);
+
+    public Texture CreateFor(IRenderer renderer)
     {
-        RecreateTextureFor(renderer);
+        if (renderer == null)
+            throw new ArgumentNullException("Renderer required to create new texture");
+
+        nint duplicatedSurface = SDL.DuplicateSurface(_surfacePtr);
+        if (duplicatedSurface == nint.Zero)
+            throw new Exception($"Failed to duplicate surface: {SDL.GetError()}");
+
+        return new Texture(duplicatedSurface, renderer);
     }
 
-    public static Texture FromPNG(string filename)
+    private static nint _createNativeTexture(nint surface, IRenderer renderer)
     {
-        return new Texture(SDL.LoadPNG(filename));
-    }
-
-    public static Texture FromPNG(Drawer d, string filename)
-    {
-        return new Texture(SDL.LoadPNG(filename), d.Renderer);
-    }
-
-    public static Texture FromBMP(string filename)
-    {
-        return new Texture(SDL.LoadBMP(filename));
-    }
-
-    public static Texture FromBMP(Drawer d, string filename)
-    {
-        return new Texture(SDL.LoadBMP(filename), d.Renderer);
-    }
-
-    public void RecreateTextureFor(IRenderer renderer)
-    {
-        nint targetRendererPtr = renderer?.GetNativePointer() ?? IntPtr.Zero;
-        nint boundRendererPtr = _boundRenderer?.GetNativePointer() ?? IntPtr.Zero;
-        if (targetRendererPtr == nint.Zero)
+        nint rendererPtr = renderer.GetNativePointer();
+        if (rendererPtr == nint.Zero)
             throw new Exception("Renderer points to NULL");
 
-        // Skip recreation if this texture is already built for this renderer
-        if (_texturePtr != nint.Zero && boundRendererPtr == targetRendererPtr)
-            return;
-
-        if (_texturePtr != nint.Zero)
-        {
-            SDL.DestroyTexture(_texturePtr);
-            _texturePtr = nint.Zero;
-        }
-
-        nint texture = SDL.CreateTextureFromSurface(targetRendererPtr, _surfacePtr);
+        nint texture = SDL.CreateTextureFromSurface(rendererPtr, surface);
         if (texture == nint.Zero)
             throw new Exception($"Texture initialization from surface wasn't successful: {SDL.GetError()}");
 
-        _texturePtr = texture;
-        _boundRenderer = renderer;
-    }
-
-    // Call this if the underlying _surface pixels changed (e.g. after SoftwareRenderer.Present)
-    public void ForceRecreateTextureFor(IRenderer renderer)
-    {
-        _boundRenderer = null;
-        RecreateTextureFor(renderer);
+        return texture;
     }
 
     public void Dispose()
     {
         if (_texturePtr != nint.Zero)
-        {
             SDL.DestroyTexture(_texturePtr);
-            _texturePtr = nint.Zero;
-            _boundRenderer = null;
-        }
 
         if (_surfacePtr != nint.Zero)
-        {
             SDL.DestroySurface(_surfacePtr);
-        }
     }
 }
