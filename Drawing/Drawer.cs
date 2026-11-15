@@ -10,6 +10,7 @@ public class Drawer : IDisposable
 
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private static readonly int[] _indices = [0, 1, 2, 0, 2, 3];
+    private TextEngine _textEngine = new TextEngine();
 
     public Drawer(GPURenderer renderer)
     {
@@ -64,18 +65,20 @@ public class Drawer : IDisposable
 
         if (srcRect is Rectangle src)
         {
-            SDL.GetTextureSize(texture.GetTextureForRenderer(Renderer), out float texW, out float texH);
-            u0 = src.X / texW;
-            v0 = src.Y / texH;
-            u1 = (src.X + src.Width) / texW;
-            v1 = (src.Y + src.Height) / texH;
+            var size = texture.Size;
+            u0 = src.X / size.X;
+            v0 = src.Y / size.Y;
+            u1 = (src.X + src.Width) / size.X;
+            v1 = (src.Y + src.Height) / size.Y;
         }
 
         _FillQuad(dstRect, u0, v0, u1, v1);
-        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), texture.GetTextureForRenderer(Renderer), _verts, 4, _indices, 6))
+        var tempTexture = texture.GetTextureForRenderer(Renderer);
+        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), tempTexture, _verts, 4, _indices, 6))
         {
             throw new Exception($"Render failed for geometry: {SDL.GetError()}");
         }
+        Texture.FreeTextureForRenderer(tempTexture, Renderer);
     }
 
     public void DrawTexture(AtlasTexture texture, Rectangle rect)
@@ -106,7 +109,8 @@ public class Drawer : IDisposable
     {
         // TODO Cache textObject
         var vec2 = Transform.ToGlobal(vec);
-        var textObject = TTF.CreateText(_textEngine, Font._fontResource, text, 0);
+        var textEnginePtr = _textEngine.GetEngineForRenderer(Renderer);
+        var textObject = TTF.CreateText(textEnginePtr, Font._fontResource, text, 0);
         var color = FontColor;
 
         if (textObject == IntPtr.Zero) throw new Exception($"Text object wasn't create: {SDL.GetError()}");
@@ -117,6 +121,7 @@ public class Drawer : IDisposable
             throw new Exception($"Can't draw text: {SDL.GetError()}");
         }
         TTF.DestroyText(textObject);
+        TTF.DestroyRendererTextEngine(textEnginePtr);
     }
 
     private void _FillQuad(Rectangle rect, float u0, float v0, float u1, float v1)
@@ -144,25 +149,8 @@ public class Drawer : IDisposable
 
     public void Dispose()
     {
-        TTF.DestroyRendererTextEngine(_textEngine);
+        TTF.DestroyRendererTextEngine(_textEngine.GetEngineForRenderer(Renderer));
         Renderer?.Dispose();
-    }
-
-    internal nint _textEngine
-    {
-        get
-        {
-            if (field == IntPtr.Zero)
-            {
-                if (!TTF.Init())
-                {
-                    throw new Exception($"SDL TTF wasn't initialized successfully: {SDL.GetError()}");
-                }
-                field = TTF.CreateRendererTextEngine(_gpuRenderer.GetNativePointer());
-                if (field == IntPtr.Zero) throw new Exception("Unable to initialize SDL Font Engine");
-            }
-            return field;
-        }
     }
 
     public IRenderer Renderer

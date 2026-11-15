@@ -8,7 +8,7 @@ public readonly struct GameFont : IDisposable
 
     public GameFont(Drawer d, string filename, float size)
     {
-        var ignored = d._textEngine; // Just to init Text Engine
+        TextEngine.Init();
         _fontResource = TTF.OpenFont(filename, size);
         if (_fontResource == IntPtr.Zero)
         {

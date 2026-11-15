@@ -17,7 +17,7 @@ public class Texture : IDisposable
     {
         if (surface == nint.Zero)
             throw new Exception("Surface points to NULL or didn't load correctly");
-        
+
         _surfacePtr = surface;
         _textureCache = new Dictionary<nint, nint>();
     }
@@ -25,30 +25,6 @@ public class Texture : IDisposable
     public static Texture FromPNG(string filename) => new(SDL.LoadPNG(filename));
     public static Texture FromBMP(string filename) => new(SDL.LoadBMP(filename));
     public static Texture FromDraw(Drawer d, ushort w, ushort h, Action<Drawer> action) => d.GenerateTexture(w, h, action);
-
-    public nint GetTextureForRenderer(IRenderer renderer)
-    {
-        if (renderer == null || !renderer.IsValid())
-            throw new ArgumentNullException(nameof(renderer), "Renderer is NULL or invalid");
-
-        nint rendererPtr = renderer.GetNativePointer();
-        if (rendererPtr == nint.Zero)
-            throw new ArgumentException("Renderer points to NULL", nameof(renderer));
-
-        if (_textureCache.TryGetValue(rendererPtr, out nint cachedTexture))
-            return cachedTexture;
-
-        // Create new texture if not present in cache
-        nint newTexture = _createNativeTexture(_surfacePtr, rendererPtr);
-
-        // Only cache textures for persistent GPU renderers; temporary software textures shouldn't stay
-        if (renderer is GPURenderer)
-        {
-            _textureCache[rendererPtr] = newTexture;
-        }
-
-        return newTexture;
-    }
 
     public Vector2 Size
     {
@@ -107,5 +83,35 @@ public class Texture : IDisposable
     {
         var surf = Marshal.PtrToStructure<SDL.Surface>(surface);
         return (surf.Width, surf.Height);
+    }
+
+    internal nint GetTextureForRenderer(IRenderer renderer)
+    {
+        if (renderer == null || !renderer.IsValid())
+            throw new ArgumentNullException(nameof(renderer), "Renderer is NULL or invalid");
+
+        nint rendererPtr = renderer.GetNativePointer();
+        if (rendererPtr == nint.Zero)
+            throw new ArgumentException("Renderer points to NULL", nameof(renderer));
+
+        if (_textureCache.TryGetValue(rendererPtr, out nint cachedTexture))
+            return cachedTexture;
+
+        // Create new texture if not present in cache
+        nint newTexture = _createNativeTexture(_surfacePtr, rendererPtr);
+
+        // Only cache textures for persistent GPU renderers; temporary software textures shouldn't store
+        if (renderer is GPURenderer)
+        {
+            _textureCache[rendererPtr] = newTexture;
+        }
+
+        return newTexture;
+    }
+
+    internal static void FreeTextureForRenderer(nint texturePtr, IRenderer renderer)
+    {
+        if (renderer is GPURenderer) return;
+        SDL.DestroyTexture(texturePtr);
     }
 }
