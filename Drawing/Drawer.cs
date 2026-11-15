@@ -10,7 +10,6 @@ public class Drawer
     internal readonly nint _renderer;
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private static readonly int[] _indices = [0, 1, 2, 0, 2, 3];
-    private static readonly SDL.FColor _white = new() { R = 1f, G = 1f, B = 1f, A = 1f };
 
     public Drawer(nint renderer)
     {
@@ -59,7 +58,7 @@ public class Drawer
 
         if (srcRect is Rectangle src)
         {
-            SDL.GetTextureSize(texture.Resource, out float texW, out float texH);
+            SDL.GetTextureSize(texture._resource, out float texW, out float texH);
             u0 = src.X / texW;
             v0 = src.Y / texH;
             u1 = (src.X + src.Width) / texW;
@@ -67,10 +66,15 @@ public class Drawer
         }
 
         _FillQuad(dstRect, u0, v0, u1, v1);
-        if (!SDL.RenderGeometry(_renderer, texture.Resource, _verts, 4, _indices, 6))
+        if (!SDL.RenderGeometry(_renderer, texture._resource, _verts, 4, _indices, 6))
         {
             Debug.WriteLine($"Render failed for geometry: {SDL.GetError()}");
         }
+    }
+
+    public void DrawTexture(AtlasTexture texture, Rectangle rect)
+    {
+        DrawTexture(texture._texture, rect, texture._source);
     }
 
     public void DrawRect(Rectangle rect)

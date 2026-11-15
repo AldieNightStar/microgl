@@ -5,12 +5,12 @@ namespace microgl;
 
 public readonly struct Texture : IDisposable
 {
-    internal nint Resource { get; init; }
+    internal nint _resource { get; init; }
 
     public Texture(nint resource)
     {
         if (resource == IntPtr.Zero) throw new Exception("Texture points to NULL or didn't load correctly");
-        Resource = resource;
+        _resource = resource;
     }
 
     public static Texture FromPNG(Drawer d, string filename)
@@ -31,5 +31,5 @@ public readonly struct Texture : IDisposable
         return texture;
     }
 
-    public void Dispose() => SDL.Free(Resource);
+    public void Dispose() => SDL.Free(_resource);
 }
