@@ -57,12 +57,14 @@ public struct SoftwareRenderer : IRenderer
 
         SDLRenderer = SDL.CreateSoftwareRenderer(SDLSurface);
         if (SDLRenderer == IntPtr.Zero) throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());
+
+        SDL.SetDefaultTextureScaleMode(SDLRenderer, SDL.ScaleMode.Nearest);
     }
 
     public Texture ProduceTexture()
     {
         SDL.RenderPresent(SDLRenderer);
-        var tex = new Texture(SDL.DuplicateSurface(SDLSurface));
+        var tex = new Texture(Texture.DuplicateSurface(SDLSurface));
         SDL.RenderClear(SDLRenderer);
         return tex;
     }

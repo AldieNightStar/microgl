@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 public struct Texture : IDisposable
 {
-    internal readonly nint _surfacePtr;
+    internal nint _surfacePtr;
     private readonly Dictionary<nint, nint> _textureCache;
 
     public nint NativeSurface => _surfacePtr;
@@ -17,13 +17,14 @@ public struct Texture : IDisposable
     {
         if (surface == nint.Zero)
             throw new Exception("Surface points to NULL or didn't load correctly");
-
+        
         _surfacePtr = surface;
         _textureCache = new Dictionary<nint, nint>();
     }
 
     public static Texture FromPNG(string filename) => new(SDL.LoadPNG(filename));
     public static Texture FromBMP(string filename) => new(SDL.LoadBMP(filename));
+    public static Texture FromDraw(Drawer d, ushort w, ushort h, Action<Drawer> action) => d.GenerateTexture(w, h, action);
 
     public nint GetTextureForRenderer(IRenderer renderer)
     {
@@ -83,7 +84,22 @@ public struct Texture : IDisposable
     {
         ClearCache();
 
-        if (_surfacePtr != nint.Zero)
+        if (_surfacePtr != nint.Zero) {
             SDL.DestroySurface(_surfacePtr);
+            _surfacePtr = IntPtr.Zero;
+        }
+    }
+
+    public bool IsActive()
+    {
+        return _surfacePtr != IntPtr.Zero;
+    }
+
+    public static nint DuplicateSurface(nint surface)
+    {
+        if (surface == IntPtr.Zero) throw new ArgumentException("Can't duplicate NULL surface");
+        var dupSurface = SDL.DuplicateSurface(surface);
+        if (dupSurface == IntPtr.Zero) throw new ArgumentException($"Wasn't able to duplicate surface: {SDL.GetError()}");
+        return dupSurface;
     }
 }

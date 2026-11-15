@@ -181,4 +181,17 @@ public class Drawer : IDisposable
             field = value;
         }
     }
+
+    public Texture GenerateTexture(ushort w, ushort h, Action<Drawer> action)
+    {
+        Reset();
+        using var soft = new SoftwareRenderer(w, h);
+        
+        Renderer = soft;
+        action(this);
+        var texture = soft.ProduceTexture();
+        
+        Renderer = null;
+        return texture;
+    }
 }
