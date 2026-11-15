@@ -5,11 +5,28 @@ using SDL3;
 
 namespace microgl;
 
-public class Drawer
+public class Drawer : IDisposable
 {
     internal readonly nint _renderer;
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private static readonly int[] _indices = [0, 1, 2, 0, 2, 3];
+
+    internal nint _textEngine
+    {
+        get
+        {
+            if (field == IntPtr.Zero)
+            {
+                if (!TTF.Init())
+                {
+                    throw new Exception($"SDL TTF wasn't initialized successfully: {SDL.GetError()}");
+                }
+                field = TTF.CreateRendererTextEngine(_renderer);
+                if (field == IntPtr.Zero) throw new Exception("Unable to initialize SDL Font Engine");
+            }
+            return field;
+        }
+    }
 
     public Drawer(nint renderer)
     {
@@ -21,6 +38,7 @@ public class Drawer
         Clear();
         Scale = Vector2.One;
         Matrix = Matrix4x4.Identity;
+        FontColor = Color.White;
     }
 
     public void Clear()
@@ -42,6 +60,8 @@ public class Drawer
         }
     } = Color.White;
 
+    public Color FontColor { get; set; }
+
     public Vector2 Scale
     {
         get => field;
@@ -51,6 +71,8 @@ public class Drawer
             SDL.SetRenderScale(_renderer, value.X, value.Y);
         }
     }
+
+    public GameFont Font { get; set; }
 
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {
@@ -68,7 +90,7 @@ public class Drawer
         _FillQuad(dstRect, u0, v0, u1, v1);
         if (!SDL.RenderGeometry(_renderer, texture._resource, _verts, 4, _indices, 6))
         {
-            Debug.WriteLine($"Render failed for geometry: {SDL.GetError()}");
+            throw new Exception($"Render failed for geometry: {SDL.GetError()}");
         }
     }
 
@@ -96,6 +118,23 @@ public class Drawer
         SDL.RenderDebugText(_renderer, vec2.X, vec2.Y, text);
     }
 
+    public void DrawText(string text, Vector2 vec)
+    {
+        // TODO Cache textObject
+        var vec2 = Vector2.Transform(vec, Matrix);
+        var textObject = TTF.CreateText(_textEngine, Font._fontResource, text, 0);
+        var color = FontColor;
+
+        if (textObject == IntPtr.Zero) throw new Exception($"Text object wasn't create: {SDL.GetError()}");
+
+        TTF.SetTextColor(textObject, color.R, color.G, color.B, color.A);
+        if (!TTF.DrawRendererText(textObject, vec2.X, vec2.Y))
+        {
+            throw new Exception($"Can't draw text: {SDL.GetError()}");
+        }
+        TTF.DestroyText(textObject);
+    }
+
     private void _FillQuad(Rectangle rect, float u0, float v0, float u1, float v1)
     {
         var p0 = Vector2.Transform(new Vector2(rect.Left, rect.Top), Matrix);
@@ -118,4 +157,10 @@ public class Drawer
         B = c.B / 255f,
         A = c.A / 255f,
     };
+
+    public void Dispose()
+    {
+        SDL.DestroyRenderer(_renderer);
+        TTF.DestroyRendererTextEngine(_textEngine);
+    }
 }

@@ -6,8 +6,8 @@ namespace microgl;
 
 public readonly struct AtlasTexture : IDisposable
 {
-    internal Texture _texture { get; init; }
-    internal Rectangle _source { get; init; }
+    internal readonly Texture _texture { get; init; }
+    internal readonly Rectangle _source { get; init; }
 
     public AtlasTexture(Texture atlas, Rectangle source)
     {

@@ -5,7 +5,7 @@ namespace microgl;
 
 public readonly struct Texture : IDisposable
 {
-    internal nint _resource { get; init; }
+    internal readonly nint _resource { get; init; }
 
     public Texture(nint resource)
     {
@@ -31,5 +31,5 @@ public readonly struct Texture : IDisposable
         return texture;
     }
 
-    public void Dispose() => SDL.Free(_resource);
+    public void Dispose() => SDL.DestroyTexture(_resource);
 }
