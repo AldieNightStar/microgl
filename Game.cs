@@ -7,7 +7,7 @@ public class Game : IDisposable
     private readonly string _title;
     private readonly (int, int) _winSize;
     private nint _windowHandle;
-    private nint _renderer;
+    private GPURenderer _renderer;
     private readonly IGame _game;
 
     // Delta time calc variables
@@ -30,17 +30,15 @@ public class Game : IDisposable
     {
         if (!SDL.Init(SDL.InitFlags.Video))
         {
-            SDL.LogError(SDL.LogCategory.System, $"Can't Init SDL: {SDL.GetError()}");
-            return;
+            throw new Exception($"Can't Init SDL: {SDL.GetError()}");
         }
 
         var (w, h) = _winSize;
-        if (!SDL.CreateWindowAndRenderer(_title, w, h, 0, out _windowHandle, out _renderer))
+        if (!SDL.CreateWindowAndRenderer(_title, w, h, 0, out _windowHandle, out var renderer))
         {
-            Console.WriteLine($"Can't open window: {SDL.GetError()}");
-            SDL.Quit();
-            return;
+            throw new Exception($"Can't open window: {SDL.GetError()}");
         }
+        _renderer = new GPURenderer(renderer);
 
         if (_windowHandle == IntPtr.Zero)
         {
@@ -50,7 +48,7 @@ public class Game : IDisposable
         }
 
         // Make pixel perfect rendering without uggly mipmapping
-        SDL.SetDefaultTextureScaleMode(_renderer, SDL.ScaleMode.Nearest);
+        SDL.SetDefaultTextureScaleMode(_renderer.GetNativePointer(), SDL.ScaleMode.Nearest);
 
         // Initialization
         _drawer = new Drawer(_renderer);
@@ -85,7 +83,7 @@ public class Game : IDisposable
 
             _drawer.Reset();
             _game.Draw(_drawer, _deltaTime);
-            SDL.RenderPresent(_renderer);
+            _renderer.RenderPresent();
         }
 
         SDL.DestroyWindow(_windowHandle);

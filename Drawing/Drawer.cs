@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using SDL3;
@@ -7,30 +6,15 @@ namespace microgl;
 
 public class Drawer : IDisposable
 {
-    internal readonly nint _renderer;
+    private GPURenderer _gpuRenderer;
+
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private static readonly int[] _indices = [0, 1, 2, 0, 2, 3];
 
-    internal nint _textEngine
+    public Drawer(GPURenderer renderer)
     {
-        get
-        {
-            if (field == IntPtr.Zero)
-            {
-                if (!TTF.Init())
-                {
-                    throw new Exception($"SDL TTF wasn't initialized successfully: {SDL.GetError()}");
-                }
-                field = TTF.CreateRendererTextEngine(_renderer);
-                if (field == IntPtr.Zero) throw new Exception("Unable to initialize SDL Font Engine");
-            }
-            return field;
-        }
-    }
-
-    public Drawer(nint renderer)
-    {
-        _renderer = renderer;
+        _gpuRenderer = renderer;
+        Renderer = null;
     }
 
     public void Reset()
@@ -44,7 +28,7 @@ public class Drawer : IDisposable
     public void Clear()
     {
         Color = Color.Black;
-        SDL.RenderClear(_renderer);
+        SDL.RenderClear(Renderer.GetNativePointer());
         Color = Color.White;
     }
 
@@ -56,7 +40,7 @@ public class Drawer : IDisposable
         set
         {
             field = value;
-            SDL.SetRenderDrawColor(_renderer, value.R, value.G, value.B, value.A);
+            SDL.SetRenderDrawColor(Renderer.GetNativePointer(), value.R, value.G, value.B, value.A);
         }
     } = Color.White;
 
@@ -68,7 +52,7 @@ public class Drawer : IDisposable
         set
         {
             field = value;
-            SDL.SetRenderScale(_renderer, value.X, value.Y);
+            SDL.SetRenderScale(Renderer.GetNativePointer(), value.X, value.Y);
         }
     }
 
@@ -88,7 +72,7 @@ public class Drawer : IDisposable
         }
 
         _FillQuad(dstRect, u0, v0, u1, v1);
-        if (!SDL.RenderGeometry(_renderer, texture._resource, _verts, 4, _indices, 6))
+        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), texture._resource, _verts, 4, _indices, 6))
         {
             throw new Exception($"Render failed for geometry: {SDL.GetError()}");
         }
@@ -102,20 +86,20 @@ public class Drawer : IDisposable
     public void DrawRect(Rectangle rect)
     {
         _FillQuad(rect, 0f, 0f, 0f, 0f);
-        SDL.RenderGeometry(_renderer, 0, _verts, 4, _indices, 6);
+        SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, _indices, 6);
     }
 
     public void DrawLine(Vector2 vec1, Vector2 vec2)
     {
         var p1 = Transform.ToGlobal(vec1);
         var p2 = Transform.ToGlobal(vec2);
-        SDL.RenderLine(_renderer, p1.X, p1.Y, p2.X, p2.Y);
+        SDL.RenderLine(Renderer.GetNativePointer(), p1.X, p1.Y, p2.X, p2.Y);
     }
 
     public void DrawDebugText(string text, Vector2 vec)
     {
         var vec2 = Transform.ToGlobal(vec);
-        SDL.RenderDebugText(_renderer, vec2.X, vec2.Y, text);
+        SDL.RenderDebugText(Renderer.GetNativePointer(), vec2.X, vec2.Y, text);
     }
 
     public void DrawText(string text, Vector2 vec)
@@ -160,7 +144,41 @@ public class Drawer : IDisposable
 
     public void Dispose()
     {
-        SDL.DestroyRenderer(_renderer);
         TTF.DestroyRendererTextEngine(_textEngine);
+        Renderer?.Dispose();
+    }
+
+    internal nint _textEngine
+    {
+        get
+        {
+            if (field == IntPtr.Zero)
+            {
+                if (!TTF.Init())
+                {
+                    throw new Exception($"SDL TTF wasn't initialized successfully: {SDL.GetError()}");
+                }
+                field = TTF.CreateRendererTextEngine(_gpuRenderer.GetNativePointer());
+                if (field == IntPtr.Zero) throw new Exception("Unable to initialize SDL Font Engine");
+            }
+            return field;
+        }
+    }
+
+    public IRenderer Renderer
+    {
+        get
+        {
+            // Either return renderer or GPU Renderer as a fallback
+            return field ?? _gpuRenderer;
+        }
+        set
+        {
+            // Do not allow to assign GPU Renderer into this variable
+            if (value?.GetNativePointer() == _gpuRenderer.GetNativePointer()) return;
+
+            if (field != null) field.Dispose();
+            field = value;
+        }
     }
 }

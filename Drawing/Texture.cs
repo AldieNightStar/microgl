@@ -3,7 +3,7 @@ using SDL3;
 
 namespace microgl;
 
-public readonly struct Texture : IDisposable
+public struct Texture : IDisposable
 {
     internal readonly nint _resource { get; init; }
 
@@ -25,7 +25,7 @@ public readonly struct Texture : IDisposable
 
     private static nint _toTexture(Drawer d, nint surface)
     {
-        nint texture = SDL.CreateTextureFromSurface(d._renderer, surface);
+        nint texture = SDL.CreateTextureFromSurface(d.Renderer.GetNativePointer(), surface);
         if (texture == IntPtr.Zero) throw new Exception("Texture initialization from surface wasn't successful");
         SDL.DestroySurface(surface);
         return texture;
