@@ -5,7 +5,7 @@ using SDL3;
 
 namespace microgl;
 
-public readonly struct AtlasTexture : IDisposable
+public readonly struct AtlasTexture
 {
     internal readonly Texture _texture { get; init; }
     internal readonly Rectangle _source { get; init; }
@@ -14,11 +14,6 @@ public readonly struct AtlasTexture : IDisposable
     {
         _texture = atlas;
         _source = source;
-    }
-
-    public void Dispose()
-    {
-        _texture.Dispose();
     }
 
     public static AtlasTexture[] FromTexture(Texture t, Vector2 tileSize)
