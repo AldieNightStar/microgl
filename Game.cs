@@ -99,21 +99,18 @@ public class Game : IDisposable
 
     private void _processEvents(ref SDL.Event ev, ref bool running)
     {
+        var type = ev.Type;
+
         // Process exit
-        if (ev.Type == (uint)SDL.EventType.Quit)
+        if (type == (uint)SDL.EventType.Quit)
         {
             running = false;
         }
-        
-        else if (ev.Type == (uint)SDL.EventType.MouseMotion)
-        {
-            ProcessMouseEvent(ref ev);
-        }
-    }
 
-    private void ProcessMouseEvent(ref SDL.Event ev)
-    {
-        SDL.ConvertEventToRenderCoordinates(_drawer._gpuRenderer.GetNativePointer(), ref ev);
-        Mouse.LastPosition = new Vector2(ev.Motion.X, ev.Motion.Y);
+        // Processing Mouse
+        else if (Mouse.IsMouseEvent(ref ev))
+        {
+            Mouse.ProcessEvent(_drawer, ref ev);
+        }
     }
 }
