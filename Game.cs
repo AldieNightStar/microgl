@@ -49,8 +49,9 @@ public class Game : IDisposable
             return;
         }
 
-        // Lib utils
+        // Initialization
         _drawer = new Drawer(_renderer);
+        _game.Init(_drawer);
 
         // Game loop
         bool running = true;
@@ -79,6 +80,7 @@ public class Game : IDisposable
                 _game.Update(ref _event, _deltaTime);
             }
 
+            _drawer.Clear();
             _game.Draw(_drawer, _deltaTime);
             SDL.RenderPresent(_renderer);
         }
