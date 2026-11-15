@@ -83,7 +83,7 @@ public class Game : IDisposable
                 _game.Update(ref _event, _deltaTime);
             }
 
-            _drawer.Clear();
+            _drawer.Reset();
             _game.Draw(_drawer, _deltaTime);
             SDL.RenderPresent(_renderer);
         }

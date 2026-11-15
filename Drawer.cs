@@ -17,6 +17,20 @@ public class Drawer
         _renderer = renderer;
     }
 
+    public void Reset()
+    {
+        Clear();
+        Scale = Vector2.One;
+        Matrix = Matrix4x4.Identity;
+    }
+
+    public void Clear()
+    {
+        Color = Color.Black;
+        SDL.RenderClear(_renderer);
+        Color = Color.White;
+    }
+
     public Matrix4x4 Matrix { get; set; } = Matrix4x4.Identity;
 
     public Color Color
@@ -28,6 +42,16 @@ public class Drawer
             SDL.SetRenderDrawColor(_renderer, value.R, value.G, value.B, value.A);
         }
     } = Color.White;
+
+    public Vector2 Scale
+    {
+        get => field;
+        set
+        {
+            field = value;
+            SDL.SetRenderScale(_renderer, value.X, value.Y);
+        }
+    }
 
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {
@@ -62,11 +86,10 @@ public class Drawer
         SDL.RenderLine(_renderer, p1.X, p1.Y, p2.X, p2.Y);
     }
 
-    public void Clear()
+    public void DrawDebugText(string text, Vector2 vec)
     {
-        Color = Color.Black;
-        SDL.RenderClear(_renderer);
-        Color = Color.White;
+        var vec2 = Vector2.Transform(vec, Matrix);
+        SDL.RenderDebugText(_renderer, vec2.X, vec2.Y, text);
     }
 
     private void _FillQuad(Rectangle rect, float u0, float v0, float u1, float v1)
