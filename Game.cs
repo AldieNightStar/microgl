@@ -49,6 +49,9 @@ public class Game : IDisposable
             return;
         }
 
+        // Make pixel perfect rendering without uggly mipmapping
+        SDL.SetDefaultTextureScaleMode(_renderer, SDL.ScaleMode.Nearest);
+
         // Initialization
         _drawer = new Drawer(_renderer);
         _game.Init(_drawer);
