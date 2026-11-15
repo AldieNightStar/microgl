@@ -25,8 +25,6 @@ public class Game : IDisposable
         _game = game;
     }
 
-    public void Dispose() { }
-
     public void Start()
     {
         if (!SDL.Init(SDL.InitFlags.Video))
@@ -69,7 +67,16 @@ public class Game : IDisposable
             SDLCalcDelta(ref _deltaTime, ref _lastTime);
             while (SDL.PollEvent(out _event))
             {
+                // Process most events
                 _processEvents(ref _event, ref running);
+
+                // When QUIT event
+                if (!running)
+                {
+                    Dispose();
+                    break;
+                }
+
                 gotEvent = true;
                 _game.Update(_drawer, ref _event, _deltaTime);
             }
@@ -112,5 +119,12 @@ public class Game : IDisposable
         {
             Mouse.ProcessEvent(_drawer, ref ev);
         }
+    }
+
+    public void Dispose()
+    {
+        _game.Dispose();
+        _drawer.Dispose();
+        SDL.DestroyWindow(_windowHandle);
     }
 }

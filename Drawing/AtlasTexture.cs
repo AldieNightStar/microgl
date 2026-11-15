@@ -16,31 +16,68 @@ public readonly struct AtlasTexture
         _source = source;
     }
 
-    public static AtlasTexture[] FromTexture(Texture t, Vector2 tileSize)
+    public static AtlasTexture[] FromTexture(Texture t, Vector2 tileSize, int spacing = 0, int margin = 0)
     {
-        return _fromTexture(t, tileSize).ToArray();
+        var size = t.Size;
+        var usableRegion = new Rectangle(
+            margin,
+            margin,
+            (int)size.X - margin * 2,
+            (int)size.Y - margin * 2
+        );
+        return new AtlasTexture(t, usableRegion).SliceGrid(tileSize, spacing);
     }
 
-    private static IEnumerable<AtlasTexture> _fromTexture(Texture texture, Vector2 tileSize)
+    public static AtlasTexture[] FromRegion(Texture t, Rectangle region, Vector2 tileSize, int spacing = 0)
     {
-        var size = texture.Size;
-        var countX = (int) (size.X / tileSize.X);
-        var countY = (int) (size.Y / tileSize.Y);
-        var rects = _getRectangles((int) tileSize.X, (int) tileSize.Y, countX, countY);
-        foreach (var rect in rects)
-        {
-            yield return new AtlasTexture(texture, rect);
-        }
+        var subAtlas = new AtlasTexture(t, region);
+        return subAtlas.SliceGrid(tileSize, spacing);
     }
 
-    private static IEnumerable<Rectangle> _getRectangles(int w, int h, int countX, int countY)
+    public AtlasTexture[] SliceGrid(Vector2 tileSize, int spacing = 0)
     {
-        for (int y = 0; y < countY; y++)
+        int w = (int)tileSize.X;
+        int h = (int)tileSize.Y;
+        int cols = (_source.Width + spacing) / (w + spacing);
+        int rows = (_source.Height + spacing) / (h + spacing);
+
+        var result = new AtlasTexture[cols * rows];
+        int index = 0;
+
+        for (int y = 0; y < rows; y++)
         {
-            for (int x = 0; x < countX; x++)
+            for (int x = 0; x < cols; x++)
             {
-                yield return new Rectangle(x * w, y * h, w, h);
+                var rect = new Rectangle(
+                    _source.X + x * (w + spacing),
+                    _source.Y + y * (h + spacing),
+                    w,
+                    h
+                );
+                result[index++] = new AtlasTexture(_texture, rect);
             }
         }
+
+        return result;
+    }
+
+    public Vector2 Size => new(_source.Width, _source.Height);
+    public Rectangle Bounds => _source;
+
+    public static implicit operator AtlasTexture(Texture texture)
+    {
+        var size = texture.Size;
+        return new AtlasTexture(texture, new Rectangle(0, 0, (int)size.X, (int)size.Y));
+    }
+
+    public AtlasTexture SubRegion(Rectangle relativeRect)
+    {
+        var offsetRect = new Rectangle(
+            _source.X + relativeRect.X,
+            _source.Y + relativeRect.Y,
+            relativeRect.Width,
+            relativeRect.Height
+        );
+        return new AtlasTexture(_texture, offsetRect);
     }
 }
