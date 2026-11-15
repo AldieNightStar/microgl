@@ -38,14 +38,14 @@ public class Mouse
         {
             var buttons = ev.Button;
             LastPosition = new Vector2(buttons.X, buttons.Y);
-            OnDown?.Invoke(buttons.Which);
+            OnDown?.Invoke(buttons.Button);
         }
 
         else if (type == (uint) SDL.EventType.MouseButtonUp)
         {
             var buttons = ev.Button;
             LastPosition = new Vector2(buttons.X, buttons.Y);
-            OnUp?.Invoke(buttons.Which);
+            OnUp?.Invoke(buttons.Button);
         }
     }
 

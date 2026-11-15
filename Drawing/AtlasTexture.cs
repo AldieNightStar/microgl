@@ -1,7 +1,5 @@
-using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
-using SDL3;
 
 namespace microgl;
 

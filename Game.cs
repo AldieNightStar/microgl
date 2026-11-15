@@ -81,6 +81,13 @@ public class Game : IDisposable
                 _game.Update(_drawer, ref _event, _deltaTime);
             }
 
+            // Check for running broke
+            if (!running)
+            {
+                Dispose();
+                break;
+            }
+
             // When no events
             if (!gotEvent)
             {
@@ -109,16 +116,13 @@ public class Game : IDisposable
         var type = ev.Type;
 
         // Process exit
-        if (type == (uint)SDL.EventType.Quit)
-        {
-            running = false;
-        }
+        if (type == (uint)SDL.EventType.Quit) running = false;
 
         // Processing Mouse
-        else if (Mouse.IsMouseEvent(ref ev))
-        {
-            Mouse.ProcessEvent(_drawer, ref ev);
-        }
+        else if (Mouse.IsMouseEvent(ref ev)) Mouse.ProcessEvent(_drawer, ref ev);
+
+        // Processing Keyboard
+        else if (Keyboard.IsKeyboardEvent(ref ev)) Keyboard.ProcessEvent(ref ev);
     }
 
     public void Dispose()
