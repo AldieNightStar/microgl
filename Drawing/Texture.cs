@@ -6,7 +6,7 @@ using SDL3;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-public struct Texture : IDisposable
+public class Texture : IDisposable
 {
     internal nint _surfacePtr;
     private readonly Dictionary<nint, nint> _textureCache;
@@ -29,17 +29,24 @@ public struct Texture : IDisposable
     public nint GetTextureForRenderer(IRenderer renderer)
     {
         if (renderer == null || !renderer.IsValid())
-            throw new ArgumentNullException("Renderer is NULL or invalid");
+            throw new ArgumentNullException(nameof(renderer), "Renderer is NULL or invalid");
 
         nint rendererPtr = renderer.GetNativePointer();
         if (rendererPtr == nint.Zero)
-            throw new ArgumentException("Renderer points to NULL");
+            throw new ArgumentException("Renderer points to NULL", nameof(renderer));
 
         if (_textureCache.TryGetValue(rendererPtr, out nint cachedTexture))
             return cachedTexture;
 
+        // Create new texture if not present in cache
         nint newTexture = _createNativeTexture(_surfacePtr, rendererPtr);
-        _textureCache[rendererPtr] = newTexture;
+
+        // Only cache textures for persistent GPU renderers; temporary software textures shouldn't stay
+        if (renderer is GPURenderer)
+        {
+            _textureCache[rendererPtr] = newTexture;
+        }
+
         return newTexture;
     }
 
@@ -47,10 +54,9 @@ public struct Texture : IDisposable
     {
         get
         {
-            if (field == default) {
-                // Reading few bytes from surface
-                var w = Marshal.ReadInt32(_surfacePtr, 8);
-                var h = Marshal.ReadInt32(_surfacePtr, 12);
+            if (field == default)
+            {
+                var (w, h) = GetSurfaceSize(_surfacePtr);
                 field = new Vector2(w, h);
             }
             return field;
@@ -77,6 +83,7 @@ public struct Texture : IDisposable
         if (texture == nint.Zero)
             throw new Exception($"Texture initialization from surface wasn't successful: {SDL.GetError()}");
 
+        SDL.SetTextureScaleMode(texture, SDL.ScaleMode.Nearest);
         return texture;
     }
 
@@ -84,7 +91,8 @@ public struct Texture : IDisposable
     {
         ClearCache();
 
-        if (_surfacePtr != nint.Zero) {
+        if (_surfacePtr != nint.Zero)
+        {
             SDL.DestroySurface(_surfacePtr);
             _surfacePtr = IntPtr.Zero;
         }
@@ -97,6 +105,7 @@ public struct Texture : IDisposable
 
     public static (int, int) GetSurfaceSize(nint surface)
     {
-        return (Marshal.ReadInt32(surface, 8), Marshal.ReadInt32(surface, 12));
+        var surf = Marshal.PtrToStructure<SDL.Surface>(surface);
+        return (surf.Width, surf.Height);
     }
 }

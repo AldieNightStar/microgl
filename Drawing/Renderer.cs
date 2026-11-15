@@ -50,11 +50,6 @@ public struct SoftwareRenderer : IRenderer
 
     public SoftwareRenderer()
     {
-        Init();
-    }
-
-    private void Init()
-    {
         SDLSurface = SDL.CreateSurface(PX_SIZE, PX_SIZE, SDL.PixelFormat.RGBA8888);
         if (SDLSurface == IntPtr.Zero) throw new Exception("Can't create SDL surface: " + SDL.GetError());
 
