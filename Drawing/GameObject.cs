@@ -8,40 +8,69 @@ public abstract class GameObject : IDisposable
     public Transform GlobalTransform { get; private set; } = Transform.Identity;
     public virtual bool IsAlive { get; set; } = true;
 
-    // Converts screen (0,0) coords <-> object's top-left (0,0) coords
     public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
     public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
 
-    public abstract void Init(Drawer d);
-    public abstract void Draw(Drawer d, double dt);
-    public abstract void Update(Drawer d, double dt);
+    public void Move(Vector2 vec) => Transform = Transform.Move(vec);
+    public void Move(float x, float y) => Transform = Transform.Move(new Vector2(x, y));
+    public void Rotate(float rad) => Transform = Transform.Rotate(rad);
+    public void Scale(Vector2 scale) => Transform = Transform.Scale(scale);
+
+    public void GlobalMove(Vector2 vec) => Transform = Transform.GlobalMove(vec);
+    public void GlobalRotate(float rad) => Transform = Transform.GlobalRotate(rad);
+
+    public Vector2 Position
+    {
+        get => Transform.Position;
+        set => Transform = Transform.WithPosition(value);
+    }
+
+    public Vector2 GlobalPosition
+    {
+        get => GlobalTransform.Position;
+        set
+        {
+            Transform = Transform.WithPosition(value);
+            GlobalTransform = Transform;
+        }
+    }
+
+    // --- Public API (Called by the game or GameObjectGroup) ---
+
+    public void Init(Drawer d) => OnInit(d);
+    public void Update(Drawer d) => Update(d, Transform.Identity);
+    public void Draw(Drawer d) => Draw(d, Transform.Identity);
+
+    // --- Internal Hierarchical Overloads ---
+
+    internal void Update(Drawer d, Transform parentTransform)
+    {
+        if (!IsAlive) return;
+        GlobalTransform = parentTransform * Transform;
+        d.Transform = GlobalTransform;
+        OnUpdate(d, Time.DeltaTime);
+    }
+
+    internal void Draw(Drawer d, Transform parentTransform)
+    {
+        if (!IsAlive) return;
+        GlobalTransform = parentTransform * Transform;
+        d.Transform = GlobalTransform;
+        OnDraw(d, Time.DeltaTime);
+    }
+
+    // --- Protected Hooks (Implemented by subclasses) ---
+
+    protected abstract void OnInit(Drawer d);
+    protected abstract void OnUpdate(Drawer d, double dt);
+    protected abstract void OnDraw(Drawer d, double dt);
     public abstract void Dispose();
-
-    internal void DoDraw(Drawer d) => DoDraw(d, Transform.Identity);
-    internal void DoUpdate(Drawer d) => DoUpdate(d, Transform.Identity);
-
-    internal void DoDraw(Drawer d, Transform parentTransform)
-    {
-        if (!IsAlive) return;
-        GlobalTransform = parentTransform * Transform;
-        d.Transform = GlobalTransform;
-        Draw(d, Time.DeltaTime);
-    }
-
-    internal void DoUpdate(Drawer d, Transform parentTransform)
-    {
-        if (!IsAlive) return;
-        GlobalTransform = parentTransform * Transform;
-        d.Transform = GlobalTransform;
-        Update(d, Time.DeltaTime);
-    }
 }
-
 
 public class GameObjectGroup : GameObject
 {
     private readonly List<GameObject> _list;
-    private List<GameObject> _queued = new();
+    private readonly List<GameObject> _queued = new();
 
     public GameObjectGroup() : this(new List<GameObject>()) { }
 
@@ -50,28 +79,7 @@ public class GameObjectGroup : GameObject
         _list = objects;
     }
 
-    public override void Dispose()
-    {
-        foreach (var el in _list)
-        {
-            el.Dispose();
-        }
-
-        foreach (var el in _queued)
-        {
-            el.Dispose();
-        }
-    }
-
-    public override void Draw(Drawer d, double dt)
-    {
-        foreach (var el in _list)
-        {
-            el.DoDraw(d, GlobalTransform);
-        }
-    }
-
-    public override void Init(Drawer d)
+    protected override void OnInit(Drawer d)
     {
         foreach (var el in _list)
         {
@@ -79,13 +87,13 @@ public class GameObjectGroup : GameObject
         }
     }
 
-    public override void Update(Drawer d, double dt)
+    protected override void OnUpdate(Drawer d, double dt)
     {
-        // Update each object in reverse order (To remove dead objects)
+        // Update each object in reverse order (to remove dead objects)
         for (int i = _list.Count - 1; i >= 0; i--)
         {
             var gameObject = _list[i];
-            gameObject.DoUpdate(d, GlobalTransform);
+            gameObject.Update(d, GlobalTransform);
 
             if (!gameObject.IsAlive)
             {
@@ -104,6 +112,29 @@ public class GameObjectGroup : GameObject
             }
             _queued.Clear();
         }
+    }
+
+    protected override void OnDraw(Drawer d, double dt)
+    {
+        foreach (var el in _list)
+        {
+            el.Draw(d, GlobalTransform);
+        }
+    }
+
+    public override void Dispose()
+    {
+        foreach (var el in _list)
+        {
+            el.Dispose();
+        }
+        _list.Clear();
+
+        foreach (var el in _queued)
+        {
+            el.Dispose();
+        }
+        _queued.Clear();
     }
 
     public void Add(GameObject obj)

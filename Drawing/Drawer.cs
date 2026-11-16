@@ -83,7 +83,7 @@ public class Drawer : IDisposable
 
     public void DrawObject(GameObject obj)
     {
-        obj.DoDraw(this, Transform.Identity);
+        obj.Draw(this);
     }
 
     public void DrawTexture(AtlasTexture texture, Rectangle rect)
