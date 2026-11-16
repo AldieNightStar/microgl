@@ -4,6 +4,8 @@ namespace microgl;
 
 public abstract class GameObject : IDisposable
 {
+    private Transform _parentTransform = Transform.Identity;
+
     public Transform Transform { get; set; } = Transform.Identity;
     public Transform GlobalTransform { get; private set; } = Transform.Identity;
     public virtual bool IsAlive { get; set; } = true;
@@ -12,7 +14,6 @@ public abstract class GameObject : IDisposable
     public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
 
     public void Move(Vector2 vec) => Transform = Transform.Move(vec);
-    public void Move(float x, float y) => Transform = Transform.Move(new Vector2(x, y));
     public void Rotate(float rad) => Transform = Transform.Rotate(rad);
     public void Scale(Vector2 scale) => Transform = Transform.Scale(scale);
 
@@ -22,7 +23,11 @@ public abstract class GameObject : IDisposable
     public Vector2 Position
     {
         get => Transform.Position;
-        set => Transform = Transform.WithPosition(value);
+        set
+        {
+            Transform = Transform.WithPosition(value);
+            GlobalTransform = _parentTransform * Transform;
+        }
     }
 
     public Vector2 GlobalPosition
@@ -30,8 +35,30 @@ public abstract class GameObject : IDisposable
         get => GlobalTransform.Position;
         set
         {
-            Transform = Transform.WithPosition(value);
-            GlobalTransform = Transform;
+            var localPos = _parentTransform.ToLocal(value);
+            Transform = Transform.WithPosition(localPos);
+            GlobalTransform = _parentTransform * Transform;
+        }
+    }
+
+    public float Rotation
+    {
+        get => Transform.Rotation;
+        set
+        {
+            Transform = Transform.WithRotation(value);
+            GlobalTransform = _parentTransform * Transform;
+        }
+    }
+
+    public float GlobalRotation
+    {
+        get => GlobalTransform.Rotation;
+        set
+        {
+            float localAngle = value - _parentTransform.Rotation;
+            Transform = Transform.WithRotation(localAngle);
+            GlobalTransform = _parentTransform * Transform;
         }
     }
 
@@ -46,6 +73,7 @@ public abstract class GameObject : IDisposable
     internal void Update(Drawer d, Transform parentTransform)
     {
         if (!IsAlive) return;
+        _parentTransform = parentTransform;
         GlobalTransform = parentTransform * Transform;
         d.Transform = GlobalTransform;
         OnUpdate(d, Time.DeltaTime);
@@ -54,6 +82,7 @@ public abstract class GameObject : IDisposable
     internal void Draw(Drawer d, Transform parentTransform)
     {
         if (!IsAlive) return;
+        _parentTransform = parentTransform;
         GlobalTransform = parentTransform * Transform;
         d.Transform = GlobalTransform;
         OnDraw(d, Time.DeltaTime);

@@ -39,6 +39,8 @@ public readonly struct Transform
 
     public Vector2 Position => Matrix.Translation;
 
+    public float Rotation => MathF.Atan2(Matrix.M12, Matrix.M11);
+
     public Transform WithPosition(Vector2 pos)
     {
         var m = Matrix;
