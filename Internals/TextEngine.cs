@@ -22,7 +22,7 @@ internal class TextEngine : IDisposable
 
         nint newEngine = _createNativeEngine(rendererPtr);
 
-        // Only cache engines for persistent GPU renderers; temporary software engines shouldn't store
+        // Cache engines only for GPU renderers
         if (renderer is GPURenderer)
         {
             _engineCache[rendererPtr] = newEngine;
