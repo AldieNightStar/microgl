@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using SDL3;
+﻿using SDL3;
 
 namespace microgl;
 
@@ -10,10 +9,6 @@ public class Game : IDisposable
     private nint _windowHandle;
     private GPURenderer _renderer;
     private readonly IGame _game;
-
-    // Delta time calc variables
-    private ulong _lastTime;
-    private double _deltaTime;
 
     // Drawing tools
     private Drawer _drawer;
@@ -61,10 +56,13 @@ public class Game : IDisposable
         bool running = true;
         bool gotEvent;
         SDL.Event _event;
+        double deltaTime = 0;
         while (running)
         {
+            // Count time
+            deltaTime = Time.Tick();
+
             gotEvent = false;
-            SDLCalcDelta(ref _deltaTime, ref _lastTime);
             while (SDL.PollEvent(out _event))
             {
                 // Process most events
@@ -78,7 +76,7 @@ public class Game : IDisposable
                 }
 
                 gotEvent = true;
-                _game.Update(_drawer, ref _event, _deltaTime);
+                _game.Update(_drawer, ref _event, deltaTime);
             }
 
             // Check for running broke
@@ -92,23 +90,16 @@ public class Game : IDisposable
             if (!gotEvent)
             {
                 _event = default;
-                _game.Update(_drawer, ref _event, _deltaTime);
+                _game.Update(_drawer, ref _event, deltaTime);
             }
 
             _drawer.Reset();
-            _game.Draw(_drawer, _deltaTime);
+            _game.Draw(_drawer, deltaTime);
             _renderer.RenderPresent();
         }
 
         SDL.DestroyWindow(_windowHandle);
         SDL.Quit();
-    }
-
-    private static void SDLCalcDelta(ref double dt, ref ulong lastTime)
-    {
-        var currentTime = SDL.GetTicks();
-        dt = ((float)(currentTime - lastTime)) / 1000;
-        lastTime = currentTime;
     }
 
     private void _processEvents(ref SDL.Event ev, ref bool running)

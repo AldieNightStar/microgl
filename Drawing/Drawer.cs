@@ -81,6 +81,11 @@ public class Drawer : IDisposable
         Texture.FreeTextureForRenderer(tempTexture, Renderer);
     }
 
+    public void DrawObject(GameObject obj)
+    {
+        obj.DoDraw(this, Transform.Identity);
+    }
+
     public void DrawTexture(AtlasTexture texture, Rectangle rect)
     {
         DrawTexture(texture._texture, rect, texture._source);

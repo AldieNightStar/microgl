@@ -23,6 +23,9 @@ public readonly struct Transform
 
     public Transform RotateCentered(float rad, Vector2 size) => _of(Matrix3x2.CreateRotation(rad, size / 2f));
 
+    public static Transform operator *(Transform parent, Transform child) => new(child.Matrix * parent.Matrix);
+
+
     public Vector2 ToGlobal(Vector2 local) => Vector2.Transform(local, Matrix);
 
     public Vector2 ToLocal(Vector2 global)
