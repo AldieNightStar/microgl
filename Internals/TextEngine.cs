@@ -4,6 +4,8 @@ namespace microgl;
 
 internal class TextEngine : IDisposable
 {
+    internal static TextEngine Instance { get; private set; } = new TextEngine();
+
     private readonly Dictionary<nint, nint> _engineCache = new();
 
     public nint GetEngineForRenderer(IRenderer renderer)

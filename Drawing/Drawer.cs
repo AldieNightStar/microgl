@@ -6,23 +6,22 @@ namespace microgl;
 
 public class Drawer : IDisposable
 {
-    internal GPURenderer _gpuRenderer;
-
+    private static readonly int[] QUAD_INDICES = [0, 1, 2, 0, 2, 3];
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
-    private static readonly int[] _indices = [0, 1, 2, 0, 2, 3];
-    private TextEngine _textEngine = new TextEngine();
-    private readonly Lazy<SoftwareRenderer> _softRenderer = new(() => new SoftwareRenderer());
+
+    public IRenderer Renderer { get; set; }
+    public GameFont Font { get; set; }
+    public Color FontColor { get; set; } = Color.White;
+    public Transform Transform { get; set; } = Transform.Identity;
 
     public Drawer(GPURenderer renderer)
     {
-        _gpuRenderer = renderer;
-        Renderer = null;
+        Renderer = renderer;
     }
 
     public void Reset()
     {
         Clear();
-        Scale = Vector2.One;
         Transform = Transform.Identity;
         FontColor = Color.White;
     }
@@ -34,8 +33,6 @@ public class Drawer : IDisposable
         Color = Color.White;
     }
 
-    public Transform Transform { get; set; } = Transform.Identity;
-
     public Color Color
     {
         get => field;
@@ -45,20 +42,6 @@ public class Drawer : IDisposable
             SDL.SetRenderDrawColor(Renderer.GetNativePointer(), value.R, value.G, value.B, value.A);
         }
     } = Color.White;
-
-    public Color FontColor { get; set; } = Color.White;
-
-    public Vector2 Scale
-    {
-        get => field;
-        set
-        {
-            field = value;
-            SDL.SetRenderScale(Renderer.GetNativePointer(), value.X, value.Y);
-        }
-    }
-
-    public GameFont Font { get; set; }
 
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {
@@ -74,28 +57,26 @@ public class Drawer : IDisposable
         }
 
         _FillQuad(dstRect, u0, v0, u1, v1);
-        var tempTexture = texture.GetTextureForRenderer(Renderer);
-        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), tempTexture, _verts, 4, _indices, 6))
+
+        // TODO optimize
+        var tempTexture = SDL.CreateTextureFromSurface(Renderer.GetNativePointer(), texture.Surface);
+        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), tempTexture, _verts, 4, QUAD_INDICES, 6))
         {
             throw new Exception($"Render failed for geometry: {SDL.GetError()}");
         }
-        Texture.FreeTextureForRenderer(tempTexture, Renderer);
+        SDL.DestroyTexture(tempTexture);
     }
 
-    public void DrawObject(GameObject obj)
-    {
-        obj.Draw(this);
-    }
+    public void DrawObject(GameObject obj) => obj.Draw(this, Transform);
 
-    public void DrawTexture(AtlasTexture texture, Rectangle rect)
-    {
-        DrawTexture(texture._texture, rect, texture._source);
-    }
+    public void DrawObject(GameObject obj, Vector2 pos) => obj.Draw(this, Transform * Transform.Move(pos));
+
+    public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
 
     public void DrawRect(Rectangle rect)
     {
         _FillQuad(rect, 0f, 0f, 0f, 0f);
-        SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, _indices, 6);
+        SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, QUAD_INDICES, 6);
     }
 
     public void DrawLine(Vector2 vec1, Vector2 vec2)
@@ -107,26 +88,27 @@ public class Drawer : IDisposable
 
     public void DrawDebugText(string text, Vector2 vec)
     {
-        var vec2 = Transform.ToGlobal(vec);
-        SDL.RenderDebugText(Renderer.GetNativePointer(), vec2.X, vec2.Y, text);
+        var glob = Transform.ToGlobal(vec);
+        SDL.RenderDebugText(Renderer.GetNativePointer(), glob.X, glob.Y, text);
     }
 
     public void DrawText(string text, Vector2 vec)
     {
         // TODO Cache textObject
         var vec2 = Transform.ToGlobal(vec);
-        var textEnginePtr = _textEngine.GetEngineForRenderer(Renderer);
-        var textObject = TTF.CreateText(textEnginePtr, Font._fontResource, text, 0);
+        var textEnginePtr = TextEngine.Instance.GetEngineForRenderer(Renderer);
+
+        var tempTextObject = TTF.CreateText(textEnginePtr, Font._fontResource, text, 0);
+        if (tempTextObject == IntPtr.Zero) throw new Exception($"Text object wasn't create: {SDL.GetError()}");
+        
         var color = FontColor;
 
-        if (textObject == IntPtr.Zero) throw new Exception($"Text object wasn't create: {SDL.GetError()}");
-
-        TTF.SetTextColor(textObject, color.R, color.G, color.B, color.A);
-        if (!TTF.DrawRendererText(textObject, vec2.X, vec2.Y))
+        TTF.SetTextColor(tempTextObject, color.R, color.G, color.B, color.A);
+        if (!TTF.DrawRendererText(tempTextObject, vec2.X, vec2.Y))
         {
             throw new Exception($"Can't draw text: {SDL.GetError()}");
         }
-        TTF.DestroyText(textObject);
+        TTF.DestroyText(tempTextObject);
         TextEngine.FreeEngineForRenderer(textEnginePtr, Renderer);
     }
 
@@ -153,51 +135,8 @@ public class Drawer : IDisposable
         A = c.A / 255f,
     };
 
-    public IRenderer Renderer
-    {
-        get
-        {
-            // Either return renderer or GPU Renderer as a fallback
-            return field ?? _gpuRenderer;
-        }
-        set
-        {
-            // Do not close default renderers
-            if (_isRendererNeedToClose(field)) field?.Dispose();
-            field = value;
-        }
-    }
-
-    public Texture GenerateTexture(ushort w, ushort h, Action<Drawer> action)
-    {
-        // Reuse software renderer
-        Renderer = _softRenderer.Value;
-        Reset();
-
-        action(this);
-        var texture = _softRenderer.Value.ProduceTexture(w, h);
-
-        Renderer = null;
-        return texture;
-    }
-
-    private bool _isRendererNeedToClose(IRenderer? r)
-    {
-        if (r == null) return false;
-
-        var ptr = r.GetNativePointer();
-        if (ptr == _gpuRenderer.GetNativePointer()) return false;
-        if (_softRenderer.IsValueCreated && ptr == _softRenderer.Value.GetNativePointer()) return false;
-        return true;
-    }
-
     public void Dispose()
     {
-        _textEngine.Dispose();
-        if (_softRenderer.IsValueCreated)
-        {
-            _softRenderer.Value.Dispose();
-        }
         Renderer?.Dispose();
     }
 }

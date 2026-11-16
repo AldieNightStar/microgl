@@ -47,15 +47,14 @@ public sealed class GPURenderer : IRenderer
 public sealed class SoftwareRenderer : IRenderer
 {
     public nint SDLRenderer { get; private set; }
-    public nint SDLSurface { get; private set; }
+    public Surface Surface { get; private set; }
     public static ushort PX_SIZE = 1024;
 
     public SoftwareRenderer()
     {
-        SDLSurface = SDL.CreateSurface(PX_SIZE, PX_SIZE, SDL.PixelFormat.RGBA8888);
-        if (SDLSurface == IntPtr.Zero) throw new Exception("Can't create SDL surface: " + SDL.GetError());
+        Surface = new Surface();
 
-        SDLRenderer = SDL.CreateSoftwareRenderer(SDLSurface);
+        SDLRenderer = SDL.CreateSoftwareRenderer(Surface);
         if (SDLRenderer == IntPtr.Zero) throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());
 
         SDL.SetDefaultTextureScaleMode(SDLRenderer, SDL.ScaleMode.Nearest);
@@ -65,7 +64,7 @@ public sealed class SoftwareRenderer : IRenderer
     {
         SDL.RenderPresent(SDLRenderer);
         var region = new Rectangle(0, 0, w, h);
-        var tex = new Texture(TextureUtil.ExtractRegion(SDLSurface, region));
+        var tex = new Texture(new Surface(TextureUtil.ExtractRegion(Surface, region)));
         SDL.RenderClear(SDLRenderer);
         return tex;
     }
@@ -78,10 +77,10 @@ public sealed class SoftwareRenderer : IRenderer
             SDLRenderer = IntPtr.Zero;
         }
 
-        if (SDLSurface != IntPtr.Zero)
+        if (Surface == default)
         {
-            SDL.DestroySurface(SDLSurface);
-            SDLSurface = IntPtr.Zero;
+            Surface.Dispose();
+            Surface = default;
         }
     }
 

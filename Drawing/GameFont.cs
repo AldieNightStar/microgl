@@ -6,7 +6,7 @@ public readonly struct GameFont : IDisposable
 {
     internal readonly nint _fontResource {get; init;}
 
-    public GameFont(Drawer d, string filename, float size)
+    public GameFont(string filename, float size)
     {
         TextEngine.Init();
         _fontResource = TTF.OpenFont(filename, size);
@@ -16,9 +16,9 @@ public readonly struct GameFont : IDisposable
         }
     }
 
-    public static GameFont FromTTF(Drawer d, string filename, float size)
+    public static GameFont FromTTF(string filename, float size)
     {
-        return new GameFont(d, filename, size);
+        return new GameFont(filename, size);
     }
 
     public void Dispose()

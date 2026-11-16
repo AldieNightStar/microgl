@@ -25,7 +25,7 @@ public class Mouse
         var type = ev.Type;
 
         // Convert coordinates to window
-        SDL.ConvertEventToRenderCoordinates(drawer._gpuRenderer.GetNativePointer(), ref ev);
+        SDL.ConvertEventToRenderCoordinates(drawer.Renderer.GetNativePointer(), ref ev);
         
         if (type == (uint) SDL.EventType.MouseMotion)
         {
