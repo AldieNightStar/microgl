@@ -14,7 +14,7 @@ public class Drawer : IDisposable
     public Color FontColor { get; set; } = Color.White;
     public Transform Transform { get; set; } = Transform.Identity;
 
-    public Drawer(GPURenderer renderer)
+    public Drawer(IRenderer renderer)
     {
         Renderer = renderer;
     }

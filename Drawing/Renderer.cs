@@ -48,11 +48,10 @@ public sealed class SoftwareRenderer : IRenderer
 {
     public nint SDLRenderer { get; private set; }
     public Surface Surface { get; private set; }
-    public static ushort PX_SIZE = 1024;
 
-    public SoftwareRenderer()
+    public SoftwareRenderer(ushort w, ushort h)
     {
-        Surface = new Surface();
+        Surface = new Surface(w, h);
 
         SDLRenderer = SDL.CreateSoftwareRenderer(Surface);
         if (SDLRenderer == IntPtr.Zero) throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());

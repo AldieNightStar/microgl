@@ -22,4 +22,13 @@ public class Texture : IDisposable
     {
         Surface.Dispose();
     }
+
+    public static Texture FromDrawing(ushort w, ushort h, Action<Drawer> act)
+    {
+        using SoftwareRenderer soft = new SoftwareRenderer(w, h);
+        using var drawer = new Drawer(soft);
+        act(drawer);
+        var texture = soft.ProduceTexture(w, h);
+        return texture;
+    }
 }
