@@ -10,7 +10,7 @@ public interface IRenderer : IDisposable
     bool IsValid();
 }
 
-public struct GPURenderer : IRenderer
+public sealed class GPURenderer : IRenderer
 {
     private nint _rendererPtr;
 
@@ -22,8 +22,10 @@ public struct GPURenderer : IRenderer
 
     public void Dispose()
     {
-        SDL.DestroyRenderer(_rendererPtr);
-        _rendererPtr = IntPtr.Zero;
+        if (_rendererPtr != IntPtr.Zero) {
+            SDL.DestroyRenderer(_rendererPtr);
+            _rendererPtr = IntPtr.Zero;
+        }
     }
 
     public nint GetNativePointer()
@@ -42,7 +44,7 @@ public struct GPURenderer : IRenderer
     }
 }
 
-public struct SoftwareRenderer : IRenderer
+public sealed class SoftwareRenderer : IRenderer
 {
     public nint SDLRenderer { get; private set; }
     public nint SDLSurface { get; private set; }
