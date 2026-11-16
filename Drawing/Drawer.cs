@@ -11,6 +11,7 @@ public class Drawer : IDisposable
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private static readonly int[] _indices = [0, 1, 2, 0, 2, 3];
     private TextEngine _textEngine = new TextEngine();
+    private readonly Lazy<SoftwareRenderer> _softRenderer = new(() => new SoftwareRenderer());
 
     public Drawer(GPURenderer renderer)
     {
@@ -167,26 +168,14 @@ public class Drawer : IDisposable
         }
     }
 
-    internal SoftwareRenderer _softRenderer
-    {
-        get
-        {
-            if (field.SDLRenderer == IntPtr.Zero)
-            {
-                field = new SoftwareRenderer();
-            }
-            return field;
-        }
-    }
-
     public Texture GenerateTexture(ushort w, ushort h, Action<Drawer> action)
     {
         // Reuse software renderer
-        Renderer = _softRenderer;
+        Renderer = _softRenderer.Value;
         Reset();
 
         action(this);
-        var texture = _softRenderer.ProduceTexture(w, h);
+        var texture = _softRenderer.Value.ProduceTexture(w, h);
 
         Renderer = null;
         return texture;
@@ -196,14 +185,19 @@ public class Drawer : IDisposable
     {
         if (r == null) return false;
 
-        var ptr = r?.GetNativePointer() ?? 0;
-        if (ptr == _gpuRenderer.GetNativePointer() || ptr == _softRenderer.GetNativePointer()) return false;
+        var ptr = r.GetNativePointer();
+        if (ptr == _gpuRenderer.GetNativePointer()) return false;
+        if (_softRenderer.IsValueCreated && ptr == _softRenderer.Value.GetNativePointer()) return false;
         return true;
     }
 
     public void Dispose()
     {
         _textEngine.Dispose();
+        if (_softRenderer.IsValueCreated)
+        {
+            _softRenderer.Value.Dispose();
+        }
         Renderer?.Dispose();
     }
 }
