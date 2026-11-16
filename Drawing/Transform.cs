@@ -41,6 +41,11 @@ public readonly struct Transform
 
     public float Rotation => MathF.Atan2(Matrix.M12, Matrix.M11);
 
+    public Vector2 ScaleFactor => new(
+        new Vector2(Matrix.M11, Matrix.M12).Length(),
+        new Vector2(Matrix.M21, Matrix.M22).Length()
+    );
+
     public Transform WithPosition(Vector2 pos)
     {
         var m = Matrix;

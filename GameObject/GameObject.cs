@@ -15,10 +15,12 @@ public abstract class GameObject : IDisposable
 
     public void Move(Vector2 vec) => Transform = Transform.Move(vec);
     public void Rotate(float rad) => Transform = Transform.Rotate(rad);
-    public void Scale(Vector2 scale) => Transform = Transform.Scale(scale);
+    public void Resize(Vector2 scale) => Transform = Transform.Scale(scale);
 
     public void GlobalMove(Vector2 vec) => Transform = Transform.GlobalMove(vec);
     public void GlobalRotate(float rad) => Transform = Transform.GlobalRotate(rad);
+
+    public void Delete() => IsAlive = false;
 
     public Vector2 Position
     {
@@ -62,6 +64,31 @@ public abstract class GameObject : IDisposable
         }
     }
 
+    public Vector2 Scale
+    {
+        get => Transform.ScaleFactor;
+        set
+        {
+            Transform = Transform.WithScale(value);
+            GlobalTransform = _parentTransform * Transform;
+        }
+    }
+
+    public Vector2 GlobalScale
+    {
+        get => GlobalTransform.ScaleFactor;
+        set
+        {
+            var parentScale = _parentTransform.ScaleFactor;
+            var localScale = new Vector2(
+                parentScale.X != 0f ? value.X / parentScale.X : value.X,
+                parentScale.Y != 0f ? value.Y / parentScale.Y : value.Y
+            );
+            Transform = Transform.WithScale(localScale);
+            GlobalTransform = _parentTransform * Transform;
+        }
+    }
+
     // --- Public API (Called by the game or GameObjectGroup) ---
 
     public void Init(Drawer d) => Init(d, Transform.Identity);
@@ -101,80 +128,4 @@ public abstract class GameObject : IDisposable
     protected abstract void OnUpdate(Drawer d, float dt);
     protected abstract void OnDraw(Drawer d, float dt);
     public abstract void Dispose();
-}
-
-public class GameObjectGroup : GameObject
-{
-    private readonly List<GameObject> _list;
-    private readonly List<GameObject> _queued = new();
-
-    public GameObjectGroup() : this(new List<GameObject>()) { }
-
-    public GameObjectGroup(List<GameObject> objects)
-    {
-        _list = objects;
-    }
-
-    protected override void OnInit(Drawer d)
-    {
-        foreach (var el in _list)
-        {
-            el.Init(d, GlobalTransform);
-        }
-    }
-
-    protected override void OnUpdate(Drawer d, float dt)
-    {
-        // Update each object in reverse order (to remove dead objects)
-        for (int i = _list.Count - 1; i >= 0; i--)
-        {
-            var gameObject = _list[i];
-            gameObject.Update(d, GlobalTransform);
-
-            if (!gameObject.IsAlive)
-            {
-                gameObject.Dispose();
-                _list.RemoveAt(i);
-            }
-        }
-
-        // In progress of adding new objects
-        if (_queued.Count > 0)
-        {
-            foreach (var el in _queued)
-            {
-                _list.Add(el);
-                el.Init(d, GlobalTransform);
-            }
-            _queued.Clear();
-        }
-    }
-
-    protected override void OnDraw(Drawer d, float dt)
-    {
-        foreach (var el in _list)
-        {
-            el.Draw(d, GlobalTransform);
-        }
-    }
-
-    public override void Dispose()
-    {
-        foreach (var el in _list)
-        {
-            el.Dispose();
-        }
-        _list.Clear();
-
-        foreach (var el in _queued)
-        {
-            el.Dispose();
-        }
-        _queued.Clear();
-    }
-
-    public void Add(GameObject obj)
-    {
-        _queued.Add(obj);
-    }
 }
