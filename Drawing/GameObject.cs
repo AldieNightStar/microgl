@@ -98,8 +98,8 @@ public abstract class GameObject : IDisposable
     // --- Protected Hooks (Implemented by subclasses) ---
 
     protected abstract void OnInit(Drawer d);
-    protected abstract void OnUpdate(Drawer d, double dt);
-    protected abstract void OnDraw(Drawer d, double dt);
+    protected abstract void OnUpdate(Drawer d, float dt);
+    protected abstract void OnDraw(Drawer d, float dt);
     public abstract void Dispose();
 }
 
@@ -123,7 +123,7 @@ public class GameObjectGroup : GameObject
         }
     }
 
-    protected override void OnUpdate(Drawer d, double dt)
+    protected override void OnUpdate(Drawer d, float dt)
     {
         // Update each object in reverse order (to remove dead objects)
         for (int i = _list.Count - 1; i >= 0; i--)
@@ -150,7 +150,7 @@ public class GameObjectGroup : GameObject
         }
     }
 
-    protected override void OnDraw(Drawer d, double dt)
+    protected override void OnDraw(Drawer d, float dt)
     {
         foreach (var el in _list)
         {

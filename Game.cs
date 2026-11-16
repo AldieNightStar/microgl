@@ -56,7 +56,7 @@ public class Game : IDisposable
         bool running = true;
         bool gotEvent;
         SDL.Event _event;
-        double deltaTime = 0;
+        float deltaTime = 0;
         while (running)
         {
             // Count time

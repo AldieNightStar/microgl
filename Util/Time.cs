@@ -7,20 +7,20 @@ public static class Time
     private static ulong _lastCounter;
     private static readonly double _frequency = SDL.GetPerformanceFrequency();
 
-    public static double DeltaTime { get; private set; }
+    public static float DeltaTime { get; private set; }
 
-    internal static double Tick()
+    internal static float Tick()
     {
         ulong current = SDL.GetPerformanceCounter();
 
         if (_lastCounter == 0)
         {
             _lastCounter = current;
-            DeltaTime = 0.0;
-            return 0.0;
+            DeltaTime = 0.0f;
+            return 0.0f;
         }
 
-        DeltaTime = (current - _lastCounter) / _frequency;
+        DeltaTime = (float) ((current - _lastCounter) / _frequency);
         _lastCounter = current;
         return DeltaTime;
     }
