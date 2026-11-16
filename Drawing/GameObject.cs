@@ -64,11 +64,18 @@ public abstract class GameObject : IDisposable
 
     // --- Public API (Called by the game or GameObjectGroup) ---
 
-    public void Init(Drawer d) => OnInit(d);
+    public void Init(Drawer d) => Init(d, Transform.Identity);
     public void Update(Drawer d) => Update(d, Transform.Identity);
     public void Draw(Drawer d) => Draw(d, Transform.Identity);
 
     // --- Internal Hierarchical Overloads ---
+
+    internal void Init(Drawer d, Transform parentTransform)
+    {
+        _parentTransform = parentTransform;
+        GlobalTransform = parentTransform * Transform;
+        OnInit(d);
+    }
 
     internal void Update(Drawer d, Transform parentTransform)
     {
@@ -112,7 +119,7 @@ public class GameObjectGroup : GameObject
     {
         foreach (var el in _list)
         {
-            el.Init(d);
+            el.Init(d, GlobalTransform);
         }
     }
 
@@ -137,7 +144,7 @@ public class GameObjectGroup : GameObject
             foreach (var el in _queued)
             {
                 _list.Add(el);
-                el.Init(d);
+                el.Init(d, GlobalTransform);
             }
             _queued.Clear();
         }
