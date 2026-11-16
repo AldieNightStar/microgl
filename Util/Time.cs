@@ -8,6 +8,7 @@ public static class Time
     private static readonly double _frequency = SDL.GetPerformanceFrequency();
 
     public static float DeltaTime { get; private set; }
+    public static float DeltaTimeMax { get; set; } = 0.25f;
 
     internal static float Tick()
     {
@@ -20,7 +21,9 @@ public static class Time
             return 0.0f;
         }
 
-        DeltaTime = (float) ((current - _lastCounter) / _frequency);
+        DeltaTime = (float)((current - _lastCounter) / _frequency);
+        if (DeltaTime > DeltaTimeMax) DeltaTime = DeltaTimeMax;
+
         _lastCounter = current;
         return DeltaTime;
     }
