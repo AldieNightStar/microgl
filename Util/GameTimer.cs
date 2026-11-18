@@ -1,6 +1,6 @@
 namespace microgl;
 
-public class GameTimer : GameObject, IDisposable
+public class GameTimer : GameObjectBase, IDisposable
 {
     public float Duration { get; set; }
     public float Elapsed { get; private set; }

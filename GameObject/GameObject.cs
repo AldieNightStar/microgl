@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace microgl;
 
-public abstract class GameObject : IDisposable
+public abstract class GameObject : GameObjectBase, IDisposable
 {
     private Transform _parentTransform = Transform.Identity;
 
@@ -121,11 +121,4 @@ public abstract class GameObject : IDisposable
         d.Transform = GlobalTransform;
         OnDraw(d, Time.DeltaTime);
     }
-
-    // --- Protected Hooks (Implemented by subclasses) ---
-
-    protected abstract void OnInit(Drawer d);
-    protected abstract void OnUpdate(Drawer d, float dt);
-    protected abstract void OnDraw(Drawer d, float dt);
-    public abstract void Dispose();
 }
