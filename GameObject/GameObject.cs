@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Numerics;
 
 namespace microgl;
@@ -15,6 +16,7 @@ public abstract class GameObject : IDisposable
 
     public Transform Transform { get; set; } = Transform.Identity;
     public Transform GlobalTransform { get; private set; } = Transform.Identity;
+    public Color BlendColor {get; set; } = Color.White;
 
     public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
     public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
@@ -125,6 +127,7 @@ public abstract class GameObject : IDisposable
         _parentTransform = parentTransform;
         GlobalTransform = parentTransform * Transform;
         d.Transform = GlobalTransform;
+        d.BlendColor = BlendColor;
         OnDraw(d, Time.DeltaTime);
     }
 }
