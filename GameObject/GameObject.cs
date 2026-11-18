@@ -2,8 +2,15 @@ using System.Numerics;
 
 namespace microgl;
 
-public abstract class GameObject : GameObjectBase, IDisposable
+public abstract class GameObject : IDisposable
 {
+    public virtual bool IsAlive { get; set; } = true;
+
+    protected abstract void OnInit(Drawer d);
+    protected abstract void OnUpdate(Drawer d, float dt);
+    protected abstract void OnDraw(Drawer d, float dt);
+    public abstract void Dispose();
+
     private Transform _parentTransform = Transform.Identity;
 
     public Transform Transform { get; set; } = Transform.Identity;

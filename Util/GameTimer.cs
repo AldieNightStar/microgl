@@ -1,6 +1,6 @@
 namespace microgl;
 
-public class GameTimer : GameObjectBase, IDisposable
+public class GameTimer : IDisposable
 {
     public float Duration { get; set; }
     public float Elapsed { get; private set; }
@@ -20,7 +20,7 @@ public class GameTimer : GameObjectBase, IDisposable
     public float Progress => Duration <= 0f ? 1f : Math.Clamp(Elapsed / Duration, 0f, 1f);
     public float Remaining => MathF.Max(0f, Duration - Elapsed);
 
-    private bool _updateTimer(float dt)
+    public bool Update(float dt)
     {
         if (IsPaused || Duration <= 0f)
             return false;
@@ -52,23 +52,10 @@ public class GameTimer : GameObjectBase, IDisposable
         Elapsed = 0f;
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
-        IsPaused = true;
+        IsPaused = true;  
         OnComplete = null;
-        Reset();
-    }
-
-    protected override void OnInit(Drawer d)
-    {
-    }
-
-    protected override void OnUpdate(Drawer d, float dt)
-    {
-        _updateTimer(dt);
-    }
-
-    protected override void OnDraw(Drawer d, float dt)
-    {
+        Reset();          
     }
 }
