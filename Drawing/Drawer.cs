@@ -24,6 +24,7 @@ public class Drawer : IDisposable
         Clear();
         Transform = Transform.Identity;
         FontColor = Color.White;
+        BlendColor = Color.White;
     }
 
     public void Clear()
@@ -43,6 +44,8 @@ public class Drawer : IDisposable
         }
     } = Color.White;
 
+    public Color BlendColor { get; set; } = Color.White;
+
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {
         float u0 = 0f, v0 = 0f, u1 = 1f, v1 = 1f;
@@ -59,7 +62,16 @@ public class Drawer : IDisposable
         _FillQuad(dstRect, u0, v0, u1, v1);
 
         // Using cache
-        var nativeTexture =Renderer.GetNativeTexture(texture);
+        var nativeTexture = Renderer.GetNativeTexture(texture);
+
+        // Apply blend color
+        var blendFColor = _toFColor(BlendColor);
+        _verts[0].Color = blendFColor;
+        _verts[1].Color = blendFColor;
+        _verts[2].Color = blendFColor;
+        _verts[3].Color = blendFColor;
+
+        // Drawing texture
         if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, 4, QUAD_INDICES, 6))
         {
             throw new Exception($"Render failed for geometry: {SDL.GetError()}");
@@ -102,7 +114,7 @@ public class Drawer : IDisposable
 
         var tempTextObject = TTF.CreateText(textEnginePtr, Font._fontResource, text, 0);
         if (tempTextObject == IntPtr.Zero) throw new Exception($"Text object wasn't create: {SDL.GetError()}");
-        
+
         var color = FontColor;
 
         TTF.SetTextColor(tempTextObject, color.R, color.G, color.B, color.A);
