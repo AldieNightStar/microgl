@@ -8,7 +8,6 @@ public abstract class GameObject : GameObjectBase, IDisposable
 
     public Transform Transform { get; set; } = Transform.Identity;
     public Transform GlobalTransform { get; private set; } = Transform.Identity;
-    public virtual bool IsAlive { get; set; } = true;
 
     public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
     public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
