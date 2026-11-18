@@ -62,12 +62,6 @@ public readonly struct AtlasTexture
     public Vector2 Size => new(_source.Width, _source.Height);
     public Rectangle Bounds => _source;
 
-    public static implicit operator AtlasTexture(Texture texture)
-    {
-        var size = texture.Size;
-        return new AtlasTexture(texture, new Rectangle(0, 0, (int)size.X, (int)size.Y));
-    }
-
     public AtlasTexture SubRegion(Rectangle relativeRect)
     {
         var offsetRect = new Rectangle(
