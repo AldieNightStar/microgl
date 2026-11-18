@@ -58,20 +58,22 @@ public class Drawer : IDisposable
 
         _FillQuad(dstRect, u0, v0, u1, v1);
 
-        // TODO optimize
-        var tempTexture = SDL.CreateTextureFromSurface(Renderer.GetNativePointer(), texture.Surface);
-        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), tempTexture, _verts, 4, QUAD_INDICES, 6))
+        // Using cache
+        var nativeTexture =Renderer.GetNativeTexture(texture);
+        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, 4, QUAD_INDICES, 6))
         {
             throw new Exception($"Render failed for geometry: {SDL.GetError()}");
         }
-        SDL.DestroyTexture(tempTexture);
     }
+
+    public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
+
+    public void DrawTexture(DynamicTexture texture, Rectangle rect) => DrawTexture(texture.Texture, rect);
 
     public void DrawObject(GameObject obj) => obj.Draw(this, Transform);
 
     public void DrawObject(GameObject obj, Vector2 pos) => obj.Draw(this, Transform * Transform.Translate(pos));
 
-    public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
 
     public void DrawRect(Rectangle rect)
     {

@@ -8,21 +8,31 @@ public interface IRenderer : IDisposable
     nint GetNativePointer();
     void RenderPresent();
     bool IsValid();
+    nint GetNativeTexture(Texture texture);
 }
 
 public sealed class GPURenderer : IRenderer
 {
     private nint _rendererPtr;
+    private TextureCache _textureCache;
 
     public GPURenderer(nint renderer)
     {
         _rendererPtr = renderer;
         if (_rendererPtr == IntPtr.Zero) throw new ArgumentException("GPU Renderer is not initialized well");
+
+        _textureCache = new TextureCache(renderer);
     }
 
     public void Dispose()
     {
-        if (_rendererPtr != IntPtr.Zero) {
+        if (_textureCache != null)
+        {
+            _textureCache.Dispose();
+            _textureCache = null;
+        }
+        if (_rendererPtr != IntPtr.Zero)
+        {
             SDL.DestroyRenderer(_rendererPtr);
             _rendererPtr = IntPtr.Zero;
         }
@@ -42,12 +52,18 @@ public sealed class GPURenderer : IRenderer
     {
         return _rendererPtr != IntPtr.Zero;
     }
+
+    public nint GetNativeTexture(Texture texture)
+    {
+        return _textureCache.GetCachedSDLTexture(texture);
+    }
 }
 
 public sealed class SoftwareRenderer : IRenderer
 {
     public nint SDLRenderer { get; private set; }
     public Surface Surface { get; private set; }
+    private TextureCache _textureCache;
 
     public SoftwareRenderer(ushort w, ushort h)
     {
@@ -70,12 +86,16 @@ public sealed class SoftwareRenderer : IRenderer
 
     public void Dispose()
     {
+        if (_textureCache != null)
+        {
+            _textureCache.Dispose();
+            _textureCache = null;
+        }
         if (SDLRenderer != IntPtr.Zero)
         {
             SDL.DestroyRenderer(SDLRenderer);
             SDLRenderer = IntPtr.Zero;
         }
-
         if (Surface == default)
         {
             Surface.Dispose();
@@ -96,5 +116,10 @@ public sealed class SoftwareRenderer : IRenderer
     public bool IsValid()
     {
         return SDLRenderer != IntPtr.Zero;
+    }
+
+    public nint GetNativeTexture(Texture texture)
+    {
+        return _textureCache.GetCachedSDLTexture(texture);
     }
 }

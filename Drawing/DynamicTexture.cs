@@ -36,6 +36,4 @@ public class DynamicTexture : IDisposable
             _texture = null;
         }
     }
-
-    public static implicit operator Texture(DynamicTexture t) => t.Texture;
 }

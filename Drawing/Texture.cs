@@ -20,6 +20,7 @@ public class Texture : IDisposable
 
     public void Dispose()
     {
+        FreeingResourceBus.EmitFreedTexture(this);
         Surface.Dispose();
     }
 
