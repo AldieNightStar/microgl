@@ -69,7 +69,7 @@ public class Drawer : IDisposable
 
     public void DrawObject(GameObject obj) => obj.Draw(this, Transform);
 
-    public void DrawObject(GameObject obj, Vector2 pos) => obj.Draw(this, Transform * Transform.Move(pos));
+    public void DrawObject(GameObject obj, Vector2 pos) => obj.Draw(this, Transform * Transform.Translate(pos));
 
     public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
 

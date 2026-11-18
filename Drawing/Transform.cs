@@ -15,7 +15,7 @@ public readonly struct Transform
 
     // --- Local Transformations (Relative to object's own rotation & scale) ---
 
-    public Transform Move(Vector2 vec) => _local(Matrix3x2.CreateTranslation(vec));
+    public Transform Translate(Vector2 vec) => _local(Matrix3x2.CreateTranslation(vec));
 
     public Transform Scale(Vector2 scale) => _local(Matrix3x2.CreateScale(scale));
 
@@ -27,7 +27,7 @@ public readonly struct Transform
 
     // --- Global Transformations (Relative to parent / screen axes) ---
 
-    public Transform GlobalMove(Vector2 vec) => _global(Matrix3x2.CreateTranslation(vec));
+    public Transform GlobalTranslate(Vector2 vec) => _global(Matrix3x2.CreateTranslation(vec));
 
     public Transform GlobalScale(Vector2 scale) => _global(Matrix3x2.CreateScale(scale));
 

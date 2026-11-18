@@ -13,11 +13,11 @@ public abstract class GameObject : GameObjectBase, IDisposable
     public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
     public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
 
-    public void Move(Vector2 vec) => Transform = Transform.Move(vec);
+    public void Move(Vector2 vec) => Transform = Transform.Translate(vec);
     public void Rotate(float rad) => Transform = Transform.Rotate(rad);
     public void Resize(Vector2 scale) => Transform = Transform.Scale(scale);
 
-    public void GlobalMove(Vector2 vec) => Transform = Transform.GlobalMove(vec);
+    public void GlobalMove(Vector2 vec) => Transform = Transform.GlobalTranslate(vec);
     public void GlobalRotate(float rad) => Transform = Transform.GlobalRotate(rad);
 
     public void Delete() => IsAlive = false;
