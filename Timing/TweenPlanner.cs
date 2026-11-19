@@ -29,6 +29,17 @@ public sealed class TweenPlanner
         return this;
     }
 
+    public TweenPlanner CallFunc(Action callback)
+    {
+        var funcTween = new Tween(0f, 0f, 0f, null)
+        {
+            IsPaused = true
+        };
+        funcTween.OnComplete += _ => callback();
+        _steps.Add(funcTween);
+        return this;
+    }
+
     public Tween ToTween()
     {
         if (_steps.Count == 0)
