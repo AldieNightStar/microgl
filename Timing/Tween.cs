@@ -10,6 +10,7 @@ public class Tween : IGameUpdatable
     public float Elapsed { get; private set; }
     public bool IsPaused { get; set; }
     public bool Repeatable { get; set; }
+    public bool IsActive => !IsPaused && !IsFinished;
 
     public Func<float, float> Ease { get; set; }
     public Action<float>? OnUpdate { get; set; }

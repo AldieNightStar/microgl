@@ -1,10 +1,11 @@
+using System.Numerics;
 using SDL3;
 
 namespace microgl;
 
 public readonly struct GameFont : IDisposable
 {
-    internal readonly nint _fontResource {get; init;}
+    internal readonly nint _fontResource { get; init; }
 
     public GameFont(string filename, float size)
     {
@@ -24,5 +25,12 @@ public readonly struct GameFont : IDisposable
     public void Dispose()
     {
         TTF.CloseFont(_fontResource);
+    }
+
+    public Vector2 MeasureText(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return Vector2.Zero;
+        TTF.GetStringSize(_fontResource, text, 0, out int w, out int h);
+        return new Vector2(w, h);
     }
 }

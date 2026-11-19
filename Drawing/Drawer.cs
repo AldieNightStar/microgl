@@ -23,6 +23,7 @@ public class Drawer : IDisposable
     {
         Clear();
         Transform = Transform.Identity;
+        Font = default;
         FontColor = Color.White;
         BlendColor = Color.White;
     }
