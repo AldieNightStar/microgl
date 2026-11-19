@@ -40,6 +40,15 @@ public sealed class TweenPlanner
         return this;
     }
 
+    public TweenPlanner Append(TweenPlanner other)
+    {
+        if (other == this)
+            throw new InvalidOperationException("Cannot append a TweenPlanner to itself.");
+
+        _steps.AddRange(other._steps);
+        return this;
+    }
+
     public Tween ToTween()
     {
         if (_steps.Count == 0)
