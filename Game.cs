@@ -31,10 +31,22 @@ public class Game : IDisposable
 
         var (w, h) = ((int)_winSize.X, (int)_winSize.Y);
         var winFlags = SDL.WindowFlags.Resizable;
-        if (!SDL.CreateWindowAndRenderer(_title, w, h, winFlags, out _windowHandle, out var renderer))
+
+        _windowHandle = SDL.CreateWindow(_title, w, h, winFlags);
+        if (_windowHandle == IntPtr.Zero)
         {
-            throw new Exception($"Can't open window: {SDL.GetError()}");
+            SDL.Quit();
+            throw new Exception($"Cannot init SDL window: {SDL.GetError()}");
         }
+
+        var renderer = SDL.CreateGPURenderer(0, _windowHandle);
+        if (renderer == IntPtr.Zero)
+        {
+            SDL.DestroyWindow(_windowHandle);
+            SDL.Quit();
+            throw new Exception($"Can't create GPU Renderer: {SDL.GetError()}");
+        }
+
         _renderer = new GPURenderer(renderer);
 
         if (_windowHandle == IntPtr.Zero)
