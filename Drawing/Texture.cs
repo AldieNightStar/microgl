@@ -27,7 +27,10 @@ public class Texture : IDisposable
     public static Texture FromDrawing(ushort w, ushort h, Action<Drawer> act)
     {
         using SoftwareRenderer soft = new SoftwareRenderer(w, h);
-        using var drawer = new Drawer(soft);
+        using var drawer = new Drawer(soft)
+        {
+            ScreenSize = new Vector2(w, h),
+        };
         act(drawer);
         var texture = soft.ProduceTexture(w, h);
         return texture;
