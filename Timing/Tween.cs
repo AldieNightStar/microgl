@@ -9,6 +9,7 @@ public class Tween : IGameUpdatable
     public float Duration { get; set; }
     public float Elapsed { get; private set; }
     public bool IsPaused { get; set; }
+    public bool Repeatable { get; set; }
 
     public Func<float, float> Ease { get; set; }
     public Action<float>? OnUpdate { get; set; }
@@ -47,8 +48,18 @@ public class Tween : IGameUpdatable
         {
             float overflow = Elapsed - Duration;
             Elapsed = Duration;
-            _completed = true;
             OnComplete?.Invoke(overflow);
+
+            if (Repeatable)
+            {
+                Elapsed = 0f;
+                if (overflow > 0f && Duration > 0f)
+                    Update(overflow);
+            }
+            else
+            {
+                _completed = true;
+            }
         }
     }
 

@@ -61,10 +61,10 @@ public sealed class TweenPlanner
         return this;
     }
 
-    public Tween ToTween()
+    public Tween ToTween(bool repeat = false)
     {
         if (_steps.Count == 0)
-            return new Tween(0f, 0f, 0f, null);
+            return new Tween(0f, 0f, 0f, null) { Repeatable = repeat };
 
         int index = 0;
         float totalDuration = 0f;
@@ -91,14 +91,33 @@ public sealed class TweenPlanner
         _steps[0].IsPaused = false;
 
         float lastElapsed = 0f;
-        return new Tween(0f, totalDuration, totalDuration, elapsed =>
+        var master = new Tween(0f, totalDuration, totalDuration, elapsed =>
         {
             float dt = elapsed - lastElapsed;
             lastElapsed = elapsed;
 
             if (index < _steps.Count)
                 _steps[index].Update(dt);
-        });
+        })
+        {
+            Repeatable = repeat
+        };
+
+        master.OnComplete += _ =>
+        {
+            if (master.Repeatable)
+            {
+                index = 0;
+                lastElapsed = 0f;
+                for (int i = 0; i < _steps.Count; i++)
+                {
+                    _steps[i].Reset();
+                    _steps[i].IsPaused = i != 0;
+                }
+            }
+        };
+
+        return master;
     }
 
 }
