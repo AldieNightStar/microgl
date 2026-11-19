@@ -6,7 +6,11 @@ namespace microgl;
 
 public class Button : GameObject
 {
-    public Vector2 Size { get; set; }
+    public Vector2 Size
+    {
+        get => _hitArea.Size;
+        set => _hitArea.Size = value;
+    }
 
     // Background (Rectangle or Texture)
     public Texture? BackgroundTexture { get; set; }
@@ -19,34 +23,22 @@ public class Button : GameObject
     public Color TextColor
     {
         get => _textColor;
-        set
-        {
-            _textColor = value;
-            SyncLabel();
-        }
+        set { _textColor = value; SyncLabel(); }
     }
 
     public GameFont? Font
     {
         get => _font;
-        set
-        {
-            _font = value;
-            SyncLabel();
-        }
+        set { _font = value; SyncLabel(); }
     }
 
     public string? Text
     {
         get => _text;
-        set
-        {
-            _text = value;
-            SyncLabel();
-        }
+        set { _text = value; SyncLabel(); }
     }
 
-    // Content (optional)
+    // Icon (optional)
     public Texture? Icon { get; set; }
     public Vector2 IconSize { get; set; } = new Vector2(20f, 20f);
     public float ContentGap { get; set; } = 6f;
@@ -58,24 +50,42 @@ public class Button : GameObject
     public Func<Button, TweenPlanner>? PressAnimation { get; set; } =
         btn => TweenCollection.ButtonPress(btn, pressScale: 0.88f, duration: 0.25f);
 
-    // State & Events
-    public bool IsHovered { get; private set; }
-    public bool IsPressed { get; private set; }
-    public bool Enabled { get; set; } = true;
+    // State & Events (delegated to ClickableArea)
+    public bool IsHovered => _hitArea.IsHovered;
+    public bool IsPressed => _hitArea.IsPressed;
 
-    public event Action? OnClick;
-    public event Action? OnHoverEnter;
-    public event Action? OnHoverExit;
+    public bool Enabled
+    {
+        get => _hitArea.Enabled;
+        set => _hitArea.Enabled = value;
+    }
 
+    public event Action? OnClick
+    {
+        add => _hitArea.OnClick += value;
+        remove => _hitArea.OnClick -= value;
+    }
+
+    public event Action? OnHoverEnter
+    {
+        add => _hitArea.OnHoverEnter += value;
+        remove => _hitArea.OnHoverEnter -= value;
+    }
+
+    public event Action? OnHoverExit
+    {
+        add => _hitArea.OnHoverExit += value;
+        remove => _hitArea.OnHoverExit -= value;
+    }
+
+    private readonly ClickableArea _hitArea;
     private string? _text;
     private GameFont? _font;
     private Color _textColor = Color.White;
     private Label? _label;
 
     private Tween? _activeTween;
-    private Color _currentFillColor;
     private Vector2 _baseScale = Vector2.One;
-    private const uint LeftButton = 1;
 
     public Button(
         Vector2 position,
@@ -87,7 +97,6 @@ public class Button : GameObject
         bool centerOrigin = true)
     {
         Position = position;
-        Size = size;
         Icon = icon;
         BackgroundTexture = backgroundTexture;
 
@@ -98,14 +107,26 @@ public class Button : GameObject
             PressedColor = Color.FromArgb(180, 180, 180);
         }
 
+        _hitArea = new ClickableArea(new Rectangle(0, 0, (int)size.X, (int)size.Y));
+
+        _hitArea.OnHoverEnter += () =>
+        {
+            if (!_hitArea.IsPressed && HoverAnimation != null)
+                PlayTween(HoverAnimation(this).ToTween());
+        };
+
+        _hitArea.OnClick += () =>
+        {
+            if (PressAnimation != null)
+                PlayTween(PressAnimation(this).ToTween());
+        };
+
         _font = font;
         _text = text;
         SyncLabel();
 
         if (centerOrigin)
             CenterPoint = size / 2f;
-
-        _currentFillColor = Color;
     }
 
     private void SyncLabel()
@@ -132,87 +153,17 @@ public class Button : GameObject
     protected override void OnInit(Drawer d)
     {
         _baseScale = Scale;
-        _currentFillColor = Color;
+        _hitArea.Init(d, GlobalTransform);
         _label?.Init(d);
-
-        Mouse.OnMove += HandleMouseMove;
-        Mouse.OnDown += HandleMouseDown;
-        Mouse.OnUp += HandleMouseUp;
     }
 
     protected override void OnUpdate(Drawer d, float dt)
     {
+        _hitArea.IsAlive = IsAlive;
+        _hitArea.Update(d, GlobalTransform);
+
         _activeTween?.Update(dt);
         _label?.Update(d);
-
-        if (!Enabled)
-        {
-            IsHovered = false;
-            IsPressed = false;
-            _currentFillColor = Color.FromArgb(45, 45, 50);
-        }
-    }
-
-    private bool IsInside(Vector2 screenPos)
-    {
-        Vector2 local = ToLocal(screenPos);
-        return local.X >= 0f && local.X <= Size.X &&
-               local.Y >= 0f && local.Y <= Size.Y;
-    }
-
-    private void HandleMouseMove(Vector2 pos)
-    {
-        if (!IsAlive || !Enabled) return;
-
-        bool inside = IsInside(pos);
-
-        if (inside && !IsHovered)
-        {
-            IsHovered = true;
-            if (!IsPressed)
-            {
-                _currentFillColor = HoverColor;
-                if (HoverAnimation != null)
-                    PlayTween(HoverAnimation(this).ToTween());
-            }
-            OnHoverEnter?.Invoke();
-        }
-        else if (!inside && IsHovered)
-        {
-            IsHovered = false;
-            IsPressed = false;
-            _currentFillColor = Color;
-            OnHoverExit?.Invoke();
-        }
-    }
-
-    private void HandleMouseDown(uint button)
-    {
-        if (!IsAlive || !Enabled || button != LeftButton) return;
-
-        if (IsInside(Mouse.Position))
-        {
-            IsPressed = true;
-            _currentFillColor = PressedColor;
-        }
-    }
-
-    private void HandleMouseUp(uint button)
-    {
-        if (!IsAlive || !Enabled || button != LeftButton) return;
-
-        bool inside = IsInside(Mouse.Position);
-
-        if (IsPressed && inside)
-        {
-            if (PressAnimation != null)
-                PlayTween(PressAnimation(this).ToTween());
-
-            OnClick?.Invoke();
-        }
-
-        IsPressed = false;
-        _currentFillColor = inside ? HoverColor : Color;
     }
 
     protected override void OnDraw(Drawer d, float dt)
@@ -221,16 +172,21 @@ public class Button : GameObject
         int h = (int)Size.Y;
         var rect = new Rectangle(0, 0, w, h);
 
+        Color fillColor = !Enabled ? Color.FromArgb(45, 45, 50)
+                        : IsPressed ? PressedColor
+                        : IsHovered ? HoverColor
+                        : Color;
+
         // 1. Background (Texture OR Rectangle + Border)
         if (BackgroundTexture != null)
         {
-            d.BlendColor = _currentFillColor;
+            d.BlendColor = fillColor;
             d.DrawTexture(BackgroundTexture, rect);
             d.BlendColor = BlendColor;
         }
         else
         {
-            d.Color = _currentFillColor;
+            d.Color = fillColor;
             d.DrawRect(rect);
 
             d.Color = BorderColor;
@@ -247,7 +203,6 @@ public class Button : GameObject
         if (hasIcon && hasLabel)
         {
             var textSize = _label!.Size;
-
             float totalWidth = IconSize.X + ContentGap + textSize.X;
             float startX = MathF.Max(8f, (w - totalWidth) / 2f);
 
@@ -291,16 +246,9 @@ public class Button : GameObject
 
     public override void Dispose()
     {
-        Mouse.OnMove -= HandleMouseMove;
-        Mouse.OnDown -= HandleMouseDown;
-        Mouse.OnUp -= HandleMouseUp;
-
+        _hitArea.Dispose();
         _label?.Dispose();
         _label = null;
-
         _activeTween?.Dispose();
-        OnClick = null;
-        OnHoverEnter = null;
-        OnHoverExit = null;
     }
 }

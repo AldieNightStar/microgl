@@ -9,6 +9,7 @@ public class Game : IDisposable
     private nint _windowHandle;
     private GPURenderer _renderer;
     private readonly IGame _game;
+    private bool _disposed;
 
     // Drawing tools
     private Drawer _drawer;
@@ -42,7 +43,7 @@ public class Game : IDisposable
             return;
         }
 
-        // Make pixel perfect rendering without uggly mipmapping
+        // Make pixel perfect rendering without ugly mipmapping
         SDL.SetDefaultTextureScaleMode(renderer, SDL.ScaleMode.Nearest);
 
         // Setup resizing logic
@@ -59,34 +60,23 @@ public class Game : IDisposable
         float deltaTime;
         while (running)
         {
-            // Count time
             deltaTime = Time.Tick();
 
             gotEvent = false;
             while (SDL.PollEvent(out _event))
             {
-                // Process most events
                 _processEvents(ref _event, ref running);
 
-                // When QUIT event
                 if (!running)
-                {
-                    Dispose();
                     break;
-                }
 
                 gotEvent = true;
                 _game.Update(_drawer, ref _event, deltaTime);
             }
 
-            // Check for running broke
             if (!running)
-            {
-                Dispose();
                 break;
-            }
 
-            // When no events
             if (!gotEvent)
             {
                 _event = default;
@@ -98,7 +88,7 @@ public class Game : IDisposable
             _renderer.RenderPresent();
         }
 
-        SDL.DestroyWindow(_windowHandle);
+        Dispose();
         SDL.Quit();
     }
 
@@ -106,20 +96,23 @@ public class Game : IDisposable
     {
         var type = ev.Type;
 
-        // Process exit
         if (type == (uint)SDL.EventType.Quit) running = false;
-
-        // Processing Mouse
         else if (Mouse.IsMouseEvent(ref ev)) Mouse.ProcessEvent(_drawer, ref ev);
-
-        // Processing Keyboard
         else if (Keyboard.IsKeyboardEvent(ref ev)) Keyboard.ProcessEvent(ref ev);
     }
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         _game.Dispose();
         _drawer.Dispose();
-        SDL.DestroyWindow(_windowHandle);
+
+        if (_windowHandle != IntPtr.Zero)
+        {
+            SDL.DestroyWindow(_windowHandle);
+            _windowHandle = IntPtr.Zero;
+        }
     }
 }
