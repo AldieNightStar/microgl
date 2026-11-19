@@ -32,17 +32,17 @@ public class MyGame : IGame
     public void Init(Drawer d)
     {
         _font = GameFont.FromTTF("Days.ttf", 20);
-        _label = new Label(_font, new Vector2(360f, 240f), "Hello, microgl!", Color.White, centerOrigin: true);
+        _label = new Label(_font, d.ScreenSize / 2f, "Hello, microgl!", Color.White, centerOrigin: true);
         _label.Init(d);
     }
 
-    public void Update(Drawer d, ref SDL.Event ev, float dt)
+    public void Update(Drawer d, ReadOnlySpan<SDL.Event> events, float dt)
     {
+        _label.Update(d);
     }
 
     public void Draw(Drawer d, float dt)
     {
-        _label.Update(d);
         _label.Draw(d);
     }
 

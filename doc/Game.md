@@ -2,17 +2,21 @@
 
 ### Notes
 * **Entry point and lifecycle manager** for a `microgl` application, implementing `IDisposable`.
-* **Initializes SDL3 subsystems** (`Video` and `Gamepad`), creates a resizable window, and configures `Nearest` pixel-art scaling with `Letterbox` logical presentation.
-* **Runs the main loop** by ticking `Time`, routing input events (`Mouse`, `Keyboard`, `Gamepad`), and calling `IGame.Init`, `IGame.Update`, and `IGame.Draw`.
+* **Initializes SDL3 subsystems** (`Video` and `Gamepad`), creates a resizable window, configures `Nearest` pixel-art scaling with `Letterbox` logical presentation, and sets `Drawer.ScreenSize` to the logical window dimensions.
+* **Runs the main loop** by ticking `Time`, routing input events (`Mouse`, `Keyboard`, `Gamepad`), batching frame events without heap allocations, and calling `IGame.Update` (with `ReadOnlySpan<SDL.Event>`) and `IGame.Draw` once per frame.
 * **Automatically cleans up** game resources, renderer, gamepads, and the native window when the loop exits.
 
 ### Usage
-* `new Game(string title, int w, int h, IGame game)`
-  Creates a game instance with the window `title`, logical resolution width `w` and height `h`, and an `IGame` implementation.
-* `game.Start()`
-  Initializes SDL, opens the window, runs the blocking main game loop until quit, and disposes resources on exit.
-* `game.Dispose()`
-  Frees the `IGame` instance, `Drawer`, active gamepads, and native window handle (called automatically at the end of `Start()`).
+```csharp
+// Create a game instance with window title, logical resolution (w x h), and scene implementation
+new Game(string title, int w, int h, IGame game);
+
+// Initialize SDL, open the window, run the blocking main loop, and clean up on exit
+game.Start();
+
+// Manually release IGame, Drawer, active gamepads, and window handle
+game.Dispose();
+```
 
 ### Example
 ```csharp
