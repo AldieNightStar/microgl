@@ -6,40 +6,51 @@ namespace microgl;
 
 public abstract class UIElement : GameObject
 {
+    private const float MAX_SIZE_DEFAULT = 500;
+
     private Vector2 _size;
+    private Vector2 _minSize = Vector2.Zero;
+    private Vector2 _maxSize = new(MAX_SIZE_DEFAULT, MAX_SIZE_DEFAULT);
     private bool _centerOrigin;
 
     /// <summary>
-    /// The width and height of this UI element in local units.
-    /// Automatically updates CenterPoint if CenterOrigin is enabled.
+    /// Current width and height of this UI element, clamped between MinSize and MaxSize.
     /// </summary>
     public Vector2 Size
     {
         get => _size;
         set
         {
-            if (_size == value) return;
-            _size = value;
+            var clamped = Vector2.Clamp(value, _minSize, _maxSize);
+            if (_size == clamped) return;
+            _size = clamped;
             _updateOrigin();
             OnResized();
         }
     }
 
-    public float Width
+    public Vector2 MinSize
     {
-        get => _size.X;
-        set => Size = new Vector2(value, _size.Y);
+        get => _minSize;
+        set
+        {
+            if (_minSize == value) return;
+            _minSize = value;
+            Size = _size;
+        }
     }
 
-    public float Height
+    public Vector2 MaxSize
     {
-        get => _size.Y;
-        set => Size = new Vector2(_size.X, value);
+        get => _maxSize;
+        set
+        {
+            if (_maxSize == value) return;
+            _maxSize = value;
+            Size = _size;
+        }
     }
 
-    /// <summary>
-    /// When true, keeps CenterPoint automatically synced to Size / 2.
-    /// </summary>
     public bool CenterOrigin
     {
         get => _centerOrigin;
@@ -51,14 +62,8 @@ public abstract class UIElement : GameObject
         }
     }
 
-    /// <summary>
-    /// Local bounding rectangle starting at (0, 0) with Size dimensions.
-    /// </summary>
     public Rectangle LocalBounds => new(0, 0, (int)Size.X, (int)Size.Y);
 
-    /// <summary>
-    /// Bounding rectangle in parent/screen coordinates accounting for Position and CenterPoint.
-    /// </summary>
     public Rectangle Bounds
     {
         get
@@ -73,9 +78,6 @@ public abstract class UIElement : GameObject
         }
     }
 
-    /// <summary>
-    /// Global axis-aligned bounding box transformed into world/screen space.
-    /// </summary>
     public Rectangle GlobalBounds
     {
         get
@@ -101,22 +103,19 @@ public abstract class UIElement : GameObject
     protected UIElement(Vector2 position, Vector2 size, bool centerOrigin = false)
     {
         Position = position;
-        _size = size;
+        _size = Vector2.Clamp(size, _minSize, _maxSize);
         _centerOrigin = centerOrigin;
         _updateOrigin();
     }
 
     protected UIElement(Rectangle bounds, bool centerOrigin = false)
     {
-        _size = new Vector2(bounds.Width, bounds.Height);
+        _size = Vector2.Clamp(new Vector2(bounds.Width, bounds.Height), _minSize, _maxSize);
         _centerOrigin = centerOrigin;
         _updateOrigin();
         Position = new Vector2(bounds.X, bounds.Y) + CenterPoint;
     }
 
-    /// <summary>
-    /// Checks whether a global/screen point falls inside this element's transformed bounds.
-    /// </summary>
     public bool ContainsPoint(Vector2 screenPos)
     {
         Vector2 local = ToLocal(screenPos);
@@ -129,8 +128,5 @@ public abstract class UIElement : GameObject
         CenterPoint = _centerOrigin ? _size / 2f : Vector2.Zero;
     }
 
-    /// <summary>
-    /// Called whenever Size changes so subclasses can update internal layouts or textures.
-    /// </summary>
     protected virtual void OnResized() { }
 }

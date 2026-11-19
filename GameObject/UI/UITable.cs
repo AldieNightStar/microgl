@@ -84,7 +84,9 @@ public class UITable : UIElement
         if (cursorY > Padding.Y)
             cursorY -= Spacing;
 
-        Size = new Vector2(maxRowWidth + Padding.X, cursorY + Padding.Y);
+        var contentSize = new Vector2(maxRowWidth + Padding.X, cursorY + Padding.Y);
+        MaxSize = contentSize;
+        Size = contentSize;
     }
 
     protected override void OnInit(Drawer d)
@@ -107,8 +109,9 @@ public class UITable : UIElement
                 var entry = row[i];
                 var el = entry.Element;
 
-                if (el.Bounds != entry.Bounds)
-                    el.Bounds = entry.Bounds;
+                Vector2 expectedPos = new Vector2(entry.Bounds.X, entry.Bounds.Y) + el.CenterPoint;
+                if (el.Position != expectedPos)
+                    el.Position = expectedPos;
 
                 el.Update(d, GlobalTransform);
             }
