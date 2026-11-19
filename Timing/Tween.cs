@@ -1,3 +1,5 @@
+using System;
+
 namespace microgl;
 
 public class Tween : IGameUpdatable
@@ -10,7 +12,7 @@ public class Tween : IGameUpdatable
 
     public Func<float, float> Ease { get; set; }
     public Action<float>? OnUpdate { get; set; }
-    public Action? OnComplete { get; set; }
+    public Action<float> OnComplete { get; set; }
 
     public bool IsFinished => Elapsed >= Duration;
     public float Progress => Duration <= 0f ? 1f : Math.Clamp(Elapsed / Duration, 0f, 1f);
@@ -20,7 +22,7 @@ public class Tween : IGameUpdatable
         float from,
         float to,
         float duration,
-        Action<float> onUpdate,
+        Action<float>? onUpdate,
         Func<float, float>? ease = null)
     {
         From = from;
@@ -31,27 +33,20 @@ public class Tween : IGameUpdatable
         CurrentValue = from;
     }
 
-    public bool Update(float dt)
+    public void Update(float dt)
     {
         if (IsPaused || IsFinished)
-            return false;
+            return;
 
-        Elapsed += dt;
-
-        float t = Progress;
-        float easedT = Ease(t);
-        CurrentValue = From + (To - From) * easedT;
-
+        CurrentValue = _evaluate(dt);
         OnUpdate?.Invoke(CurrentValue);
 
         if (Elapsed >= Duration)
         {
+            float overflow = Elapsed - Duration;
             Elapsed = Duration;
-            OnComplete?.Invoke();
-            return true;
+            OnComplete?.Invoke(overflow);
         }
-
-        return false;
     }
 
     public void Reset()
@@ -68,5 +63,21 @@ public class Tween : IGameUpdatable
         Reset();
     }
 
-    void IGameUpdatable.Update(float dt) => Update(dt);
+    private float _evaluate(float dt)
+    {
+        Elapsed += dt;
+        float t = Duration <= 0f ? 1f : Math.Clamp(Elapsed / Duration, 0f, 1f);
+        return From + (To - From) * Ease(t);
+    }
+
+
+    public static TweenPlanner Call(
+        float from,
+        float to,
+        float duration,
+        Action<float> callback,
+        Func<float, float>? ease = null
+    ) => new TweenPlanner().Call(from, to, duration, callback, ease);
+
+    public static TweenPlanner Wait(float seconds) => new TweenPlanner().Wait(seconds);
 }
