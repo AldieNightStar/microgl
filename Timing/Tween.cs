@@ -37,6 +37,11 @@ public class Tween : IGameUpdatable
         CurrentValue = from;
     }
 
+    public void Update()
+    {
+        Update(Time.DeltaTime);
+    }
+
     public void Update(float dt)
     {
         if (IsPaused || IsFinished)

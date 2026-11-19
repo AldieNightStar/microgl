@@ -8,8 +8,8 @@ public abstract class GameObject : IDisposable
     public virtual bool IsAlive { get; set; } = true;
 
     protected abstract void OnInit(Drawer d);
-    protected abstract void OnUpdate(Drawer d, float dt);
-    protected abstract void OnDraw(Drawer d, float dt);
+    protected abstract void OnUpdate(Drawer d);
+    protected abstract void OnDraw(Drawer d);
     public abstract void Dispose();
 
     private Transform _parentTransform = Transform.Identity;
@@ -108,29 +108,29 @@ public abstract class GameObject : IDisposable
 
     // --- Internal Hierarchical Overloads ---
 
-    internal void Init(Drawer d, Transform parentTransform)
+    public void Init(Drawer d, Transform parentTransform)
     {
         _parentTransform = parentTransform;
         _recalculateGlobalTransform();
         OnInit(d);
     }
 
-    internal void Update(Drawer d, Transform parentTransform)
+    public void Update(Drawer d, Transform parentTransform)
     {
         if (!IsAlive) return;
         _parentTransform = parentTransform;
         _recalculateGlobalTransform();
         d.Transform = GlobalTransform;
-        OnUpdate(d, Time.DeltaTime);
+        OnUpdate(d);
     }
 
-    internal void Draw(Drawer d, Transform parentTransform)
+    public void Draw(Drawer d, Transform parentTransform)
     {
         if (!IsAlive) return;
         _parentTransform = parentTransform;
         _recalculateGlobalTransform();
         d.Transform = GlobalTransform;
         d.BlendColor = BlendColor;
-        OnDraw(d, Time.DeltaTime);
+        OnDraw(d);
     }
 }

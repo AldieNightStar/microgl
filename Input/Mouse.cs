@@ -5,6 +5,10 @@ namespace microgl;
 
 public class Mouse
 {
+    public const uint LEFT = 1;
+    public const uint MIDDLE = 2;
+    public const uint RIGHT = 3;
+
     private static uint[] MOUSE_EVENTS = [
         (uint) SDL.EventType.MouseMotion,
         (uint) SDL.EventType.MouseButtonDown,
@@ -26,22 +30,22 @@ public class Mouse
 
         // Convert coordinates to window
         SDL.ConvertEventToRenderCoordinates(drawer.Renderer.GetNativePointer(), ref ev);
-        
-        if (type == (uint) SDL.EventType.MouseMotion)
+
+        if (type == (uint)SDL.EventType.MouseMotion)
         {
             var motion = ev.Motion;
             LastPosition = new Vector2(motion.X, motion.Y);
             OnMove?.Invoke(LastPosition);
         }
 
-        else if (type == (uint) SDL.EventType.MouseButtonDown)
+        else if (type == (uint)SDL.EventType.MouseButtonDown)
         {
             var buttons = ev.Button;
             LastPosition = new Vector2(buttons.X, buttons.Y);
             OnDown?.Invoke(buttons.Button);
         }
 
-        else if (type == (uint) SDL.EventType.MouseButtonUp)
+        else if (type == (uint)SDL.EventType.MouseButtonUp)
         {
             var buttons = ev.Button;
             LastPosition = new Vector2(buttons.X, buttons.Y);

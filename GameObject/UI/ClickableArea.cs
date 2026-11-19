@@ -1,4 +1,3 @@
-using System;
 using System.Drawing;
 using System.Numerics;
 
@@ -14,7 +13,7 @@ public class ClickableArea : UIElement
     public event Action? OnHoverEnter;
     public event Action? OnHoverExit;
 
-    private const uint LeftButton = 1;
+    private const uint LeftButton = Mouse.LEFT;
 
     public ClickableArea(Rectangle rect, bool centerOrigin = false)
         : base(rect, centerOrigin) {}
@@ -29,7 +28,7 @@ public class ClickableArea : UIElement
         Mouse.OnUp += HandleMouseUp;
     }
 
-    protected override void OnUpdate(Drawer d, float dt)
+    protected override void OnUpdate(Drawer d)
     {
         if (!Enabled)
         {
@@ -38,7 +37,7 @@ public class ClickableArea : UIElement
         }
     }
 
-    protected override void OnDraw(Drawer d, float dt)
+    protected override void OnDraw(Drawer d)
     {
         // Invisible area: nothing to draw
     }

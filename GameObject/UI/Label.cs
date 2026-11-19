@@ -85,9 +85,9 @@ public class Label : UIElement
 
     protected override void OnInit(Drawer d) { }
 
-    protected override void OnUpdate(Drawer d, float dt) { }
+    protected override void OnUpdate(Drawer d) { }
 
-    protected override void OnDraw(Drawer d, float dt)
+    protected override void OnDraw(Drawer d)
     {
         if (_texture == null) return;
 

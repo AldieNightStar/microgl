@@ -154,16 +154,16 @@ public class Button : UIElement
         _label?.Init(d);
     }
 
-    protected override void OnUpdate(Drawer d, float dt)
+    protected override void OnUpdate(Drawer d)
     {
         _hitArea.IsAlive = IsAlive;
         _hitArea.Update(d, GlobalTransform);
 
-        _activeTween?.Update(dt);
+        _activeTween?.Update();
         _label?.Update(d);
     }
 
-    protected override void OnDraw(Drawer d, float dt)
+    protected override void OnDraw(Drawer d)
     {
         int w = (int)Size.X;
         int h = (int)Size.Y;
