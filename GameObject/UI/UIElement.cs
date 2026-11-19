@@ -6,7 +6,7 @@ namespace microgl;
 
 public abstract class UIElement : GameObject
 {
-    private const float MAX_SIZE_DEFAULT = 500;
+    private const float MAX_SIZE_DEFAULT = 1000;
 
     private Vector2 _size;
     private Vector2 _minSize = Vector2.Zero;
