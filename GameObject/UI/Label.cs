@@ -65,10 +65,13 @@ public class Label : UIElement
             return;
         }
 
-        if (_texture == null || _texture.Width != w || _texture.Height != h)
+        if (_texture == null)
         {
-            _texture?.Dispose();
             _texture = new DynamicTexture(w, h, DrawToTexture);
+        }
+        else if (_texture.Width != w || _texture.Height != h)
+        {
+            _texture.Resize(w, h);
         }
         else
         {
