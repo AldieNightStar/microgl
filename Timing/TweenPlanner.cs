@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace microgl;
 
 public sealed class TweenPlanner
@@ -17,6 +19,16 @@ public sealed class TweenPlanner
         };
         _steps.Add(tween);
         return this;
+    }
+
+    public TweenPlanner Call(
+        Vector2 from,
+        Vector2 to,
+        float duration,
+        Action<Vector2> callback,
+        Func<float, float>? ease = null)
+    {
+        return Call(0f, 1f, duration, t => callback(Vector2.Lerp(from, to, t)), ease);
     }
 
     public TweenPlanner Wait(float seconds)

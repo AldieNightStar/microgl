@@ -1,4 +1,4 @@
-using System;
+using System.Numerics;
 
 namespace microgl;
 
@@ -80,6 +80,14 @@ public class Tween : IGameUpdatable
         float to,
         float duration,
         Action<float> callback,
+        Func<float, float>? ease = null
+    ) => new TweenPlanner().Call(from, to, duration, callback, ease);
+
+    public static TweenPlanner Call(
+        Vector2 from,
+        Vector2 to,
+        float duration,
+        Action<Vector2> callback,
         Func<float, float>? ease = null
     ) => new TweenPlanner().Call(from, to, duration, callback, ease);
 
