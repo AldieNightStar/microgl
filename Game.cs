@@ -29,7 +29,7 @@ public class Game : IDisposable
             throw new Exception($"Can't Init SDL: {SDL.GetError()}");
         }
 
-        var (w, h) = ((int) _winSize.X, (int) _winSize.Y);
+        var (w, h) = ((int)_winSize.X, (int)_winSize.Y);
         var winFlags = SDL.WindowFlags.Resizable;
         if (!SDL.CreateWindowAndRenderer(_title, w, h, winFlags, out _windowHandle, out var renderer))
         {
@@ -53,20 +53,20 @@ public class Game : IDisposable
         // Initialization
         _drawer = new Drawer(_renderer)
         {
-            ScreenSize=_winSize,
+            ScreenSize = _winSize,
         };
         _game.Init(_drawer);
 
         // Game loop
         bool running = true;
-        bool gotEvent;
         SDL.Event _event;
+        var events = new EventBuffer(64);
         float deltaTime;
+
         while (running)
         {
             deltaTime = Time.Tick();
 
-            gotEvent = false;
             while (SDL.PollEvent(out _event))
             {
                 _processEvents(ref _event, ref running);
@@ -74,18 +74,13 @@ public class Game : IDisposable
                 if (!running)
                     break;
 
-                gotEvent = true;
-                _game.Update(_drawer, ref _event, deltaTime);
+                events.Add(ref _event);
             }
 
             if (!running)
                 break;
 
-            if (!gotEvent)
-            {
-                _event = default;
-                _game.Update(_drawer, ref _event, deltaTime);
-            }
+            _game.Update(_drawer, events.Flush(), deltaTime);
 
             _drawer.Reset();
             _game.Draw(_drawer, deltaTime);
