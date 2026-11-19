@@ -9,6 +9,7 @@ public static class Time
 
     public static float DeltaTime { get; private set; }
     public static float DeltaTimeMax { get; set; } = 0.25f;
+    public static long EpochMillis => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
     internal static float Tick()
     {
