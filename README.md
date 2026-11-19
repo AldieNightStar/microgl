@@ -1,80 +1,92 @@
 # microgl
 
-A lightweight, high-performance 2D graphics engine wrapper for **SDL3** in C#. 
+**microgl** is a lightweight, code-first 2D game framework for C# built on top of **SDL3** (`SDL3-CS`). It provides a clean, object-oriented API for 2D rendering, hierarchical transforms, input handling, timers, tweens, and UI layouts without heavy engine overhead.
 
-`microgl` is designed to simplify the creation of pixel-art and retro-style games by providing a clean, modern interface for SDL3 while handling the complexities of window management, pixel-perfect scaling, and event loops.
+## Features
 
-## ✨ Key Features
+* **Core Game Loop**: Simple `IGame` lifecycle (`Init`, `Update`, `Draw`, `Dispose`) with pixel-perfect `Nearest` scaling and automatic `Letterbox` window resizing.
+* **2D Rendering & Textures**: Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing via `Drawer`, supporting primitives, `Transform` hierarchies, `Texture`, `AtlasTexture` sprite sheets, `DynamicTexture`, and TrueType fonts (`GameFont`).
+* **Scene & UI System**: Hierarchical `GameObject` and `GameObjectGroup` entities, plus built-in `UIElement` widgets (`Label`, `Button`, `ClickableArea`) and row-based `UITable` layouts.
+* **Unified Input**: Event-driven and polling APIs for `Mouse` (with automatic render-coordinate conversion), `Keyboard`, and `Gamepad` (with radial deadzones and rumble).
+* **Timing & Animations**: High-resolution `Time`, countdown `GameTimer`, 31 `Easing` curves, fluent `TweenPlanner` sequences, and ready-to-use `TweenCollection` game-feel presets.
 
-*   **Pixel-Perfect Rendering**: Built-in support for `Nearest` texture scaling and automatic letterboxing to maintain your game's aspect ratio without distortion.
-*   **Simplified Game Loop**: Implements a clean `IGame` interface, separating initialization, update (logic), and draw (rendering) phases.
-*   **Modern C# & .NET**: Built for modern development using **.NET 11** and high-level abstractions over SDL3.
-*   **Event Handling**: Integrated support for keyboard and mouse events directly within the game loop.
-*   **Hardware Accelerated**: Leverages SDL3's GPU-based rendering for efficient 2D performance.
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-*   **.NET 11 SDK** (or higher)
-*   **SDL3 Libraries**: Ensure the SDL3 shared libraries (`.dll`, `.so`, or `.dylib`) are available in your output directory or system path.
-
-### Quick Start Example
-
-To create a game with `microgl`, simply implement the `IGame` interface:
+## Quick Start
 
 ```csharp
-using microgl;
+using System.Drawing;
+using System.Numerics;
 using SDL3;
+using microgl;
 
 public class MyGame : IGame
 {
-    private Drawer _drawer;
+    private GameFont _font;
+    private Label _label = null!;
 
-    public void Init(Drawer d) 
+    public static void Main()
     {
-        _drawer = d;
-        // Initialize your game assets here
+        var game = new Game("microgl App", 720, 480, new MyGame());
+        game.Start();
+    }
+
+    public void Init(Drawer d)
+    {
+        _font = GameFont.FromTTF("Days.ttf", 20);
+        _label = new Label(_font, new Vector2(360f, 240f), "Hello, microgl!", Color.White, centerOrigin: true);
+        _label.Init(d);
     }
 
     public void Update(Drawer d, ref SDL.Event ev, float dt)
     {
-        // Handle input and logic
     }
 
     public void Draw(Drawer d, float dt)
     {
-        // Render your scene
+        _label.Update(d);
+        _label.Draw(d);
     }
 
-    public void Dispose() 
+    public void Dispose()
     {
-        // Cleanup assets
+        _label.Dispose();
+        _font.Dispose();
     }
 }
-
-// To run:
-var game = new MyGame();
-var engine = new Game("My Awesome Game", 800, 600, game);
-engine.Start();
 ```
 
-## 📂 Project Structure
+## Documentation Reference
 
-*   `Drawing/`: The core engine implementation (the `microgl` namespace).
-*   `IGame.cs`: The interface for implementing custom game logic.
-*   `Game.cs`: The main engine entry point and window manager.
-*   `Drawer.cs`: The drawing abstraction layer for rendering primitives and textures.
+### Core
+* [Game](doc/Game.md) — Application entry point, SDL3 initialization, and main game loop.
+* [IGame](doc/IGame.md) — Core lifecycle interface implemented by your game or scene.
 
-## 🛠 Building & Running
+### Drawing
+* [Drawer](doc/Drawing/Drawer.md) — 2D rendering context for shapes, textures, text, and game objects.
+* [IRenderer / GPURenderer / SoftwareRenderer](doc/Drawing/IRenderer.md) — Hardware and offscreen software rendering backends.
+* [Texture](doc/Drawing/Texture.md) — 2D image loading (`PNG`/`BMP`) and procedural texture creation.
+* [AtlasTexture](doc/Drawing/AtlasTexture.md) — Lightweight sprite-sheet sub-regions and grid slicing.
+* [DynamicTexture](doc/Drawing/DynamicTexture.md) — Mutable offscreen texture updated on demand.
+* [GameFont](doc/Drawing/GameFont.md) — TrueType (`.ttf`) font loading and text measurement.
+* [Transform](doc/Drawing/Transform.md) — Immutable 2D affine matrix transformations and coordinate conversions.
 
-Ensure you have the .NET SDK installed, then run:
+### GameObject & UI
+* [GameObject](doc/GameObject/GameObject.md) — Base scene entity with hierarchical transforms and lifecycle hooks.
+* [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects.
+* [UIElement](doc/GameObject/UI/UIElement.md) — Base class for UI widgets with size clamping, origin, and bounds.
+* [Label](doc/GameObject/UI/Label.md) — Cached TrueType text UI element.
+* [Button](doc/GameObject/UI/Button.md) — Interactive rectangle or textured button with icon, label, and tween animations.
+* [ClickableArea](doc/GameObject/UI/ClickableArea.md) — Invisible transform-aware mouse hitbox.
+* [UITable](doc/GameObject/UI/UITable.md) — Row-based UI layout container with locked child bounds and optional background.
 
-```bash
-dotnet build
-dotnet run --project microgl
-```
+### Input
+* [Mouse](doc/Input/Mouse.md) — Cursor coordinates (mapped to logical render space) and button events.
+* [Keyboard](doc/Input/Keyboard.md) — Key press/release events and modifier key states (`Ctrl`, `Shift`, `Alt`).
+* [Gamepad](doc/Input/Gamepad.md) — Controller hot-plugging, button/axis events, radial deadzones, and rumble.
 
-## License
-
-[Specify your license here, e.g., MIT]
+### Timing & Animation
+* [Time](doc/Timing/Time.md) — Clamped frame `DeltaTime` and high-resolution millisecond clock.
+* [GameTimer](doc/Timing/GameTimer.md) — Single-shot and looping countdown timer.
+* [Easing](doc/Timing/Easing.md) — Standard interpolation curves (`Linear`, `Sine`, `Quad`, `Cubic`, `Back`, `Elastic`, `Bounce`, etc.).
+* [Tween](doc/Timing/Tween.md) — Value interpolator with easing, looping, and completion callbacks.
+* [TweenPlanner](doc/Timing/TweenPlanner.md) — Fluent builder for chaining sequential tweens, delays, and callbacks.
+* [TweenCollection](doc/Timing/TweenCollection.md) — Preset game-feel animations (shakes, flashes, squishes, jumps, and bumps).
