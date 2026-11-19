@@ -4,14 +4,8 @@ using System.Numerics;
 
 namespace microgl;
 
-public class Button : GameObject
+public class Button : UIElement
 {
-    public Vector2 Size
-    {
-        get => _hitArea.Size;
-        set => _hitArea.Size = value;
-    }
-
     // Background (Rectangle or Texture)
     public Texture? BackgroundTexture { get; set; }
     public Color Color { get; set; } = Color.FromArgb(65, 75, 95);
@@ -26,7 +20,7 @@ public class Button : GameObject
         set { _textColor = value; SyncLabel(); }
     }
 
-    public GameFont? Font
+    public GameFont Font
     {
         get => _font;
         set { _font = value; SyncLabel(); }
@@ -80,7 +74,7 @@ public class Button : GameObject
 
     private readonly ClickableArea _hitArea;
     private string? _text;
-    private GameFont? _font;
+    private GameFont _font;
     private Color _textColor = Color.White;
     private Label? _label;
 
@@ -88,15 +82,15 @@ public class Button : GameObject
     private Vector2 _baseScale = Vector2.One;
 
     public Button(
+        GameFont font,
         Vector2 position,
         Vector2 size,
         string? text = null,
-        GameFont? font = null,
         Texture? icon = null,
         Texture? backgroundTexture = null,
         bool centerOrigin = true)
+        : base(position, size, centerOrigin)
     {
-        Position = position;
         Icon = icon;
         BackgroundTexture = backgroundTexture;
 
@@ -107,7 +101,7 @@ public class Button : GameObject
             PressedColor = Color.FromArgb(180, 180, 180);
         }
 
-        _hitArea = new ClickableArea(new Rectangle(0, 0, (int)size.X, (int)size.Y));
+        _hitArea = new ClickableArea(LocalBounds);
 
         _hitArea.OnHoverEnter += () =>
         {
@@ -124,14 +118,17 @@ public class Button : GameObject
         _font = font;
         _text = text;
         SyncLabel();
+    }
 
-        if (centerOrigin)
-            CenterPoint = size / 2f;
+    protected override void OnResized()
+    {
+        if (_hitArea != null)
+            _hitArea.Size = Size;
     }
 
     private void SyncLabel()
     {
-        if (string.IsNullOrEmpty(_text) || !_font.HasValue)
+        if (string.IsNullOrEmpty(_text))
         {
             _label?.Dispose();
             _label = null;
@@ -140,11 +137,11 @@ public class Button : GameObject
 
         if (_label == null)
         {
-            _label = new Label(Vector2.Zero, _text, _font.Value, _textColor);
+            _label = new Label(_font, Vector2.Zero, _text, _textColor);
         }
         else
         {
-            _label.Font = _font.Value;
+            _label.Font = _font;
             _label.Text = _text;
             _label.TextColor = _textColor;
         }
@@ -170,7 +167,7 @@ public class Button : GameObject
     {
         int w = (int)Size.X;
         int h = (int)Size.Y;
-        var rect = new Rectangle(0, 0, w, h);
+        var rect = LocalBounds;
 
         Color fillColor = !Enabled ? Color.FromArgb(45, 45, 50)
                         : IsPressed ? PressedColor

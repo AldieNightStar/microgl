@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace microgl;
 
-public class Label : GameObject
+public class Label : UIElement
 {
     public string Text
     {
@@ -39,15 +39,12 @@ public class Label : GameObject
         }
     } = Color.White;
 
-    public Vector2 Size { get; private set; }
-
-    private readonly bool _centerOrigin;
     private DynamicTexture? _texture;
 
-    public Label(Vector2 position, string text, GameFont font, Color? color = null, bool centerOrigin = false)
+    public Label(GameFont font, Vector2 position, string text, Color? color = null, bool centerOrigin = false)
     {
         Position = position;
-        _centerOrigin = centerOrigin;
+        CenterOrigin = centerOrigin;
 
         if (color.HasValue) TextColor = color.Value;
         Font = font;
@@ -57,9 +54,6 @@ public class Label : GameObject
     private void RefreshTexture()
     {
         Size = string.IsNullOrEmpty(Text) ? Vector2.Zero : Font.MeasureText(Text);
-
-        if (_centerOrigin)
-            CenterPoint = Size / 2f;
 
         ushort w = (ushort)Math.Ceiling(Size.X);
         ushort h = (ushort)Math.Ceiling(Size.Y);

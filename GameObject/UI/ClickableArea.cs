@@ -4,20 +4,8 @@ using System.Numerics;
 
 namespace microgl;
 
-public class ClickableArea : GameObject
+public class ClickableArea : UIElement
 {
-    public Vector2 Size { get; set; }
-
-    public Rectangle Bounds
-    {
-        get => new((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
-        set
-        {
-            Position = new Vector2(value.X, value.Y);
-            Size = new Vector2(value.Width, value.Height);
-        }
-    }
-
     public bool IsHovered { get; private set; }
     public bool IsPressed { get; private set; }
     public bool Enabled { get; set; } = true;
@@ -29,22 +17,10 @@ public class ClickableArea : GameObject
     private const uint LeftButton = 1;
 
     public ClickableArea(Rectangle rect, bool centerOrigin = false)
-    {
-        Position = new Vector2(rect.X, rect.Y);
-        Size = new Vector2(rect.Width, rect.Height);
-
-        if (centerOrigin)
-            CenterPoint = Size / 2f;
-    }
+        : base(rect, centerOrigin) {}
 
     public ClickableArea(Vector2 position, Vector2 size, bool centerOrigin = true)
-    {
-        Position = position;
-        Size = size;
-
-        if (centerOrigin)
-            CenterPoint = size / 2f;
-    }
+        : base(position, size, centerOrigin) { }
 
     protected override void OnInit(Drawer d)
     {
@@ -67,18 +43,11 @@ public class ClickableArea : GameObject
         // Invisible area: nothing to draw
     }
 
-    private bool IsInside(Vector2 screenPos)
-    {
-        Vector2 local = ToLocal(screenPos);
-        return local.X >= 0f && local.X <= Size.X &&
-               local.Y >= 0f && local.Y <= Size.Y;
-    }
-
     private void HandleMouseMove(Vector2 pos)
     {
         if (!IsAlive || !Enabled) return;
 
-        bool inside = IsInside(pos);
+        bool inside = ContainsPoint(pos);
 
         if (inside && !IsHovered)
         {
@@ -97,7 +66,7 @@ public class ClickableArea : GameObject
     {
         if (!IsAlive || !Enabled || button != LeftButton) return;
 
-        if (IsInside(Mouse.Position))
+        if (ContainsPoint(Mouse.Position))
             IsPressed = true;
     }
 
@@ -105,7 +74,7 @@ public class ClickableArea : GameObject
     {
         if (!IsAlive || !Enabled || button != LeftButton) return;
 
-        bool inside = IsInside(Mouse.Position);
+        bool inside = ContainsPoint(Mouse.Position);
 
         if (IsPressed && inside)
             OnClick?.Invoke();
