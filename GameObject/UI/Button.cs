@@ -8,16 +8,45 @@ public class Button : GameObject
 {
     public Vector2 Size { get; set; }
 
-    // Colors
+    // Background (Rectangle or Texture)
+    public Texture? BackgroundTexture { get; set; }
     public Color Color { get; set; } = Color.FromArgb(65, 75, 95);
     public Color HoverColor { get; set; } = Color.FromArgb(95, 110, 140);
     public Color PressedColor { get; set; } = Color.FromArgb(45, 52, 68);
     public Color BorderColor { get; set; } = Color.White;
-    public Color TextColor { get; set; } = Color.White;
-    public GameFont? Font { get; set; }
+
+    // Text & Font (delegated to Label)
+    public Color TextColor
+    {
+        get => _textColor;
+        set
+        {
+            _textColor = value;
+            SyncLabel();
+        }
+    }
+
+    public GameFont? Font
+    {
+        get => _font;
+        set
+        {
+            _font = value;
+            SyncLabel();
+        }
+    }
+
+    public string? Text
+    {
+        get => _text;
+        set
+        {
+            _text = value;
+            SyncLabel();
+        }
+    }
 
     // Content (optional)
-    public string? Text { get; set; }
     public Texture? Icon { get; set; }
     public Vector2 IconSize { get; set; } = new Vector2(20f, 20f);
     public float ContentGap { get; set; } = 6f;
@@ -38,6 +67,11 @@ public class Button : GameObject
     public event Action? OnHoverEnter;
     public event Action? OnHoverExit;
 
+    private string? _text;
+    private GameFont? _font;
+    private Color _textColor = Color.White;
+    private Label? _label;
+
     private Tween? _activeTween;
     private Color _currentFillColor;
     private Vector2 _baseScale = Vector2.One;
@@ -49,13 +83,24 @@ public class Button : GameObject
         string? text = null,
         GameFont? font = null,
         Texture? icon = null,
+        Texture? backgroundTexture = null,
         bool centerOrigin = true)
     {
         Position = position;
         Size = size;
-        Text = text;
-        Font = font;
         Icon = icon;
+        BackgroundTexture = backgroundTexture;
+
+        if (backgroundTexture != null)
+        {
+            Color = Color.White;
+            HoverColor = Color.FromArgb(230, 230, 230);
+            PressedColor = Color.FromArgb(180, 180, 180);
+        }
+
+        _font = font;
+        _text = text;
+        SyncLabel();
 
         if (centerOrigin)
             CenterPoint = size / 2f;
@@ -63,10 +108,32 @@ public class Button : GameObject
         _currentFillColor = Color;
     }
 
+    private void SyncLabel()
+    {
+        if (string.IsNullOrEmpty(_text) || !_font.HasValue)
+        {
+            _label?.Dispose();
+            _label = null;
+            return;
+        }
+
+        if (_label == null)
+        {
+            _label = new Label(Vector2.Zero, _text, _font.Value, _textColor);
+        }
+        else
+        {
+            _label.Font = _font.Value;
+            _label.Text = _text;
+            _label.TextColor = _textColor;
+        }
+    }
+
     protected override void OnInit(Drawer d)
     {
         _baseScale = Scale;
         _currentFillColor = Color;
+        _label?.Init(d);
 
         Mouse.OnMove += HandleMouseMove;
         Mouse.OnDown += HandleMouseDown;
@@ -76,6 +143,7 @@ public class Button : GameObject
     protected override void OnUpdate(Drawer d, float dt)
     {
         _activeTween?.Update(dt);
+        _label?.Update(d);
 
         if (!Enabled)
         {
@@ -151,58 +219,60 @@ public class Button : GameObject
     {
         int w = (int)Size.X;
         int h = (int)Size.Y;
+        var rect = new Rectangle(0, 0, w, h);
 
-        // 1. Background
-        d.Color = _currentFillColor;
-        d.DrawRect(new Rectangle(0, 0, w, h));
-
-        // 2. Border
-        d.Color = BorderColor;
-        d.DrawRect(new Rectangle(0, 0, w, 2));
-        d.DrawRect(new Rectangle(0, h - 2, w, 2));
-        d.DrawRect(new Rectangle(0, 0, 2, h));
-        d.DrawRect(new Rectangle(w - 2, 0, 2, h));
-
-        // 3. Icon & Text Layout
-        bool hasIcon = Icon != null;
-        bool hasText = !string.IsNullOrEmpty(Text) && Font.HasValue;
-
-        if (hasIcon && hasText)
+        // 1. Background (Texture OR Rectangle + Border)
+        if (BackgroundTexture != null)
         {
-            var font = Font!.Value;
-            var textSize = font.MeasureText(Text!);
+            d.BlendColor = _currentFillColor;
+            d.DrawTexture(BackgroundTexture, rect);
+            d.BlendColor = BlendColor;
+        }
+        else
+        {
+            d.Color = _currentFillColor;
+            d.DrawRect(rect);
 
-            // Center the combined [Icon + Gap + Text] block horizontally
+            d.Color = BorderColor;
+            d.DrawRect(new Rectangle(0, 0, w, 2));
+            d.DrawRect(new Rectangle(0, h - 2, w, 2));
+            d.DrawRect(new Rectangle(0, 0, 2, h));
+            d.DrawRect(new Rectangle(w - 2, 0, 2, h));
+        }
+
+        // 2. Icon & Label Layout
+        bool hasIcon = Icon != null;
+        bool hasLabel = _label != null && _label.Size.X > 0f;
+
+        if (hasIcon && hasLabel)
+        {
+            var textSize = _label!.Size;
+
             float totalWidth = IconSize.X + ContentGap + textSize.X;
             float startX = MathF.Max(8f, (w - totalWidth) / 2f);
 
             float iconY = (h - IconSize.Y) / 2f;
-            d.BlendColor = Color.White;
+            d.BlendColor = BlendColor;
             d.DrawTexture(Icon!, new Rectangle((int)startX, (int)iconY, (int)IconSize.X, (int)IconSize.Y));
 
-            d.Font = font;
-            d.FontColor = TextColor;
-            float textX = startX + IconSize.X + ContentGap;
-            float textY = (h - textSize.Y) / 2f;
-            d.DrawText(Text!, new Vector2(textX, textY));
+            _label.Position = new Vector2(startX + IconSize.X + ContentGap, (h - textSize.Y) / 2f);
+            d.DrawObject(_label);
         }
         else if (hasIcon)
         {
             float iconX = (w - IconSize.X) / 2f;
             float iconY = (h - IconSize.Y) / 2f;
-            d.BlendColor = Color.White;
+            d.BlendColor = BlendColor;
             d.DrawTexture(Icon!, new Rectangle((int)iconX, (int)iconY, (int)IconSize.X, (int)IconSize.Y));
         }
-        else if (hasText)
+        else if (hasLabel)
         {
-            var font = Font!.Value;
-            var textSize = font.MeasureText(Text!);
-
-            d.Font = font;
-            d.FontColor = TextColor;
+            var textSize = _label!.Size;
             float textX = MathF.Max(6f, (w - textSize.X) / 2f);
             float textY = (h - textSize.Y) / 2f;
-            d.DrawText(Text!, new Vector2(textX, textY));
+
+            _label.Position = new Vector2(textX, textY);
+            d.DrawObject(_label);
         }
     }
 
@@ -224,6 +294,9 @@ public class Button : GameObject
         Mouse.OnMove -= HandleMouseMove;
         Mouse.OnDown -= HandleMouseDown;
         Mouse.OnUp -= HandleMouseUp;
+
+        _label?.Dispose();
+        _label = null;
 
         _activeTween?.Dispose();
         OnClick = null;
