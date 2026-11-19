@@ -14,7 +14,9 @@ public class Tween : IGameUpdatable
     public Action<float>? OnUpdate { get; set; }
     public Action<float> OnComplete { get; set; }
 
-    public bool IsFinished => Elapsed >= Duration;
+    private bool _completed;
+    public bool IsFinished => _completed;
+
     public float Progress => Duration <= 0f ? 1f : Math.Clamp(Elapsed / Duration, 0f, 1f);
     public float CurrentValue { get; private set; }
 
@@ -45,6 +47,7 @@ public class Tween : IGameUpdatable
         {
             float overflow = Elapsed - Duration;
             Elapsed = Duration;
+            _completed = true;
             OnComplete?.Invoke(overflow);
         }
     }
@@ -53,6 +56,7 @@ public class Tween : IGameUpdatable
     {
         Elapsed = 0f;
         CurrentValue = From;
+        _completed = false;
     }
 
     public void Dispose()
@@ -78,6 +82,8 @@ public class Tween : IGameUpdatable
         Action<float> callback,
         Func<float, float>? ease = null
     ) => new TweenPlanner().Call(from, to, duration, callback, ease);
+
+    public static TweenPlanner CallFunc(Action callback) => new TweenPlanner().CallFunc(callback);
 
     public static TweenPlanner Wait(float seconds) => new TweenPlanner().Wait(seconds);
 }
