@@ -15,7 +15,15 @@
 
 ### Example
 ```csharp
+// Set maximum delta time for lags
 Time.DeltaTimeMax = 0.1f;
+
+// Use delta time
 position.X += speed * Time.DeltaTime;
+
+// Get time in milliseconds since epoch
+long nowMs = Time.EpochMillis;
+
+// Get time by SDL perfomance counter
 double nowMs = Time.GetTimeMillis();
 ```
