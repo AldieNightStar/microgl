@@ -3,7 +3,7 @@
 ### Notes
 * **Core 2D rendering context** (`IDisposable`) wrapping an `IRenderer` to draw primitives, textures, text, and `GameObject` instances.
 * **Applies `Transform` automatically** to all geometry, lines, textures, and text coordinates, allowing rotated and scaled rendering via `SDL.RenderGeometry`.
-* **Tracks stateful styling** through `Color` (primitive fill/line color), `BlendColor` (texture tint), `Font`, and `FontColor`, resettable per frame with `Reset()`.
+* **Tracks stateful styling and viewport dimensions** through `ScreenSize` (the logical screen size configured when creating `Game`), `Color` (primitive fill/line color), `BlendColor` (texture tint), `Font`, and `FontColor`, resettable per frame with `Reset()`.
 
 ### Usage
 ```csharp
@@ -14,8 +14,9 @@ new Drawer(IRenderer renderer);
 drawer.Reset();
 drawer.Clear();
 
-// Rendering state properties
+// Rendering state & viewport properties
 drawer.Renderer;
+drawer.ScreenSize;
 drawer.Transform;
 drawer.Color;
 drawer.BlendColor;
@@ -45,6 +46,9 @@ drawer.Dispose();
 ```csharp
 drawer.Reset();
 
+// Centering using logical screen size
+Vector2 center = drawer.ScreenSize / 2f;
+
 // Primitives
 drawer.Color = Color.CornflowerBlue;
 drawer.DrawRect(new Rectangle(20, 20, 100, 60));
@@ -53,7 +57,7 @@ drawer.DrawLine(new Vector2(20f, 100f), new Vector2(120f, 100f));
 // Textures & objects
 drawer.BlendColor = Color.White;
 drawer.DrawTexture(sprite, new Rectangle(150, 20, 64, 64));
-drawer.DrawObject(player, new Vector2(300f, 200f));
+drawer.DrawObject(player, center);
 
 // TTF and debug text
 drawer.Font = font;

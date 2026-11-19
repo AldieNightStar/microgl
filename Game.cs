@@ -1,11 +1,12 @@
-﻿using SDL3;
+﻿using System.Numerics;
+using SDL3;
 
 namespace microgl;
 
 public class Game : IDisposable
 {
     private readonly string _title;
-    private readonly (int, int) _winSize;
+    private readonly Vector2 _winSize;
     private nint _windowHandle;
     private GPURenderer _renderer;
     private readonly IGame _game;
@@ -17,7 +18,7 @@ public class Game : IDisposable
     public Game(string title, int w, int h, IGame game)
     {
         _title = title;
-        _winSize = (w, h);
+        _winSize = new Vector2(w, h);
         _game = game;
     }
 
@@ -28,7 +29,7 @@ public class Game : IDisposable
             throw new Exception($"Can't Init SDL: {SDL.GetError()}");
         }
 
-        var (w, h) = _winSize;
+        var (w, h) = ((int) _winSize.X, (int) _winSize.Y);
         var winFlags = SDL.WindowFlags.Resizable;
         if (!SDL.CreateWindowAndRenderer(_title, w, h, winFlags, out _windowHandle, out var renderer))
         {
@@ -50,7 +51,10 @@ public class Game : IDisposable
         SDL.SetRenderLogicalPresentation(renderer, w, h, SDL.RendererLogicalPresentation.Letterbox);
 
         // Initialization
-        _drawer = new Drawer(_renderer);
+        _drawer = new Drawer(_renderer)
+        {
+            ScreenSize=_winSize,
+        };
         _game.Init(_drawer);
 
         // Game loop

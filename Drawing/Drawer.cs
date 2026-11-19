@@ -13,6 +13,7 @@ public class Drawer : IDisposable
     public GameFont Font { get; set; }
     public Color FontColor { get; set; } = Color.White;
     public Transform Transform { get; set; } = Transform.Identity;
+    public Vector2 ScreenSize {get; internal set;}
 
     public Drawer(IRenderer renderer)
     {
