@@ -14,9 +14,18 @@ public abstract class GameObject : IDisposable
 
     private Transform _parentTransform = Transform.Identity;
 
-    public Transform Transform { get; set; } = Transform.Identity;
+    public Transform Transform
+    {
+        get => field;
+        set
+        {
+            field = value;
+            _recalculateGlobalTransform();
+        }
+    } = Transform.Identity;
+
     public Transform GlobalTransform { get; private set; } = Transform.Identity;
-    public Color BlendColor {get; set; } = Color.White;
+    public Color BlendColor { get; set; } = Color.White;
 
     public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
     public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
@@ -30,56 +39,44 @@ public abstract class GameObject : IDisposable
 
     public void Delete() => IsAlive = false;
 
+    public Vector2 CenterPoint
+    {
+        get => field;
+        set
+        {
+            field = value;
+            _recalculateGlobalTransform();
+        }
+    } = Vector2.Zero;
+
     public Vector2 Position
     {
         get => Transform.Position;
-        set
-        {
-            Transform = Transform.WithPosition(value);
-            GlobalTransform = _parentTransform * Transform;
-        }
+        set => Transform = Transform.WithPosition(value);
     }
 
     public Vector2 GlobalPosition
     {
         get => GlobalTransform.Position;
-        set
-        {
-            var localPos = _parentTransform.ToLocal(value);
-            Transform = Transform.WithPosition(localPos);
-            GlobalTransform = _parentTransform * Transform;
-        }
+        set => Transform = Transform.WithPosition(_parentTransform.ToLocal(value));
     }
 
     public float Rotation
     {
         get => Transform.Rotation;
-        set
-        {
-            Transform = Transform.WithRotation(value);
-            GlobalTransform = _parentTransform * Transform;
-        }
+        set => Transform = Transform.WithRotation(value);
     }
 
     public float GlobalRotation
     {
         get => GlobalTransform.Rotation;
-        set
-        {
-            float localAngle = value - _parentTransform.Rotation;
-            Transform = Transform.WithRotation(localAngle);
-            GlobalTransform = _parentTransform * Transform;
-        }
+        set => Transform = Transform.WithRotation(value - _parentTransform.Rotation);
     }
 
     public Vector2 Scale
     {
         get => Transform.ScaleFactor;
-        set
-        {
-            Transform = Transform.WithScale(value);
-            GlobalTransform = _parentTransform * Transform;
-        }
+        set => Transform = Transform.WithScale(value);
     }
 
     public Vector2 GlobalScale
@@ -88,13 +85,19 @@ public abstract class GameObject : IDisposable
         set
         {
             var parentScale = _parentTransform.ScaleFactor;
-            var localScale = new Vector2(
+            Transform = Transform.WithScale(new Vector2(
                 parentScale.X != 0f ? value.X / parentScale.X : value.X,
                 parentScale.Y != 0f ? value.Y / parentScale.Y : value.Y
-            );
-            Transform = Transform.WithScale(localScale);
-            GlobalTransform = _parentTransform * Transform;
+            ));
         }
+    }
+
+    private void _recalculateGlobalTransform()
+    {
+        var baseGlobal = _parentTransform * Transform;
+        GlobalTransform = CenterPoint == Vector2.Zero
+            ? baseGlobal
+            : baseGlobal * Transform.Identity.Translate(-CenterPoint);
     }
 
     // --- Public API (Called by the game or GameObjectGroup) ---
@@ -108,7 +111,7 @@ public abstract class GameObject : IDisposable
     internal void Init(Drawer d, Transform parentTransform)
     {
         _parentTransform = parentTransform;
-        GlobalTransform = parentTransform * Transform;
+        _recalculateGlobalTransform();
         OnInit(d);
     }
 
@@ -116,7 +119,7 @@ public abstract class GameObject : IDisposable
     {
         if (!IsAlive) return;
         _parentTransform = parentTransform;
-        GlobalTransform = parentTransform * Transform;
+        _recalculateGlobalTransform();
         d.Transform = GlobalTransform;
         OnUpdate(d, Time.DeltaTime);
     }
@@ -125,7 +128,7 @@ public abstract class GameObject : IDisposable
     {
         if (!IsAlive) return;
         _parentTransform = parentTransform;
-        GlobalTransform = parentTransform * Transform;
+        _recalculateGlobalTransform();
         d.Transform = GlobalTransform;
         d.BlendColor = BlendColor;
         OnDraw(d, Time.DeltaTime);
