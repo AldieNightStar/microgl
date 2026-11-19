@@ -59,5 +59,5 @@ public class GameTimer : IGameUpdatable
         Reset();
     }
 
-    void IGameUpdatable.Update(float dt) => Update(dt);
+    void IGameUpdatable.Update() => Update(Time.DeltaTime);
 }

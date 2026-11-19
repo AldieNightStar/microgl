@@ -23,7 +23,7 @@ public class Game : IDisposable
 
     public void Start()
     {
-        if (!SDL.Init(SDL.InitFlags.Video))
+        if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Gamepad))
         {
             throw new Exception($"Can't Init SDL: {SDL.GetError()}");
         }
@@ -99,6 +99,7 @@ public class Game : IDisposable
         if (type == (uint)SDL.EventType.Quit) running = false;
         else if (Mouse.IsMouseEvent(ref ev)) Mouse.ProcessEvent(_drawer, ref ev);
         else if (Keyboard.IsKeyboardEvent(ref ev)) Keyboard.ProcessEvent(ref ev);
+        else if (Gamepad.IsGamepadEvent(ref ev)) Gamepad.ProcessEvent(ref ev);
     }
 
     public void Dispose()
@@ -108,6 +109,7 @@ public class Game : IDisposable
 
         _game.Dispose();
         _drawer.Dispose();
+        Gamepad.DisposeAll();
 
         if (_windowHandle != IntPtr.Zero)
         {

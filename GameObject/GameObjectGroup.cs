@@ -20,7 +20,7 @@ public class GameObjectGroup : GameObject
         }
     }
 
-    protected override void OnUpdate(Drawer d, float dt)
+    protected override void OnUpdate(Drawer d)
     {
         // Update each object in reverse order (to remove dead objects)
         for (int i = _list.Count - 1; i >= 0; i--)
@@ -47,7 +47,7 @@ public class GameObjectGroup : GameObject
         }
     }
 
-    protected override void OnDraw(Drawer d, float dt)
+    protected override void OnDraw(Drawer d)
     {
         foreach (var el in _list)
         {

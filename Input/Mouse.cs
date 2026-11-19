@@ -3,7 +3,7 @@ using SDL3;
 
 namespace microgl;
 
-public class Mouse
+public static class Mouse
 {
     public const uint LEFT = 1;
     public const uint MIDDLE = 2;
@@ -18,9 +18,9 @@ public class Mouse
 
     internal static Vector2 LastPosition;
 
-    public static event Action<Vector2> OnMove;
-    public static event Action<uint> OnDown;
-    public static event Action<uint> OnUp;
+    public static event Action<Vector2>? OnMove;
+    public static event Action<uint>? OnDown;
+    public static event Action<uint>? OnUp;
 
     public static Vector2 Position => LastPosition;
 

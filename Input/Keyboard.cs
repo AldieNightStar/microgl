@@ -2,10 +2,10 @@ using SDL3;
 
 namespace microgl;
 
-public class Keyboard
+public static class Keyboard
 {
-    public static event Action<SDL.Keycode> OnDown;
-    public static event Action<SDL.Keycode> OnUp;
+    public static event Action<SDL.Keycode>? OnDown;
+    public static event Action<SDL.Keycode>? OnUp;
 
     public static bool IsCtrl { get; private set; }
     public static bool IsShift { get; private set; }
