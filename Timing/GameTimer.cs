@@ -1,13 +1,13 @@
 namespace microgl;
 
-public class GameTimer : IDisposable
+public class GameTimer : IGameUpdatable
 {
     public float Duration { get; set; }
     public float Elapsed { get; private set; }
     public bool Loop { get; set; }
     public bool IsPaused { get; set; }
 
-    public event Action OnComplete;
+    public event Action? OnComplete;
 
     public GameTimer(float duration, bool loop)
     {
@@ -56,6 +56,8 @@ public class GameTimer : IDisposable
     {
         IsPaused = true;  
         OnComplete = null;
-        Reset();          
+        Reset();
     }
+
+    void IGameUpdatable.Update(float dt) => Update(dt);
 }

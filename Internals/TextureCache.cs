@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using SDL3;
 
 namespace microgl;
