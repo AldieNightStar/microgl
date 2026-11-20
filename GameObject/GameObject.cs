@@ -5,9 +5,8 @@ namespace microgl;
 
 public abstract class GameObject : IDisposable
 {
+    private Transform _transform = Transform.Identity;
     private Transform _parentTransform = Transform.Identity;
-
-    // === Lifecycle ===========================================================
 
     public virtual bool IsAlive { get; set; } = true;
     public void Delete() => IsAlive = false;
@@ -17,9 +16,17 @@ public abstract class GameObject : IDisposable
     protected abstract void OnDraw(Drawer d);
     public abstract void Dispose();
 
-    // == Local transform ======================================================
+    public Transform Transform
+    {
+        get => _transform;
+        set
+        {
+            _transform = value;
+            GlobalTransform = _parentTransform * value;
+        }
+    }
 
-    public Transform Transform { get; set; } = Transform.Identity;
+    public Transform GlobalTransform { get; private set; } = Transform.Identity;
 
     public Vector2 Position
     {
@@ -39,11 +46,6 @@ public abstract class GameObject : IDisposable
         set => Transform = Transform.WithScale(value);
     }
 
-    // == Global transform =====================================================
-
-    /// <summary>Combined parent * local transform in world/screen space.</summary>
-    public Transform GlobalTransform => _parentTransform * Transform;
-
     public Vector2 GlobalPosition
     {
         get => GlobalTransform.Position;
@@ -62,52 +64,43 @@ public abstract class GameObject : IDisposable
         set => Transform = Transform.WithGlobalScale(_parentTransform, value);
     }
 
-    // == Pivot & blend ========================================================
-
-    /// <summary>Pivot point in local space. Shifts the draw origin without affecting position.</summary>
     public Vector2 CenterPoint { get; set; } = Vector2.Zero;
 
     public Color BlendColor { get; set; } = Color.White;
 
-    // == Coordinate conversion ================================================
-
     public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
     public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
 
-    // == Internals ============================================================
-
-    private Transform _buildGlobal(Transform? parent)
-    {
-        _parentTransform = parent ?? Transform.Identity;
-        return _parentTransform * Transform;
-    }
-
-    private Transform _renderTransform(Transform global) => CenterPoint == Vector2.Zero
-        ? global
-        : global.Translate(-CenterPoint);
-
-    // == Hierarchical API (called by Game, GameObjectGroup, or Drawer) =========
-
     public void Init(Drawer d, Transform? parent = null)
     {
-        var global = _buildGlobal(parent);
-        using var scope = new DrawerScope(d, _renderTransform(global), global);
+        _setParent(parent);
+        using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform);
         OnInit(d);
     }
 
     public void Update(Drawer d, Transform? parent = null)
     {
         if (!IsAlive) return;
-        var global = _buildGlobal(parent);
-        using var scope = new DrawerScope(d, _renderTransform(global), global);
+        _setParent(parent);
+        using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform);
         OnUpdate(d);
     }
 
     public void Draw(Drawer d, Transform? parent = null)
     {
         if (!IsAlive) return;
-        var global = _buildGlobal(parent);
-        using var scope = new DrawerScope(d, _renderTransform(global), global, BlendColor);
+        _setParent(parent);
+        using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform, BlendColor);
         OnDraw(d);
     }
+
+    private void _setParent(Transform? parent)
+    {
+        _parentTransform = parent ?? Transform.Identity;
+        GlobalTransform = _parentTransform * Transform;
+    }
+
+    private Transform _renderTransform() => CenterPoint == Vector2.Zero
+        ? GlobalTransform
+        : GlobalTransform.Translate(-CenterPoint);
 }

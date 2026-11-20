@@ -3,7 +3,7 @@
 ### Notes
 * **Base entity class** for all scene and UI objects in `microgl`, implementing `IDisposable`.
 * **Supports hierarchical 2D transforms** — the global transform is computed as `parent * Transform`, kept pure with no pivot baked in.
-* **Global transform methods require a `Drawer`** — `GetGlobalPosition`, `GetGlobalRotation`, `GetGlobalScale`, and their setters are methods that take `Drawer d` and are only valid inside `OnUpdate` / `OnDraw`.
+* **`GlobalTransform` is stored on the object** — it is refreshed on every `Init` / `Update` / `Draw` call and whenever the local `Transform` changes, so `GlobalPosition`, `GlobalRotation`, `GlobalScale`, `ToLocal` and `ToGlobal` work without a `Drawer`. Until the first `Init` / `Update` / `Draw`, the parent is `Transform.Identity`.
 * **`CenterPoint`** shifts the draw origin (pivot) without affecting the global position. The offset is applied only at render time via an internal render transform.
 * **`DrawerScope`** (internal) automatically saves and restores `d.Transform`, `d.WorldTransform`, and `d.BlendColor` around each `OnDraw`/`OnUpdate` call, so the caller's draw state is never clobbered.
 * **Subclasses implement four hooks**: `OnInit`, `OnUpdate`, `OnDraw`, and `Dispose`.
@@ -14,13 +14,9 @@
 obj.Position;  obj.Rotation;  obj.Scale;
 obj.Transform;
 
-// Global transform — requires Drawer, only valid inside OnUpdate/OnDraw
-obj.GetGlobalPosition(Drawer d);
-obj.SetGlobalPosition(Drawer d, Vector2 value);
-obj.GetGlobalRotation(Drawer d);
-obj.SetGlobalRotation(Drawer d, float value);
-obj.GetGlobalScale(Drawer d);
-obj.SetGlobalScale(Drawer d, Vector2 value);
+// Global transform — parent from the last Init/Update/Draw call
+obj.GlobalTransform;
+obj.GlobalPosition;  obj.GlobalRotation;  obj.GlobalScale;
 
 // Pivot & tint
 obj.CenterPoint;
@@ -30,9 +26,9 @@ obj.BlendColor;
 obj.IsAlive;
 obj.Delete();
 
-// Coordinate space conversion (requires Drawer, only valid inside OnUpdate/OnDraw)
-obj.ToLocal(Drawer d, Vector2 global);
-obj.ToGlobal(Drawer d, Vector2 local);
+// Coordinate space conversion
+obj.ToLocal(Vector2 global);
+obj.ToGlobal(Vector2 local);
 
 // Check that object is displayed on screen. Uses GlobalPosition
 obj.IsOnScreen(Drawer d, Vector2 size);
@@ -61,8 +57,7 @@ public class Box : GameObject
 
     protected override void OnUpdate(Drawer d)
     {
-        // Global helpers are only safe here (inside the DrawerScope)
-        var gpos = GetGlobalPosition(d);
+        var gpos = GlobalPosition;
     }
 
     protected override void OnDraw(Drawer d)

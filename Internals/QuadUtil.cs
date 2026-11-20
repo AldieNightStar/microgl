@@ -29,4 +29,17 @@ internal static class QuadUtil
         verts[2] = new SDL.Vertex { Position = new SDL.FPoint { X = p2.X, Y = p2.Y }, Color = color, TexCoord = new SDL.FPoint { X = u1, Y = v1 } };
         verts[3] = new SDL.Vertex { Position = new SDL.FPoint { X = p3.X, Y = p3.Y }, Color = color, TexCoord = new SDL.FPoint { X = u0, Y = v1 } };
     }
+
+    public static Rectangle TransformedBounds(Transform transform, Vector2 size)
+    {
+        var p0 = transform.ToGlobal(Vector2.Zero);
+        var p1 = transform.ToGlobal(new Vector2(size.X, 0f));
+        var p2 = transform.ToGlobal(size);
+        var p3 = transform.ToGlobal(new Vector2(0f, size.Y));
+
+        var min = Vector2.Min(Vector2.Min(p0, p1), Vector2.Min(p2, p3));
+        var max = Vector2.Max(Vector2.Max(p0, p1), Vector2.Max(p2, p3));
+
+        return new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
+    }
 }

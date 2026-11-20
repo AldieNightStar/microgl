@@ -3,8 +3,8 @@
 ### Notes
 * **Abstract base class** for all UI widgets in `microgl`, inheriting from `GameObject`.
 * **Enforces size bounds** by clamping `Size` between `MinSize` (default `0, 0`) and `MaxSize` (default `1000, 1000`), triggering `OnResized()` on changes.
-* **Manages origin and bounding boxes**: `CenterOrigin` keeps `CenterPoint` synced to `Size / 2`, while `LocalBounds`, `Bounds`, and `GetGlobalBounds(Drawer d)` expose exact rectangles.
-* **`ToGlobal`, `ToLocal`, `ContainsPoint`, and `GetGlobalBounds` all require a `Drawer`** — they read the cached world transform and are only accurate inside `OnUpdate` / `OnDraw` or mouse-event handlers that store the drawer.
+* **Manages origin and bounding boxes**: `CenterOrigin` keeps `CenterPoint` synced to `Size / 2`, while `LocalBounds`, `Bounds`, and `GlobalBounds` expose exact rectangles.
+* **`ContainsPoint` and `GlobalBounds` use the stored `GlobalTransform`**, so they work anywhere, including mouse-event handlers.
 
 ### Usage
 ```csharp
@@ -22,14 +22,10 @@ element.CenterOrigin;
 // Bounding rectangles in local, parent, and global world/screen space
 element.LocalBounds;
 element.Bounds;
-element.GetGlobalBounds(Drawer d);
-
-// Coordinate space conversion (requires Drawer)
-element.ToGlobal(Drawer d, Vector2 local);
-element.ToLocal(Drawer d, Vector2 global);
+element.GlobalBounds;
 
 // Check if a screen-space coordinate lies within this element's transformed bounds
-element.ContainsPoint(Drawer d, Vector2 screenPos);
+element.ContainsPoint(Vector2 screenPos);
 
 // Virtual hook called whenever Size changes
 protected virtual void OnResized();
@@ -57,8 +53,6 @@ public class Panel : UIElement
 
 var panel = new Panel(new Vector2(360f, 240f), new Vector2(200f, 120f));
 
-// ContainsPoint and GetGlobalBounds require the Drawer from Update/Draw
-// (or stored from the last Update call)
-bool hit = panel.ContainsPoint(d, Mouse.Position);
-var worldRect = panel.GetGlobalBounds(d);
+bool hit = panel.ContainsPoint(Mouse.Position);
+var worldRect = panel.GlobalBounds;
 ```

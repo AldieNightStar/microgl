@@ -9,8 +9,6 @@ public class ClickableArea : UIElement
     public bool IsPressed { get; private set; }
     public bool Enabled { get; set; } = true;
 
-    private Drawer _lastDrawer;
-
     public event Action? OnClick;
     public event Action? OnHoverEnter;
     public event Action? OnHoverExit;
@@ -28,12 +26,10 @@ public class ClickableArea : UIElement
         Mouse.OnMove += HandleMouseMove;
         Mouse.OnDown += HandleMouseDown;
         Mouse.OnUp += HandleMouseUp;
-        _lastDrawer = d;
     }
 
     protected override void OnUpdate(Drawer d)
     {
-        _lastDrawer = d;
         if (!Enabled)
         {
             IsHovered = false;
@@ -50,7 +46,7 @@ public class ClickableArea : UIElement
     {
         if (!IsAlive || !Enabled) return;
 
-        bool inside = ContainsPoint(_lastDrawer, pos);
+        bool inside = ContainsPoint(pos);
 
         if (inside && !IsHovered)
         {
@@ -69,7 +65,7 @@ public class ClickableArea : UIElement
     {
         if (!IsAlive || !Enabled || button != LeftButton) return;
 
-        if (ContainsPoint(_lastDrawer, Mouse.Position))
+        if (ContainsPoint(Mouse.Position))
             IsPressed = true;
     }
 
@@ -77,7 +73,7 @@ public class ClickableArea : UIElement
     {
         if (!IsAlive || !Enabled || button != LeftButton) return;
 
-        bool inside = ContainsPoint(_lastDrawer, Mouse.Position);
+        bool inside = ContainsPoint(Mouse.Position);
 
         if (IsPressed && inside)
             OnClick?.Invoke();
