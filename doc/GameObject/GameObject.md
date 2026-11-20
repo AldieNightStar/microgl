@@ -35,6 +35,7 @@ obj.ToLocal(Drawer d, Vector2 global);
 obj.ToGlobal(Drawer d, Vector2 local);
 
 // Lifecycle methods — no-parent overloads use Transform.Identity as parent
+// Use drawer.DrawObject(o) to draw something with relative coords 
 obj.Init(Drawer d);
 obj.Init(Drawer d, Transform? parent);
 obj.Update(Drawer d);
