@@ -25,11 +25,13 @@ Texture mask = Masks.Rectangle(200, 120);
 Texture mask = Masks.Circle(128);
 Texture mask = Masks.RoundedRectangle(200, 120, cornerRadius: 16);
 
-// Radial gradient — fully opaque at centre, fades to transparent at edges (Controlled by float number from 0f to 1f)
-Texture mask = Masks.Vignette(960, 720, 1f);
+// Radial gradient — fully opaque at centre, fades to transparent at edges.
+// strength: 0 = no vignette (fully opaque), 1 = full fade. Default is 0.8f
+Texture mask = Masks.Vignette(960, 720, strength: 0.8f);
 
-// Grayscale image → mask: white = opaque, black = transparent, grey = semi
-Texture mask = Masks.FromGrayscale(Texture.FromPNG("vignette.png"));
+// Grayscale image → mask: white = opaque, black = transparent, grey = semi.
+// disposeOlder: pass true to dispose the source texture after conversion.
+Texture mask = Masks.FromGrayscale(Texture.FromPNG("vignette.png"), disposeOlder: true);
 ```
 
 ### Custom masks
@@ -38,7 +40,7 @@ Texture mask = Masks.FromGrayscale(Texture.FromPNG("vignette.png"));
 // From a PNG with a transparent background
 Texture mask = Texture.FromPNG("bottle_mask.png");
 
-// Drawn procedurally
+// Drawn procedurally — use Surface.WritePixel(x, y, Color) for per-pixel control
 Texture mask = Texture.FromDrawing(128, 128, d =>
 {
     d.Color = Color.White;
@@ -77,7 +79,7 @@ using (d.BeginMask(_bottleMask, 64, 160, new Rectangle(40, 500, 64, 160)))
 
 **Soft vignette**
 ```csharp
-_vignetteMask = Masks.Vignette(960, 720);
+_vignetteMask = Masks.Vignette(960, 720, strength: 0.8f);
 
 using (d.BeginMask(_vignetteMask, 960, 720, new Rectangle(0, 0, 960, 720)))
     d.DrawTexture(_scene, new Rectangle(0, 0, 960, 720));

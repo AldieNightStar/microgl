@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using SDL3;
@@ -33,10 +34,16 @@ public readonly struct Surface : IDisposable
         return new Surface(SDL.DuplicateSurface(surface.Pointer));
     }
 
+    public void WritePixel(int x, int y, byte r, byte g, byte b, byte a)
+        => SDL.WriteSurfacePixel(this, x, y, r, g, b, a);
+
+    public void WritePixel(int x, int y, Color color)
+        => SDL.WriteSurfacePixel(this, x, y, color.R, color.G, color.B, color.A);
+
     public void Dispose()
     {
         SDL.DestroySurface(Pointer);
     }
-    
+
     public static implicit operator nint(Surface s) => s.Pointer;
 }

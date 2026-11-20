@@ -74,7 +74,7 @@ public static class Masks
     /// Radial gradient mask: fully opaque at the centre, fading to fully transparent
     /// at the edges. Useful for soft vignettes, glows, and reveal effects.
     /// </summary>
-    public static Texture Vignette(int width, int height, float strength = 1f)
+    public static Texture Vignette(int width, int height, float strength = 0.8f)
     {
         float cx = width / 2f;
         float cy = height / 2f;
@@ -103,7 +103,7 @@ public static class Masks
     /// transparent, grey → semi-transparent. The brightness of each source pixel
     /// becomes the alpha of the corresponding mask pixel.
     /// </summary>
-    public static Texture FromGrayscale(Texture grayscale)
+    public static Texture FromGrayscale(Texture grayscale, bool disposeOlder = false)
     {
         var src = grayscale.Surface;
         var size = src.Size;
@@ -120,9 +120,11 @@ public static class Masks
                 // Luminance — simple average is fine for a greyscale source; handles tinted inputs too
                 float brightness = (r + g + b) / 3f;
                 byte alpha = (byte)(brightness * 255f);
-
-                SDL.WriteSurfacePixel(dst, x, y, 255, 255, 255, alpha);
+                
+                dst.WritePixel(x, y, 255, 255, 255, alpha);
             }
+
+        if (disposeOlder) grayscale.Dispose();
 
         return new Texture(dst);
     }
