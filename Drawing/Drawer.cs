@@ -9,7 +9,13 @@ public class Drawer : IDisposable
     private static readonly int[] QUAD_INDICES = [0, 1, 2, 0, 2, 3];
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
 
-    // ── State ────────────────────────────────────────────────────────────────
+    // dst * 0 + src * dstAlpha  →  keeps only pixels where the mask is opaque
+    internal static readonly SDL.BlendMode InsideMaskBlendMode = SDL.ComposeCustomBlendMode(
+        SDL.BlendFactor.DstAlpha, SDL.BlendFactor.Zero, SDL.BlendOperation.Add,
+        SDL.BlendFactor.DstAlpha, SDL.BlendFactor.Zero, SDL.BlendOperation.Add
+    );
+
+    // == State ================================================================
 
     public IRenderer Renderer   { get; set; }
     public Vector2   ScreenSize { get; internal set; }
@@ -45,11 +51,11 @@ public class Drawer : IDisposable
         }
     }
 
-    // ── Construction ─────────────────────────────────────────────────────────
+    // == Construction =========================================================
 
     public Drawer(IRenderer renderer) => Renderer = renderer;
 
-    // ── Frame lifecycle ──────────────────────────────────────────────────────
+    // == Frame lifecycle ======================================================
 
     public void Clear()
     {
@@ -70,7 +76,7 @@ public class Drawer : IDisposable
         Shader         = null;
     }
 
-    // ── Object drawing ───────────────────────────────────────────────────────
+    // == Object drawing =======================================================
 
     /// <summary>Draws obj as a child of the current object (inherits WorldTransform).</summary>
     public void DrawObject(GameObject obj) => obj.Draw(this, WorldTransform);
@@ -78,7 +84,42 @@ public class Drawer : IDisposable
     /// <summary>Draws obj at a local offset relative to the current object.</summary>
     public void DrawObject(GameObject obj, Vector2 localPos) => obj.Draw(this, WorldTransform * Transform.Translate(localPos));
 
-    // ── Primitive drawing ────────────────────────────────────────────────────
+    // == Masked drawing =======================================================
+
+    /// <summary>
+    /// Returns a scope that redirects drawing into an off-screen target, clips it to
+    /// the shape of <paramref name="mask"/>, then blits the result to
+    /// <paramref name="dstRect"/> when disposed.
+    ///
+    /// Everything drawn while the scope is alive should use
+    /// <see cref="DrawTextureMasked"/> (or set the texture blend mode to
+    /// <see cref="InsideMaskBlendMode"/> manually) so the mask alpha is respected.
+    ///
+    /// <code>
+    /// using (drawer.BeginMask(circleMask, 128, 128, new Rectangle(20, 20, 128, 128)))
+    /// {
+    ///     drawer.DrawTextureMasked(playerPhoto, new Rectangle(0, 0, 128, 128));
+    /// }
+    /// </code>
+    /// </summary>
+    public MaskScope BeginMask(Texture mask, int width, int height, Rectangle dstRect)
+        => new MaskScope(this, mask, width, height, dstRect);
+
+    /// <summary>
+    /// Draws <paramref name="texture"/> using the inside-mask blend mode.
+    /// Call this (instead of <see cref="DrawTexture(Texture, Rectangle, Rectangle?)"/>)
+    /// while a <see cref="MaskScope"/> is active.
+    /// </summary>
+    public void DrawTextureMasked(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
+    {
+        var nativeTexture = Renderer.GetNativeTexture(texture);
+        SDL.SetTextureBlendMode(nativeTexture, InsideMaskBlendMode);
+        DrawTexture(texture, dstRect, srcRect);
+        // Reset to normal blend so the texture is usable elsewhere
+        SDL.SetTextureBlendMode(nativeTexture, SDL.BlendMode.Blend);
+    }
+
+    // == Primitive drawing ====================================================
 
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {
@@ -146,7 +187,7 @@ public class Drawer : IDisposable
         TextEngine.FreeEngineForRenderer(textEnginePtr, Renderer);
     }
 
-    // ── Internals ────────────────────────────────────────────────────────────
+    // == Internals ============================================================
 
     private void _FillQuad(Rectangle rect, float u0, float v0, float u1, float v1)
     {

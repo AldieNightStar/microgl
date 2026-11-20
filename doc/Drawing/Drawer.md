@@ -42,6 +42,11 @@ drawer.DrawLine(Vector2 a, Vector2 b);
 drawer.DrawText(string text, Vector2 pos);
 drawer.DrawDebugText(string text, Vector2 pos);
 
+// Masked drawing — clips content to the shape of a mask texture (GPURenderer only)
+// See: MaskScope
+using (drawer.BeginMask(Texture mask, int width, int height, Rectangle dstRect))
+    drawer.DrawTextureMasked(Texture texture, Rectangle dstRect, Rectangle? srcRect = null);
+
 drawer.Dispose();
 ```
 
@@ -75,5 +80,15 @@ protected override void OnDraw(Drawer d)
 
     // Draws at a local offset relative to this object
     d.DrawObject(icon, new Vector2(8f, -16f));
+}
+```
+
+### Masked drawing inside OnDraw
+```csharp
+protected override void OnDraw(Drawer d)
+{
+    // Circular avatar clipped to circleMask shape
+    using (d.BeginMask(circleMask, 128, 128, new Rectangle(0, 0, 128, 128)))
+        d.DrawTextureMasked(playerPhoto, new Rectangle(0, 0, 128, 128));
 }
 ```
