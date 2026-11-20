@@ -24,8 +24,9 @@ public class GameObjectGroup : GameObject
         for (int i = _list.Count - 1; i >= 0; i--)
         {
             var gameObject = _list[i];
-            gameObject.Update(d, d.WorldTransform);
+            if (gameObject.IsAlive) gameObject.Update(d, d.WorldTransform);
 
+            // Later, i need to check that object s 
             if (!gameObject.IsAlive)
             {
                 gameObject.Dispose();
@@ -65,5 +66,35 @@ public class GameObjectGroup : GameObject
     public void Add(GameObject obj)
     {
         _queued.Add(obj);
+    }
+
+    public IReadOnlyList<GameObject> GetChildren() => _list.AsReadOnly();
+
+    public IEnumerable<T> GetChildren<T>() where T : GameObject
+        => _list.OfType<T>().Concat(_queued.OfType<T>());
+
+    public void Remove(GameObject obj)
+    {
+        if (_list.Contains(obj))
+            obj.Delete();
+        else
+            _removeFromQueued(obj);
+    }
+
+    private void _removeFromQueued(GameObject obj)
+    {
+        if (_queued.Remove(obj))
+            obj.Dispose();
+    }
+
+    public void Clear()
+    {
+        foreach (var el in _list)
+            el.Dispose();
+        _list.Clear();
+
+        foreach (var el in _queued)
+            el.Dispose();
+        _queued.Clear();
     }
 }
