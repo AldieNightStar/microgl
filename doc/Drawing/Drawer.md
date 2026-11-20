@@ -18,6 +18,7 @@ drawer.Clear();   // clears screen only
 // State properties
 drawer.Renderer;
 drawer.ScreenSize;
+drawer.ScreenBounds;   // gets Rectangle of the screen
 drawer.Transform;      // render transform (set by GameObject, includes pivot offset)
 drawer.Color;          // fill/line color
 drawer.BlendColor;     // texture tint

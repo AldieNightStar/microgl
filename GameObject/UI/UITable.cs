@@ -5,13 +5,23 @@ namespace microgl;
 
 public class UITable : UIElement
 {
-    private sealed class Entry(UIElement element)
+    // Sentinel — inserted into _flat on NextLine(); never added to _group.
+    private sealed class NextLineMarker : UIElement
     {
-        public UIElement Element { get; } = element;
-        public Rectangle Bounds { get; set; }
+        public NextLineMarker() : base(Vector2.Zero, Vector2.Zero) { }
+        protected override void OnInit(Drawer d) { }
+        protected override void OnUpdate(Drawer d) { }
+        protected override void OnDraw(Drawer d) { }
+        public override void Dispose() { }
     }
 
-    private readonly List<List<Entry>> _rows = new() { new List<Entry>() };
+    // Flat ordered list of real elements + NextLineMarker sentinels.
+    private readonly List<UIElement> _flat = new();
+    // Owns lifecycle (Init / Update / Draw / Dispose) for real elements only.
+    private readonly GameObjectGroup _group = new();
+    // Cached layout bounds per element, keyed by reference.
+    private readonly Dictionary<UIElement, Rectangle> _bounds = new();
+
     private Drawer _drawer;
 
     public Texture? BackgroundTexture { get; set; }
@@ -27,7 +37,8 @@ public class UITable : UIElement
 
     public UITable Add(Drawer d, UIElement element)
     {
-        _rows[^1].Add(new Entry(element));
+        _flat.Add(element);
+        _group.Add(element);
         Layout();
 
         if (_drawer != null)
@@ -38,8 +49,9 @@ public class UITable : UIElement
 
     public UITable NextLine()
     {
-        if (_rows[^1].Count > 0)
-            _rows.Add(new List<Entry>());
+        // Avoid inserting two markers in a row.
+        if (_flat.Count > 0 && _flat[^1] is not NextLineMarker)
+            _flat.Add(new NextLineMarker());
 
         return this;
     }
@@ -49,40 +61,42 @@ public class UITable : UIElement
         float cursorY = Padding.Y;
         float maxRowWidth = 0f;
 
-        for (int r = 0; r < _rows.Count; r++)
+        // Collect one row at a time from the flat list.
+        var row = new List<UIElement>();
+
+        void FlushRow()
         {
-            var row = _rows[r];
-            if (row.Count == 0) continue;
+            if (row.Count == 0) return;
+
+            float rowHeight = 0f;
+            foreach (var el in row)
+                if (el.Size.Y > rowHeight) rowHeight = el.Size.Y;
 
             float cursorX = Padding.X;
-            float rowHeight = 0f;
-
             for (int i = 0; i < row.Count; i++)
             {
-                float h = row[i].Element.Size.Y;
-                if (h > rowHeight) rowHeight = h;
-            }
-
-            for (int i = 0; i < row.Count; i++)
-            {
-                var entry = row[i];
-                var el = entry.Element;
+                var el = row[i];
                 float y = cursorY + (rowHeight - el.Size.Y) / 2f;
-
-                entry.Bounds = new Rectangle((int)cursorX, (int)y, (int)el.Size.X, (int)el.Size.Y);
-                el.Bounds = entry.Bounds;
+                var bounds = new Rectangle((int)cursorX, (int)y, (int)el.Size.X, (int)el.Size.Y);
+                _bounds[el] = bounds;
+                el.Bounds = bounds;
 
                 cursorX += el.Size.X + (i < row.Count - 1 ? Spacing : 0f);
             }
 
-            if (cursorX > maxRowWidth)
-                maxRowWidth = cursorX;
-
+            if (cursorX > maxRowWidth) maxRowWidth = cursorX;
             cursorY += rowHeight + Spacing;
+            row.Clear();
         }
 
-        if (cursorY > Padding.Y)
-            cursorY -= Spacing;
+        foreach (var item in _flat)
+        {
+            if (item is NextLineMarker) FlushRow();
+            else row.Add(item);
+        }
+        FlushRow(); // last row
+
+        if (cursorY > Padding.Y) cursorY -= Spacing;
 
         var contentSize = new Vector2(maxRowWidth + Padding.X, cursorY + Padding.Y);
         MaxSize = contentSize;
@@ -93,29 +107,23 @@ public class UITable : UIElement
     {
         _drawer = d;
         Layout();
-
-        for (int r = 0; r < _rows.Count; r++)
-            for (int i = 0; i < _rows[r].Count; i++)
-                _rows[r][i].Element.Init(d, d.WorldTransform);
+        _group.Init(d, d.WorldTransform);
     }
 
     protected override void OnUpdate(Drawer d)
     {
-        for (int r = 0; r < _rows.Count; r++)
+        // Sync positions from cached layout bounds, then delegate update.
+        foreach (var el in _group.GetChildren<UIElement>())
         {
-            var row = _rows[r];
-            for (int i = 0; i < row.Count; i++)
+            if (_bounds.TryGetValue(el, out var b))
             {
-                var entry = row[i];
-                var el = entry.Element;
-
-                Vector2 expectedPos = new Vector2(entry.Bounds.X, entry.Bounds.Y) + el.CenterPoint;
+                var expectedPos = new Vector2(b.X, b.Y) + el.CenterPoint;
                 if (el.Position != expectedPos)
                     el.Position = expectedPos;
-
-                el.Update(d, d.WorldTransform);
             }
         }
+
+        _group.Update(d, d.WorldTransform);
     }
 
     protected override void OnDraw(Drawer d)
@@ -134,18 +142,13 @@ public class UITable : UIElement
             }
         }
 
-        for (int r = 0; r < _rows.Count; r++)
-            for (int i = 0; i < _rows[r].Count; i++)
-                _rows[r][i].Element.Draw(d, d.WorldTransform);
+        _group.Draw(d, d.WorldTransform);
     }
 
     public override void Dispose()
     {
-        for (int r = 0; r < _rows.Count; r++)
-            for (int i = 0; i < _rows[r].Count; i++)
-                _rows[r][i].Element.Dispose();
-
-        _rows.Clear();
-        _rows.Add(new List<Entry>());
+        _group.Dispose();
+        _flat.Clear();
+        _bounds.Clear();
     }
 }

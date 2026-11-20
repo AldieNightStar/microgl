@@ -34,6 +34,9 @@ obj.Delete();
 obj.ToLocal(Drawer d, Vector2 global);
 obj.ToGlobal(Drawer d, Vector2 local);
 
+// Check that object is displayed on screen. Uses GlobalPosition
+obj.IsOnScreen(Drawer d, Vector2 size);
+
 // Lifecycle methods — no-parent overloads use Transform.Identity as parent
 // Use drawer.DrawObject(o) to draw something with relative coords 
 obj.Init(Drawer d);

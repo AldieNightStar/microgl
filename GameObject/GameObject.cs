@@ -37,18 +37,24 @@ public abstract class GameObject : IDisposable
         set => Transform = Transform.WithScale(value);
     }
 
+    public bool IsOnScreen(Drawer d, Vector2 size)
+    {
+        var pos = GetGlobalPosition(d);
+        return d.ScreenBounds.IntersectsWith(new Rectangle((int)pos.X, (int)pos.Y, (int)size.X, (int)size.Y));
+    }
+
     // == Global transform (requires Drawer — only valid inside Update/Draw) ====
 
     public Vector2 GetGlobalPosition(Drawer d) => d.WorldTransform.Position;
-    public void    SetGlobalPosition(Drawer d, Vector2 value) =>
+    public void SetGlobalPosition(Drawer d, Vector2 value) =>
         Transform = Transform.WithPosition(d.WorldTransform.ToLocal(value));
 
     public float GetGlobalRotation(Drawer d) => d.WorldTransform.Rotation;
-    public void  SetGlobalRotation(Drawer d, float value) =>
+    public void SetGlobalRotation(Drawer d, float value) =>
         Transform = Transform.WithRotation(value - d.WorldTransform.Rotation);
 
     public Vector2 GetGlobalScale(Drawer d) => d.WorldTransform.ScaleFactor;
-    public void    SetGlobalScale(Drawer d, Vector2 value)
+    public void SetGlobalScale(Drawer d, Vector2 value)
     {
         var ps = d.WorldTransform.ScaleFactor;
         Transform = Transform.WithScale(new Vector2(

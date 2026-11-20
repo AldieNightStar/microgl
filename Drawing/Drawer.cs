@@ -11,18 +11,19 @@ public class Drawer : IDisposable
 
     // == State ================================================================
 
-    public IRenderer Renderer   { get; set; }
-    public Vector2   ScreenSize { get; internal set; }
+    public IRenderer Renderer { get; set; }
+    public Vector2 ScreenSize { get; internal set; }
+    public Rectangle ScreenBounds => new(0, 0, (int)ScreenSize.X, (int)ScreenSize.Y);
 
     /// <summary>Render transform (includes CenterPoint pivot). Used by all draw primitives.</summary>
-    public Transform Transform      { get; set; } = Transform.Identity;
+    public Transform Transform { get; set; } = Transform.Identity;
 
     /// <summary>Pure world transform of the current object (no pivot shift). Used by DrawObject as the child's parent.</summary>
     internal Transform WorldTransform { get; set; } = Transform.Identity;
 
-    public Color  BlendColor { get; set; } = Color.White;
-    public Color  FontColor  { get; set; } = Color.White;
-    public GameFont Font     { get; set; }
+    public Color BlendColor { get; set; } = Color.White;
+    public Color FontColor { get; set; } = Color.White;
+    public GameFont Font { get; set; }
 
     public Color Color
     {
@@ -62,12 +63,12 @@ public class Drawer : IDisposable
     public void Reset()
     {
         Clear();
-        Transform      = Transform.Identity;
+        Transform = Transform.Identity;
         WorldTransform = Transform.Identity;
-        BlendColor     = Color.White;
-        FontColor      = Color.White;
-        Font           = default;
-        Shader         = null;
+        BlendColor = Color.White;
+        FontColor = Color.White;
+        Font = default;
+        Shader = null;
     }
 
     // == Object drawing =======================================================
@@ -108,18 +109,18 @@ public class Drawer : IDisposable
         QuadUtil.FillQuad(_verts, dstRect, u0, v0, u1, v1, Transform, ColorUtil.ToSDLColor(Color));
 
         var nativeTexture = Renderer.GetNativeTexture(texture);
-        var blendF        = ColorUtil.ToSDLColor(BlendColor);
-        _verts[0].Color   = blendF;
-        _verts[1].Color   = blendF;
-        _verts[2].Color   = blendF;
-        _verts[3].Color   = blendF;
+        var blendF = ColorUtil.ToSDLColor(BlendColor);
+        _verts[0].Color = blendF;
+        _verts[1].Color = blendF;
+        _verts[2].Color = blendF;
+        _verts[3].Color = blendF;
 
         if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, 4, QUAD_INDICES, 6))
             throw new Exception($"RenderGeometry failed: {SDL.GetError()}");
     }
 
-    public void DrawTexture(AtlasTexture   texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
-    public void DrawTexture(DynamicTexture texture, Rectangle rect) => DrawTexture(texture.Texture,  rect);
+    public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
+    public void DrawTexture(DynamicTexture texture, Rectangle rect) => DrawTexture(texture.Texture, rect);
 
     public void DrawRect(Rectangle rect)
     {
@@ -142,7 +143,7 @@ public class Drawer : IDisposable
 
     public void DrawText(string text, Vector2 pos)
     {
-        var p             = Transform.ToGlobal(pos);
+        var p = Transform.ToGlobal(pos);
         var textEnginePtr = TextEngine.Instance.GetEngineForRenderer(Renderer);
 
         var obj = TTF.CreateText(textEnginePtr, Font._fontResource, text, 0);
