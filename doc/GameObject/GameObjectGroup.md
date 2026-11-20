@@ -57,8 +57,4 @@ group.Remove(boss);   // killed on next tick
 
 // --- Clear everything ---
 group.Clear();
-
-// --- Each ---
-group.Each(obj => obj.SetVisible(false));
-group.Each<Coin>(coin => coin.Collect());
 ```
