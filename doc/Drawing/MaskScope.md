@@ -3,8 +3,9 @@
 ### Notes
 * **Clips drawing to a mask shape** by redirecting rendering into an off-screen RGBA render target, compositing content onto the mask using an alpha-preserving blend, then blitting the result back to the screen.
 * **Requires `GPURenderer`** — render targets are a GPU feature; constructing a `MaskScope` with a `SoftwareRenderer` throws `NotSupportedException`.
+* **`ref struct`** — stack-allocated, no GC pressure. Cannot be stored in a field or boxed. Always use with `using`.
 * **Open with `drawer.BeginMask(...)`** inside a `using` statement. Everything drawn while the scope is alive goes into the off-screen target. On `Dispose` the result is blitted to `dstRect`.
-* **Draw content with `drawer.DrawTextureMasked`** inside the scope — it applies the inside-mask blend so only pixels where the mask was opaque survive.
+* **`DrawTexture` works as normal** inside the scope — the inside-mask blend is applied automatically. No separate method needed.
 * **The mask is fully invisible** — only its alpha channel is used to define the clip shape; its RGB is discarded. The final blit uses premultiplied alpha so zero-alpha pixels contribute nothing, preventing black or white fringing at the edges.
 
 ### What is a mask?
@@ -20,8 +21,8 @@ The RGB channels of the mask are ignored — only alpha matters. A white circle 
 ```csharp
 using (drawer.BeginMask(Texture mask, int width, int height, Rectangle dstRect))
 {
-    // Draw content in local (0, 0, width, height) space
-    drawer.DrawTextureMasked(Texture texture, Rectangle dstRect, Rectangle? srcRect = null);
+    // Draw content normally — mask blend is automatic
+    drawer.DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null);
 }
 ```
 
@@ -69,7 +70,7 @@ _playerPhoto = Texture.FromPNG("player.png");
 
 // In OnDraw:
 using (d.BeginMask(_circleMask, 128, 128, new Rectangle(20, 20, 128, 128)))
-    d.DrawTextureMasked(_playerPhoto, new Rectangle(0, 0, 128, 128));
+    d.DrawTexture(_playerPhoto, new Rectangle(0, 0, 128, 128));
 ```
 
 **Liquid bottle fill**
@@ -80,7 +81,7 @@ _bottleShape = Texture.FromPNG("bottle_mask.png");
 // In OnDraw:
 int fillH = (int)(160 * _fillRatio);
 using (d.BeginMask(_bottleShape, 64, 160, new Rectangle(40, 500, 64, 160)))
-    d.DrawTextureMasked(_liquidTex, new Rectangle(0, 160 - fillH, 64, fillH));
+    d.DrawTexture(_liquidTex, new Rectangle(0, 160 - fillH, 64, fillH));
 ```
 
 **Rounded card**
@@ -90,7 +91,7 @@ _cardMask = Masks.RoundedRectangle(300, 200, cornerRadius: 20);
 
 // In OnDraw:
 using (d.BeginMask(_cardMask, 300, 200, new Rectangle(100, 100, 300, 200)))
-    d.DrawTextureMasked(_cardArt, new Rectangle(0, 0, 300, 200));
+    d.DrawTexture(_cardArt, new Rectangle(0, 0, 300, 200));
 ```
 
 **Flashlight / fog-of-war reveal**
@@ -102,5 +103,5 @@ _flashlightMask = Texture.FromPNG("flashlight_cone.png");
 var screen = new Rectangle((int)_playerX - 256, (int)_playerY - 256, 512, 512);
 var mapSrc  = new Rectangle((int)_playerX - 256, (int)_playerY - 256, 512, 512);
 using (d.BeginMask(_flashlightMask, 512, 512, screen))
-    d.DrawTextureMasked(_hiddenMap, new Rectangle(0, 0, 512, 512), mapSrc);
+    d.DrawTexture(_hiddenMap, new Rectangle(0, 0, 512, 512), mapSrc);
 ```
