@@ -80,6 +80,20 @@ public readonly struct Transform
         return new Transform(m);
     }
 
+    public Transform WithGlobalPosition(Transform parent, Vector2 globalPos)
+    => WithPosition(parent.ToLocal(globalPos));
+
+    public Transform WithGlobalRotation(Transform parent, float globalRot)
+        => WithRotation(globalRot - parent.Rotation);
+
+    public Transform WithGlobalScale(Transform parent, Vector2 globalScale)
+    {
+        var ps = parent.ScaleFactor;
+        return WithScale(new Vector2(
+            ps.X != 0f ? globalScale.X / ps.X : globalScale.X,
+            ps.Y != 0f ? globalScale.Y / ps.Y : globalScale.Y));
+    }
+
     // --- Hierarchy & Coordinate Conversions ---
 
     public static Transform operator *(Transform parent, Transform child) => new(child.Matrix * parent.Matrix);

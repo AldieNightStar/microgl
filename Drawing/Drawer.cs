@@ -73,27 +73,12 @@ public class Drawer : IDisposable
 
     // == Object drawing =======================================================
 
-    /// <summary>Draws obj as a child of the current object (inherits WorldTransform).</summary>
     public void DrawObject(GameObject obj) => obj.Draw(this, WorldTransform);
 
-    /// <summary>Draws obj at a local offset relative to the current object.</summary>
     public void DrawObject(GameObject obj, Vector2 localPos) => obj.Draw(this, WorldTransform * Transform.Translate(localPos));
 
     // == Masked drawing =======================================================
 
-    /// <summary>
-    /// Returns a scope that redirects drawing into an off-screen target, clips it to
-    /// the shape of <paramref name="mask"/>, then blits the result to
-    /// <paramref name="dstRect"/> when disposed. Areas where nothing was drawn remain
-    /// fully transparent — the background shows through unchanged.
-    ///
-    /// <code>
-    /// using (drawer.BeginMask(circleMask, 128, 128, new Rectangle(20, 20, 128, 128)))
-    /// {
-    ///     drawer.DrawTexture(playerPhoto, new Rectangle(0, 0, 128, 128));
-    /// }
-    /// </code>
-    /// </summary>
     public MaskScope BeginMask(Texture mask, int width, int height, Rectangle dstRect)
         => new MaskScope(this, mask, width, height, dstRect);
 

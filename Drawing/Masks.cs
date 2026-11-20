@@ -10,9 +10,6 @@ namespace microgl;
 /// </summary>
 public static class Masks
 {
-    // === Factories ===========================================================
-
-    /// <summary>Filled rectangle — every pixel inside is opaque.</summary>
     public static Texture Rectangle(int width, int height) =>
         Texture.FromDrawing((ushort)width, (ushort)height, d =>
         {
@@ -20,7 +17,6 @@ public static class Masks
             d.DrawRect(new System.Drawing.Rectangle(0, 0, width, height));
         });
 
-    /// <summary>Filled circle centred in a <paramref name="size"/> × <paramref name="size"/> canvas.</summary>
     public static Texture Circle(int size)
     {
         float cx = size / 2f;
@@ -41,9 +37,6 @@ public static class Masks
         });
     }
 
-    /// <summary>
-    /// Filled rectangle with rounded corners of the given <paramref name="cornerRadius"/>.
-    /// </summary>
     public static Texture RoundedRectangle(int width, int height, int cornerRadius)
     {
         int r = cornerRadius;
@@ -70,10 +63,6 @@ public static class Masks
         });
     }
 
-    /// <summary>
-    /// Radial gradient mask: fully opaque at the centre, fading to fully transparent
-    /// at the edges. Useful for soft vignettes, glows, and reveal effects.
-    /// </summary>
     public static Texture Vignette(int width, int height, float strength = 0.8f)
     {
         float cx = width / 2f;
@@ -98,11 +87,6 @@ public static class Masks
         return new Texture(surface);
     }
 
-    /// <summary>
-    /// Converts a grayscale image into a mask: white → fully opaque, black → fully
-    /// transparent, grey → semi-transparent. The brightness of each source pixel
-    /// becomes the alpha of the corresponding mask pixel.
-    /// </summary>
     public static Texture FromGrayscale(Texture grayscale, bool disposeOlder = false)
     {
         var src = grayscale.Surface;

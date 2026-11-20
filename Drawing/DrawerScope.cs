@@ -2,10 +2,6 @@ using System.Drawing;
 
 namespace microgl;
 
-/// <summary>
-/// Saves d.Transform, d.WorldTransform, and optionally d.BlendColor before
-/// a draw/update call and restores them on dispose.
-/// </summary>
 internal readonly ref struct DrawerScope
 {
     private readonly Drawer _d;

@@ -5,7 +5,9 @@ namespace microgl;
 
 public abstract class GameObject : IDisposable
 {
-    // === Lifecycle ==========================================
+    private Transform _parentTransform = Transform.Identity;
+
+    // === Lifecycle ===========================================================
 
     public virtual bool IsAlive { get; set; } = true;
     public void Delete() => IsAlive = false;
@@ -37,29 +39,27 @@ public abstract class GameObject : IDisposable
         set => Transform = Transform.WithScale(value);
     }
 
-    public bool IsOnScreen(Drawer d, Vector2 size)
+    // == Global transform =====================================================
+
+    /// <summary>Combined parent * local transform in world/screen space.</summary>
+    public Transform GlobalTransform => _parentTransform * Transform;
+
+    public Vector2 GlobalPosition
     {
-        var pos = GetGlobalPosition(d);
-        return d.ScreenBounds.IntersectsWith(new Rectangle((int)pos.X, (int)pos.Y, (int)size.X, (int)size.Y));
+        get => GlobalTransform.Position;
+        set => Transform = Transform.WithGlobalPosition(_parentTransform, value);
     }
 
-    // == Global transform (requires Drawer — only valid inside Update/Draw) ====
-
-    public Vector2 GetGlobalPosition(Drawer d) => d.WorldTransform.Position;
-    public void SetGlobalPosition(Drawer d, Vector2 value) =>
-        Transform = Transform.WithPosition(d.WorldTransform.ToLocal(value));
-
-    public float GetGlobalRotation(Drawer d) => d.WorldTransform.Rotation;
-    public void SetGlobalRotation(Drawer d, float value) =>
-        Transform = Transform.WithRotation(value - d.WorldTransform.Rotation);
-
-    public Vector2 GetGlobalScale(Drawer d) => d.WorldTransform.ScaleFactor;
-    public void SetGlobalScale(Drawer d, Vector2 value)
+    public float GlobalRotation
     {
-        var ps = d.WorldTransform.ScaleFactor;
-        Transform = Transform.WithScale(new Vector2(
-            ps.X != 0f ? value.X / ps.X : value.X,
-            ps.Y != 0f ? value.Y / ps.Y : value.Y));
+        get => GlobalTransform.Rotation;
+        set => Transform = Transform.WithGlobalRotation(_parentTransform, value);
+    }
+
+    public Vector2 GlobalScale
+    {
+        get => GlobalTransform.ScaleFactor;
+        set => Transform = Transform.WithGlobalScale(_parentTransform, value);
     }
 
     // == Pivot & blend ========================================================
@@ -69,14 +69,18 @@ public abstract class GameObject : IDisposable
 
     public Color BlendColor { get; set; } = Color.White;
 
-    // == Coordinate conversion (requires Drawer — only valid inside Update/Draw) =
+    // == Coordinate conversion ================================================
 
-    public Vector2 ToLocal(Drawer d, Vector2 global) => d.WorldTransform.ToLocal(global);
-    public Vector2 ToGlobal(Drawer d, Vector2 local) => d.WorldTransform.ToGlobal(local);
+    public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
+    public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
 
     // == Internals ============================================================
 
-    private static Transform _buildGlobal(Transform? parent, Transform local) => (parent ?? Transform.Identity) * local;
+    private Transform _buildGlobal(Transform? parent)
+    {
+        _parentTransform = parent ?? Transform.Identity;
+        return _parentTransform * Transform;
+    }
 
     private Transform _renderTransform(Transform global) => CenterPoint == Vector2.Zero
         ? global
@@ -86,7 +90,7 @@ public abstract class GameObject : IDisposable
 
     public void Init(Drawer d, Transform? parent = null)
     {
-        var global = _buildGlobal(parent, Transform);
+        var global = _buildGlobal(parent);
         using var scope = new DrawerScope(d, _renderTransform(global), global);
         OnInit(d);
     }
@@ -94,7 +98,7 @@ public abstract class GameObject : IDisposable
     public void Update(Drawer d, Transform? parent = null)
     {
         if (!IsAlive) return;
-        var global = _buildGlobal(parent, Transform);
+        var global = _buildGlobal(parent);
         using var scope = new DrawerScope(d, _renderTransform(global), global);
         OnUpdate(d);
     }
@@ -102,7 +106,7 @@ public abstract class GameObject : IDisposable
     public void Draw(Drawer d, Transform? parent = null)
     {
         if (!IsAlive) return;
-        var global = _buildGlobal(parent, Transform);
+        var global = _buildGlobal(parent);
         using var scope = new DrawerScope(d, _renderTransform(global), global, BlendColor);
         OnDraw(d);
     }
