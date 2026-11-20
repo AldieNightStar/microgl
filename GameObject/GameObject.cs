@@ -17,11 +17,7 @@ public abstract class GameObject : IDisposable
 
     // == Local transform ======================================================
 
-    public Transform Transform
-    {
-        get => field;
-        set { field = value; _recalculate(); }
-    } = Transform.Identity;
+    public Transform Transform { get; set; } = Transform.Identity;
 
     public Vector2 Position
     {
@@ -41,97 +37,67 @@ public abstract class GameObject : IDisposable
         set => Transform = Transform.WithScale(value);
     }
 
-    // == Global transform =====================================================
+    // == Global transform (requires Drawer — only valid inside Update/Draw) ====
 
-    public Transform GlobalTransform { get; private set; } = Transform.Identity;
+    public Vector2 GetGlobalPosition(Drawer d) => d.WorldTransform.Position;
+    public void    SetGlobalPosition(Drawer d, Vector2 value) =>
+        Transform = Transform.WithPosition(d.WorldTransform.ToLocal(value));
 
-    public Vector2 GlobalPosition
+    public float GetGlobalRotation(Drawer d) => d.WorldTransform.Rotation;
+    public void  SetGlobalRotation(Drawer d, float value) =>
+        Transform = Transform.WithRotation(value - d.WorldTransform.Rotation);
+
+    public Vector2 GetGlobalScale(Drawer d) => d.WorldTransform.ScaleFactor;
+    public void    SetGlobalScale(Drawer d, Vector2 value)
     {
-        get => GlobalTransform.Position;
-        set => Transform = Transform.WithPosition(_parent.ToLocal(value));
-    }
-
-    public float GlobalRotation
-    {
-        get => GlobalTransform.Rotation;
-        set => Transform = Transform.WithRotation(value - _parent.Rotation);
-    }
-
-    public Vector2 GlobalScale
-    {
-        get => GlobalTransform.ScaleFactor;
-        set
-        {
-            var ps = _parent.ScaleFactor;
-            Transform = Transform.WithScale(new Vector2(
-                ps.X != 0f ? value.X / ps.X : value.X,
-                ps.Y != 0f ? value.Y / ps.Y : value.Y));
-        }
+        var ps = d.WorldTransform.ScaleFactor;
+        Transform = Transform.WithScale(new Vector2(
+            ps.X != 0f ? value.X / ps.X : value.X,
+            ps.Y != 0f ? value.Y / ps.Y : value.Y));
     }
 
     // == Pivot & blend ========================================================
 
-    /// <summary>Pivot point in local space. Shifts the draw origin without affecting GlobalPosition.</summary>
-    public Vector2 CenterPoint
-    {
-        get => field;
-        set { field = value; _recalculate(); }
-    } = Vector2.Zero;
+    /// <summary>Pivot point in local space. Shifts the draw origin without affecting position.</summary>
+    public Vector2 CenterPoint { get; set; } = Vector2.Zero;
 
     public Color BlendColor { get; set; } = Color.White;
 
-    // == Convenience mutators =================================================
+    // == Coordinate conversion (requires Drawer — only valid inside Update/Draw) =
 
-    public void Move(Vector2 delta)       => Transform = Transform.Translate(delta);
-    public void Rotate(float rad)         => Transform = Transform.Rotate(rad);
-    public void Resize(Vector2 scale)     => Transform = Transform.Scale(scale);
-    public void GlobalMove(Vector2 delta) => Transform = Transform.GlobalTranslate(delta);
-    public void GlobalRotate(float rad)   => Transform = Transform.GlobalRotate(rad);
-
-    // == Coordinate conversion ================================================
-
-    public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
-    public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
+    public Vector2 ToLocal(Drawer d, Vector2 global) => d.WorldTransform.ToLocal(global);
+    public Vector2 ToGlobal(Drawer d, Vector2 local) => d.WorldTransform.ToGlobal(local);
 
     // == Internals ============================================================
 
-    private Transform _parent = Transform.Identity;
+    private static Transform _buildGlobal(Transform? parent, Transform local) => (parent ?? Transform.Identity) * local;
 
-    private void _recalculate() => GlobalTransform = _parent * Transform;
-
-    /// <summary>Render transform: GlobalTransform with CenterPoint pivot applied.</summary>
-    private Transform _renderTransform => CenterPoint == Vector2.Zero
-        ? GlobalTransform
-        : GlobalTransform.Translate(-CenterPoint);
+    private Transform _renderTransform(Transform global) => CenterPoint == Vector2.Zero
+        ? global
+        : global.Translate(-CenterPoint);
 
     // == Hierarchical API (called by Game, GameObjectGroup, or Drawer) =========
 
     public void Init(Drawer d, Transform? parent = null)
     {
-        _parent = parent ?? Transform.Identity;
-        _recalculate();
+        var global = _buildGlobal(parent, Transform);
+        using var scope = new DrawerScope(d, _renderTransform(global), global);
         OnInit(d);
     }
 
     public void Update(Drawer d, Transform? parent = null)
     {
         if (!IsAlive) return;
-        _parent = parent ?? Transform.Identity;
-        _recalculate();
-
-        // Save and restore previous state
-        using var scope = new DrawerScope(d, _renderTransform, GlobalTransform);
+        var global = _buildGlobal(parent, Transform);
+        using var scope = new DrawerScope(d, _renderTransform(global), global);
         OnUpdate(d);
     }
 
     public void Draw(Drawer d, Transform? parent = null)
     {
         if (!IsAlive) return;
-        _parent = parent ?? Transform.Identity;
-        _recalculate();
-
-        // Save and restore previous state
-        using var scope = new DrawerScope(d, _renderTransform, GlobalTransform, BlendColor);
+        var global = _buildGlobal(parent, Transform);
+        using var scope = new DrawerScope(d, _renderTransform(global), global, BlendColor);
         OnDraw(d);
     }
 }

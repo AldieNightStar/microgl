@@ -15,9 +15,7 @@ public class GameObjectGroup : GameObject
     protected override void OnInit(Drawer d)
     {
         foreach (var el in _list)
-        {
-            el.Init(d, GlobalTransform);
-        }
+            el.Init(d, d.WorldTransform);
     }
 
     protected override void OnUpdate(Drawer d)
@@ -26,7 +24,7 @@ public class GameObjectGroup : GameObject
         for (int i = _list.Count - 1; i >= 0; i--)
         {
             var gameObject = _list[i];
-            gameObject.Update(d, GlobalTransform);
+            gameObject.Update(d, d.WorldTransform);
 
             if (!gameObject.IsAlive)
             {
@@ -41,7 +39,7 @@ public class GameObjectGroup : GameObject
             foreach (var el in _queued)
             {
                 _list.Add(el);
-                el.Init(d, GlobalTransform);
+                el.Init(d, d.WorldTransform);
             }
             _queued.Clear();
         }
@@ -50,23 +48,17 @@ public class GameObjectGroup : GameObject
     protected override void OnDraw(Drawer d)
     {
         foreach (var el in _list)
-        {
-            el.Draw(d, GlobalTransform);
-        }
+            el.Draw(d, d.WorldTransform);
     }
 
     public override void Dispose()
     {
         foreach (var el in _list)
-        {
             el.Dispose();
-        }
         _list.Clear();
 
         foreach (var el in _queued)
-        {
             el.Dispose();
-        }
         _queued.Clear();
     }
 

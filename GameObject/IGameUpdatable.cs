@@ -2,5 +2,5 @@ namespace microgl;
 
 public interface IGameUpdatable : IDisposable
 {
-    void Update();
+    void Update(Drawer d);
 }

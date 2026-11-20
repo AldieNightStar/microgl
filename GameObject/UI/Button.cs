@@ -150,16 +150,16 @@ public class Button : UIElement
     protected override void OnInit(Drawer d)
     {
         _baseScale = Scale;
-        _hitArea.Init(d, GlobalTransform);
+        _hitArea.Init(d, d.WorldTransform);
         _label?.Init(d);
     }
 
     protected override void OnUpdate(Drawer d)
     {
         _hitArea.IsAlive = IsAlive;
-        _hitArea.Update(d, GlobalTransform);
+        _hitArea.Update(d, d.WorldTransform);
 
-        _activeTween?.Update();
+        _activeTween?.Update(d);
         _label?.Update(d);
     }
 

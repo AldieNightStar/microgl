@@ -78,22 +78,19 @@ public abstract class UIElement : GameObject
         }
     }
 
-    public Rectangle GlobalBounds
+    public Rectangle GetGlobalBounds(Drawer d)
     {
-        get
-        {
-            Vector2 p0 = ToGlobal(Vector2.Zero);
-            Vector2 p1 = ToGlobal(new Vector2(Size.X, 0f));
-            Vector2 p2 = ToGlobal(Size);
-            Vector2 p3 = ToGlobal(new Vector2(0f, Size.Y));
+        Vector2 p0 = ToGlobal(d, Vector2.Zero);
+        Vector2 p1 = ToGlobal(d, new Vector2(Size.X, 0f));
+        Vector2 p2 = ToGlobal(d, Size);
+        Vector2 p3 = ToGlobal(d, new Vector2(0f, Size.Y));
 
-            float minX = MathF.Min(MathF.Min(p0.X, p1.X), MathF.Min(p2.X, p3.X));
-            float minY = MathF.Min(MathF.Min(p0.Y, p1.Y), MathF.Min(p2.Y, p3.Y));
-            float maxX = MathF.Max(MathF.Max(p0.X, p1.X), MathF.Max(p2.X, p3.X));
-            float maxY = MathF.Max(MathF.Max(p0.Y, p1.Y), MathF.Max(p2.Y, p3.Y));
+        float minX = MathF.Min(MathF.Min(p0.X, p1.X), MathF.Min(p2.X, p3.X));
+        float minY = MathF.Min(MathF.Min(p0.Y, p1.Y), MathF.Min(p2.Y, p3.Y));
+        float maxX = MathF.Max(MathF.Max(p0.X, p1.X), MathF.Max(p2.X, p3.X));
+        float maxY = MathF.Max(MathF.Max(p0.Y, p1.Y), MathF.Max(p2.Y, p3.Y));
 
-            return new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
-        }
+        return new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
     }
 
     protected UIElement()
@@ -116,9 +113,14 @@ public abstract class UIElement : GameObject
         Position = new Vector2(bounds.X, bounds.Y) + CenterPoint;
     }
 
-    public bool ContainsPoint(Vector2 screenPos)
+    // Coordinate helpers that use the cached world transform so they work outside
+    // Update/Draw (e.g. in mouse-event handlers).
+    public new Vector2 ToGlobal(Drawer d, Vector2 local) => d.WorldTransform.ToGlobal(local);
+    public new Vector2 ToLocal(Drawer d, Vector2 global) => d.WorldTransform.ToLocal(global);
+
+    public bool ContainsPoint(Drawer d, Vector2 screenPos)
     {
-        Vector2 local = ToLocal(screenPos);
+        Vector2 local = ToLocal(d, screenPos);
         return local.X >= 0f && local.X <= Size.X &&
                local.Y >= 0f && local.Y <= Size.Y;
     }

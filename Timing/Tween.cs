@@ -37,7 +37,7 @@ public class Tween : IGameUpdatable
         CurrentValue = from;
     }
 
-    public void Update()
+    public void Update(Drawer d)
     {
         Update(Time.DeltaTime);
     }

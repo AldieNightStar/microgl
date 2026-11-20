@@ -25,13 +25,13 @@ public class UITable : UIElement
     {
     }
 
-    public UITable Add(UIElement element)
+    public UITable Add(Drawer d, UIElement element)
     {
         _rows[^1].Add(new Entry(element));
         Layout();
 
         if (_drawer != null)
-            element.Init(_drawer, GlobalTransform);
+            element.Init(_drawer, d.WorldTransform);
 
         return this;
     }
@@ -96,7 +96,7 @@ public class UITable : UIElement
 
         for (int r = 0; r < _rows.Count; r++)
             for (int i = 0; i < _rows[r].Count; i++)
-                _rows[r][i].Element.Init(d, GlobalTransform);
+                _rows[r][i].Element.Init(d, d.WorldTransform);
     }
 
     protected override void OnUpdate(Drawer d)
@@ -113,7 +113,7 @@ public class UITable : UIElement
                 if (el.Position != expectedPos)
                     el.Position = expectedPos;
 
-                el.Update(d, GlobalTransform);
+                el.Update(d, d.WorldTransform);
             }
         }
     }
@@ -136,7 +136,7 @@ public class UITable : UIElement
 
         for (int r = 0; r < _rows.Count; r++)
             for (int i = 0; i < _rows[r].Count; i++)
-                _rows[r][i].Element.Draw(d, GlobalTransform);
+                _rows[r][i].Element.Draw(d, d.WorldTransform);
     }
 
     public override void Dispose()

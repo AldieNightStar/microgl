@@ -20,8 +20,8 @@ tween.Elapsed; tween.Progress; tween.CurrentValue;
 tween.IsPaused; tween.Repeatable;
 tween.IsActive; tween.IsFinished;
 
-// Advance using Time.DeltaTime or explicit dt, reset state, or clean up
-tween.Update();
+// Advance using Time.DeltaTime (IGameUpdatable), explicit dt, reset state, or clean up
+tween.Update(Drawer d);
 tween.Update(float dt);
 tween.Reset();
 tween.Dispose();
@@ -38,10 +38,11 @@ Tween.Wait(float seconds);
 // Basic tween with callbacks and looping
 var tween = new Tween(0f, 100f, 1.0f, x => pos.X = x, Easing.EaseOutQuad);
 tween.Repeatable = true;
-tween.OnComplete += overflow => Console.WriteLine(\$"Done (overflow: {overflow})");
+tween.OnComplete += overflow => Console.WriteLine($"Done (overflow: {overflow})");
 
 // Playback control & inspection
-tween.Update(dt);
+tween.Update(d);           // IGameUpdatable path — uses Time.DeltaTime
+tween.Update(dt);          // explicit delta time
 float p = tween.Progress;
 bool active = tween.IsActive;
 tween.IsPaused = true;

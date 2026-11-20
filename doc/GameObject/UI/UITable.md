@@ -2,7 +2,8 @@
 
 ### Notes
 * **Row-based layout container** inheriting from `UIElement` that arranges child `UIElement` items horizontally in rows and advances vertically via `NextLine()`.
-* **Locks child bounds and positions**: computes each element's cell rectangle during `Layout()` and enforces its position on every `Update()` while propagating `GlobalTransform`.
+* **Locks child bounds and positions**: computes each element's cell rectangle during `Layout()` and enforces its position on every `Update()` while propagating the current world transform.
+* **`Add(Drawer d, UIElement element)` requires a `Drawer`** — if called after `Init`, the element is immediately initialized with the stored drawer; before `Init` the element is registered and initialized during `OnInit`.
 * **Supports optional background styling** using either a `BackgroundTexture` or a solid `BackgroundColor`, plus configurable `Padding` and `Spacing`.
 
 ### Usage
@@ -17,7 +18,7 @@ table.Spacing;
 table.Padding;
 
 // Fluent methods to add elements to the current row and start a new row
-table.Add(UIElement element);
+table.Add(Drawer d, UIElement element);
 table.NextLine();
 
 // Recalculate cell bounds and table Size/MaxSize (call after changing child sizes or text)
@@ -40,10 +41,10 @@ var table = new UITable(new Vector2(360f, 240f), centerOrigin: true)
 };
 
 table
-    .Add(new Label(font, Vector2.Zero, "Menu", Color.Gold))
+    .Add(d, new Label(font, Vector2.Zero, "Menu", Color.Gold))
     .NextLine()
-    .Add(new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Play"))
-    .Add(new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Quit"));
+    .Add(d, new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Play"))
+    .Add(d, new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Quit"));
 
 table.Init(d);
 table.Update(d);
