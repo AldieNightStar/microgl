@@ -68,6 +68,7 @@ public class MyGame : IGame
 * [DynamicTexture](doc/Drawing/DynamicTexture.md) — Mutable offscreen texture updated on demand.
 * [GameFont](doc/Drawing/GameFont.md) — TrueType (`.ttf`) font loading and text measurement.
 * [Transform](doc/Drawing/Transform.md) — Immutable 2D affine matrix transformations and coordinate conversions.
+* [Shader](doc/Drawing/Shader.md) — GPU fragment shader and render-state wrapper for effects
 
 ### GameObject & UI
 * [GameObject](doc/GameObject/GameObject.md) — Base scene entity with hierarchical transforms and lifecycle hooks.

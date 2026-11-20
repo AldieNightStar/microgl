@@ -9,6 +9,7 @@ public class Game : IDisposable
     private readonly Vector2 _winSize;
     private nint _windowHandle;
     private GPURenderer _renderer;
+    private nint _gpuDevice;
     private readonly IGame _game;
     private bool _disposed;
 
@@ -30,7 +31,7 @@ public class Game : IDisposable
         }
 
         var (w, h) = ((int)_winSize.X, (int)_winSize.Y);
-        var winFlags = SDL.WindowFlags.Resizable;
+        var winFlags = SDL.WindowFlags.Resizable | SDL.WindowFlags.HighPixelDensity;
 
         _windowHandle = SDL.CreateWindow(_title, w, h, winFlags);
         if (_windowHandle == IntPtr.Zero)
@@ -39,28 +40,17 @@ public class Game : IDisposable
             throw new Exception($"Cannot init SDL window: {SDL.GetError()}");
         }
 
-        var renderer = SDL.CreateGPURenderer(0, _windowHandle);
-        if (renderer == IntPtr.Zero)
-        {
-            SDL.DestroyWindow(_windowHandle);
-            SDL.Quit();
-            throw new Exception($"Can't create GPU Renderer: {SDL.GetError()}");
-        }
+        // Init GPU renderer
+        _initGpuDeviceAndRenderer();
 
-        _renderer = new GPURenderer(renderer);
-
-        if (_windowHandle == IntPtr.Zero)
-        {
-            SDL.LogError(SDL.LogCategory.Application, $"Can't open window: {SDL.GetError()}");
-            SDL.Quit();
-            return;
-        }
+        var rendererPtr = _renderer.GetNativePointer();
 
         // Make pixel perfect rendering without ugly mipmapping
-        SDL.SetDefaultTextureScaleMode(renderer, SDL.ScaleMode.Nearest);
+        SDL.SetDefaultTextureScaleMode(rendererPtr, SDL.ScaleMode.Nearest);
 
-        // Setup resizing logic
-        SDL.SetRenderLogicalPresentation(renderer, w, h, SDL.RendererLogicalPresentation.Letterbox);
+        // Ensure swapchain dimensions are initialized before setting logical presentation
+        SDL.RenderPresent(rendererPtr);
+        SDL.SetRenderLogicalPresentation(rendererPtr, w, h, SDL.RendererLogicalPresentation.Letterbox);
 
         // Initialization
         _drawer = new Drawer(_renderer)
@@ -122,10 +112,38 @@ public class Game : IDisposable
         _drawer.Dispose();
         Gamepad.DisposeAll();
 
+        if (_gpuDevice != IntPtr.Zero)
+        {
+            SDL.DestroyGPUDevice(_gpuDevice);
+            _gpuDevice = IntPtr.Zero;
+        }
+
         if (_windowHandle != IntPtr.Zero)
         {
             SDL.DestroyWindow(_windowHandle);
             _windowHandle = IntPtr.Zero;
         }
+    }
+
+    private void _initGpuDeviceAndRenderer()
+    {
+        var supportedFormats = SDL.GPUShaderFormat.SPIRV | SDL.GPUShaderFormat.DXIL | SDL.GPUShaderFormat.MSL;
+        _gpuDevice = SDL.CreateGPUDevice(supportedFormats, false, null);
+        if (_gpuDevice == IntPtr.Zero)
+        {
+            SDL.DestroyWindow(_windowHandle);
+            SDL.Quit();
+            throw new Exception($"Can't create GPU Device: {SDL.GetError()}");
+        }
+
+        var renderer = SDL.CreateGPURenderer(_gpuDevice, _windowHandle);
+        if (renderer == IntPtr.Zero)
+        {
+            SDL.DestroyGPUDevice(_gpuDevice);
+            SDL.DestroyWindow(_windowHandle);
+            SDL.Quit();
+            throw new Exception($"Can't create GPU Renderer: {SDL.GetError()}");
+        }
+        _renderer = new GPURenderer(renderer);
     }
 }

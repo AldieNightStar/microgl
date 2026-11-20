@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using SDL3;
@@ -13,7 +14,7 @@ public class Drawer : IDisposable
     public GameFont Font { get; set; }
     public Color FontColor { get; set; } = Color.White;
     public Transform Transform { get; set; } = Transform.Identity;
-    public Vector2 ScreenSize {get; internal set;}
+    public Vector2 ScreenSize { get; internal set; }
 
     public Drawer(IRenderer renderer)
     {
@@ -27,6 +28,7 @@ public class Drawer : IDisposable
         Font = default;
         FontColor = Color.White;
         BlendColor = Color.White;
+        Shader = null;
     }
 
     public void Clear()
@@ -47,6 +49,17 @@ public class Drawer : IDisposable
     } = Color.White;
 
     public Color BlendColor { get; set; } = Color.White;
+
+    public Shader? Shader
+    {
+        get => field;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            Renderer.SetShader(value);
+        }
+    }
 
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {

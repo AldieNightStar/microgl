@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using SDL3;
 
@@ -9,6 +10,7 @@ public interface IRenderer : IDisposable
     void RenderPresent();
     bool IsValid();
     nint GetNativeTexture(Texture texture);
+    void SetShader(Shader? shader);
 }
 
 public sealed class GPURenderer : IRenderer
@@ -56,6 +58,15 @@ public sealed class GPURenderer : IRenderer
     public nint GetNativeTexture(Texture texture)
     {
         return _textureCache.GetCachedSDLTexture(texture);
+    }
+
+    public void SetShader(Shader? shader)
+    {
+        nint statePtr = shader?.StateHandle ?? IntPtr.Zero;
+        if (!SDL.SetGPURenderState(_rendererPtr, statePtr))
+        {
+            throw new Exception($"Can't set GPU render state for shader: {SDL.GetError()}");
+        }
     }
 }
 
@@ -121,5 +132,10 @@ public sealed class SoftwareRenderer : IRenderer
     public nint GetNativeTexture(Texture texture)
     {
         return _textureCache.GetCachedSDLTexture(texture);
+    }
+
+    public void SetShader(Shader? shader)
+    {
+        throw new NotSupportedException("Shaders are not supported on SoftwareRenderer.");
     }
 }
