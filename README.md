@@ -6,7 +6,7 @@
 
 * **Core Game Loop**: Simple `IGame` lifecycle (`Init`, `Update`, `Draw`, `Dispose`) with pixel-perfect `Nearest` scaling and automatic `Letterbox` window resizing.
 * **2D Rendering & Textures**: Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing via `Drawer`, supporting primitives, `Transform` hierarchies, `Texture`, `AtlasTexture` sprite sheets, `DynamicTexture`, and TrueType fonts (`GameFont`).
-* **Masked Drawing**: `MaskScope` clips any content to an arbitrary mask texture shape (circular avatars, fog-of-war, liquid fills) with a single `using` block via `drawer.BeginMask(...)`. Built-in `Masks` factory covers circles, rectangles, and rounded rectangles out of the box.
+* **Masked Drawing**: `MaskScope` clips any content to an arbitrary mask texture shape (circular avatars, fog-of-war, liquid fills) with a single `using` block via `drawer.BeginMask(...)`. Built-in `Masks` factory covers circles, rectangles, rounded rectangles, and grayscale-to-mask conversion for soft edges and gradients.
 * **Scene & UI System**: Hierarchical `GameObject` and `GameObjectGroup` entities, plus built-in `UIElement` widgets (`Label`, `Button`, `ClickableArea`) and row-based `UITable` layouts.
 * **Unified Input**: Event-driven and polling APIs for `Mouse` (with automatic render-coordinate conversion), `Keyboard`, and `Gamepad` (with radial deadzones and rumble).
 * **Timing & Animations**: High-resolution `Time`, countdown `GameTimer`, 31 `Easing` curves, fluent `TweenPlanner` sequences, and ready-to-use `TweenCollection` game-feel presets.
@@ -70,8 +70,7 @@ public class MyGame : IGame
 * [GameFont](doc/Drawing/GameFont.md) — TrueType (`.ttf`) font loading and text measurement.
 * [Transform](doc/Drawing/Transform.md) — Immutable 2D affine matrix transformations and coordinate conversions.
 * [Shader](doc/Drawing/Shader.md) — GPU fragment shader and render-state wrapper for effects.
-* [MaskScope](doc/Drawing/MaskScope.md) — Clips drawing to a mask texture shape (avatars, fog-of-war, liquid fills).
-* [Masks](doc/Drawing/Masks.md) — Built-in mask factory: `Circle`, `Rectangle`, `RoundedRectangle`.
+* [Masking](doc/Drawing/Masking.md) — Clip drawing to any shape with `MaskScope` and the `Masks` factory (circles, rectangles, rounded rectangles, grayscale gradients).
 
 ### GameObject & UI
 * [GameObject](doc/GameObject/GameObject.md) — Base scene entity with hierarchical transforms and lifecycle hooks.

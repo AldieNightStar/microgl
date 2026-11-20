@@ -9,12 +9,6 @@ public class Drawer : IDisposable
     private static readonly int[] QUAD_INDICES = [0, 1, 2, 0, 2, 3];
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
 
-    // dst * 0 + src * dstAlpha  →  keeps only pixels where the mask is opaque
-    internal static readonly SDL.BlendMode InsideMaskBlendMode = SDL.ComposeCustomBlendMode(
-        SDL.BlendFactor.DstAlpha, SDL.BlendFactor.Zero, SDL.BlendOperation.Add,
-        SDL.BlendFactor.DstAlpha, SDL.BlendFactor.Zero, SDL.BlendOperation.Add
-    );
-
     // == State ================================================================
 
     public IRenderer Renderer   { get; set; }
@@ -25,9 +19,6 @@ public class Drawer : IDisposable
 
     /// <summary>Pure world transform of the current object (no pivot shift). Used by DrawObject as the child's parent.</summary>
     internal Transform WorldTransform { get; set; } = Transform.Identity;
-
-    /// <summary>Set by <see cref="MaskScope"/> — when true, DrawTexture automatically applies the inside-mask blend.</summary>
-    internal bool InMaskScope { get; set; }
 
     public Color  BlendColor { get; set; } = Color.White;
     public Color  FontColor  { get; set; } = Color.White;
@@ -92,9 +83,8 @@ public class Drawer : IDisposable
     /// <summary>
     /// Returns a scope that redirects drawing into an off-screen target, clips it to
     /// the shape of <paramref name="mask"/>, then blits the result to
-    /// <paramref name="dstRect"/> when disposed. While the scope is active,
-    /// <see cref="DrawTexture(Texture, Rectangle, Rectangle?)"/> automatically uses
-    /// the inside-mask blend — no separate method needed.
+    /// <paramref name="dstRect"/> when disposed. Areas where nothing was drawn remain
+    /// fully transparent — the background shows through unchanged.
     ///
     /// <code>
     /// using (drawer.BeginMask(circleMask, 128, 128, new Rectangle(20, 20, 128, 128)))
@@ -124,25 +114,14 @@ public class Drawer : IDisposable
         _FillQuad(dstRect, u0, v0, u1, v1);
 
         var nativeTexture = Renderer.GetNativeTexture(texture);
-
-        if (InMaskScope)
-        {
-            SDL.SetTextureBlendMode(nativeTexture, InsideMaskBlendMode);
-        }
-
-        var blendF      = _toFColor(BlendColor);
-        _verts[0].Color = blendF;
-        _verts[1].Color = blendF;
-        _verts[2].Color = blendF;
-        _verts[3].Color = blendF;
+        var blendF        = _toFColor(BlendColor);
+        _verts[0].Color   = blendF;
+        _verts[1].Color   = blendF;
+        _verts[2].Color   = blendF;
+        _verts[3].Color   = blendF;
 
         if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, 4, QUAD_INDICES, 6))
             throw new Exception($"RenderGeometry failed: {SDL.GetError()}");
-
-        if (InMaskScope)
-        {
-            SDL.SetTextureBlendMode(nativeTexture, SDL.BlendMode.Blend);
-        }
     }
 
     public void DrawTexture(AtlasTexture   texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
