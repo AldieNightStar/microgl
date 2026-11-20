@@ -2,66 +2,78 @@
 
 ### Notes
 * **Core 2D rendering context** (`IDisposable`) wrapping an `IRenderer` to draw primitives, textures, text, and `GameObject` instances.
-* **Applies `Transform` automatically** to all geometry, lines, textures, and text coordinates, allowing rotated and scaled rendering via `SDL.RenderGeometry`.
-* **Tracks stateful styling and viewport dimensions** through `ScreenSize` (the logical screen size configured when creating `Game`), `Color` (primitive fill/line color), `BlendColor` (texture tint), `Font`, and `FontColor`, resettable per frame with `Reset()`.
+* **Applies `Transform` automatically** to all geometry — the transform includes the current object's `CenterPoint` pivot offset and is set by `GameObject` before calling `OnDraw`/`OnUpdate`.
+* **`WorldTransform`** holds the current object's pure world transform (no pivot shift) and is used by `DrawObject` as the parent transform for any child objects spawned inside `OnDraw`. It is managed automatically by `DrawerScope` inside `GameObject` — do not set it manually.
+* **Tracks stateful styling** through `Color`, `BlendColor`, `Font`, and `FontColor`, all reset per frame by `Reset()`.
 
 ### Usage
 ```csharp
-// Create a Drawer backed by an IRenderer (GPURenderer or SoftwareRenderer)
+// Create a Drawer backed by an IRenderer
 new Drawer(IRenderer renderer);
 
-// Frame state management: reset transform/colors/font or clear the screen to black
-drawer.Reset();
-drawer.Clear();
+// Frame lifecycle: call Reset() once at the start of each Draw pass
+drawer.Reset();   // clears screen, resets Transform, WorldTransform, colors, font, shader
+drawer.Clear();   // clears screen only
 
-// Rendering state & viewport properties
+// State properties
 drawer.Renderer;
 drawer.ScreenSize;
-drawer.Transform;
-drawer.Color;
-drawer.BlendColor;
+drawer.Transform;      // render transform (set by GameObject, includes pivot offset)
+drawer.Color;          // fill/line color
+drawer.BlendColor;     // texture tint
 drawer.Font;
 drawer.FontColor;
+drawer.Shader;
 
-// Draw a Texture (with optional source region), AtlasTexture, or DynamicTexture
+// Draw a GameObject as a child of the current object (inherits WorldTransform)
+drawer.DrawObject(GameObject obj);
+
+// Draw a GameObject at a local offset relative to the current object
+drawer.DrawObject(GameObject obj, Vector2 localPos);
+
+// Draw textures
 drawer.DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null);
 drawer.DrawTexture(AtlasTexture texture, Rectangle rect);
 drawer.DrawTexture(DynamicTexture texture, Rectangle rect);
 
-// Draw a GameObject using current Transform or at an offset position
-drawer.DrawObject(GameObject obj);
-drawer.DrawObject(GameObject obj, Vector2 pos);
-
-// Draw primitives and text (Font + FontColor for TTF text, or built-in SDL debug text)
+// Draw primitives and text
 drawer.DrawRect(Rectangle rect);
-drawer.DrawLine(Vector2 vec1, Vector2 vec2);
-drawer.DrawText(string text, Vector2 vec);
-drawer.DrawDebugText(string text, Vector2 vec);
+drawer.DrawLine(Vector2 a, Vector2 b);
+drawer.DrawText(string text, Vector2 pos);
+drawer.DrawDebugText(string text, Vector2 pos);
 
-// Dispose the underlying IRenderer
 drawer.Dispose();
 ```
 
 ### Example
 ```csharp
+// In IGame.Draw:
 drawer.Reset();
 
-// Centering using logical screen size
-Vector2 center = drawer.ScreenSize / 2f;
-
-// Primitives
+// Background
 drawer.Color = Color.CornflowerBlue;
-drawer.DrawRect(new Rectangle(20, 20, 100, 60));
-drawer.DrawLine(new Vector2(20f, 100f), new Vector2(120f, 100f));
+drawer.DrawRect(new Rectangle(0, 0, 960, 720));
 
-// Textures & objects
-drawer.BlendColor = Color.White;
-drawer.DrawTexture(sprite, new Rectangle(150, 20, 64, 64));
-drawer.DrawObject(player, center);
+// HUD text drawn in screen space — safe after Reset()
+drawer.DrawDebugText($"Score: {score}", new Vector2(24f, 20f));
 
-// TTF and debug text
-drawer.Font = font;
-drawer.FontColor = Color.Gold;
-drawer.DrawText("Score: 100", new Vector2(20f, 120f));
-drawer.DrawDebugText("FPS: 60", new Vector2(20f, 150f));
+// Draw the scene — objects handle their own transforms internally
+sceneGroup.Draw(drawer);
+
+// After sceneGroup.Draw returns, drawer.Transform is restored to Identity
+// so any subsequent draws here are in screen space again
+drawer.Color = Color.White;
+drawer.DrawDebugText("GAME OVER", new Vector2(400f, 360f));
+```
+
+### DrawObject inside OnDraw
+```csharp
+protected override void OnDraw(Drawer d)
+{
+    // Draws childObj as a child — it inherits this object's WorldTransform
+    d.DrawObject(childObj);
+
+    // Draws at a local offset relative to this object
+    d.DrawObject(icon, new Vector2(8f, -16f));
+}
 ```
