@@ -103,18 +103,12 @@ public class Drawer : IDisposable
         float u0 = 0f, v0 = 0f, u1 = 1f, v1 = 1f;
 
         if (srcRect is Rectangle src)
-        {
-            var size = texture.Size;
-            u0 = src.X / size.X;
-            v0 = src.Y / size.Y;
-            u1 = (src.X + src.Width)  / size.X;
-            v1 = (src.Y + src.Height) / size.Y;
-        }
+            (u0, v0, u1, v1) = TextureUtil.ComputeUVs(texture, src);
 
-        _FillQuad(dstRect, u0, v0, u1, v1);
+        QuadUtil.FillQuad(_verts, dstRect, u0, v0, u1, v1, Transform, ColorUtil.ToSDLColor(Color));
 
         var nativeTexture = Renderer.GetNativeTexture(texture);
-        var blendF        = _toFColor(BlendColor);
+        var blendF        = ColorUtil.ToSDLColor(BlendColor);
         _verts[0].Color   = blendF;
         _verts[1].Color   = blendF;
         _verts[2].Color   = blendF;
@@ -129,7 +123,7 @@ public class Drawer : IDisposable
 
     public void DrawRect(Rectangle rect)
     {
-        _FillQuad(rect, 0f, 0f, 0f, 0f);
+        QuadUtil.FillQuad(_verts, rect, 0f, 0f, 0f, 0f, Transform, ColorUtil.ToSDLColor(Color));
         SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, QUAD_INDICES, 6);
     }
 
@@ -163,25 +157,6 @@ public class Drawer : IDisposable
         TTF.DestroyText(obj);
         TextEngine.FreeEngineForRenderer(textEnginePtr, Renderer);
     }
-
-    // == Internals ============================================================
-
-    private void _FillQuad(Rectangle rect, float u0, float v0, float u1, float v1)
-    {
-        var p0 = Transform.ToGlobal(new Vector2(rect.Left,  rect.Top));
-        var p1 = Transform.ToGlobal(new Vector2(rect.Right, rect.Top));
-        var p2 = Transform.ToGlobal(new Vector2(rect.Right, rect.Bottom));
-        var p3 = Transform.ToGlobal(new Vector2(rect.Left,  rect.Bottom));
-        var fc = _toFColor(Color);
-
-        _verts[0] = new SDL.Vertex { Position = new SDL.FPoint { X = p0.X, Y = p0.Y }, Color = fc, TexCoord = new SDL.FPoint { X = u0, Y = v0 } };
-        _verts[1] = new SDL.Vertex { Position = new SDL.FPoint { X = p1.X, Y = p1.Y }, Color = fc, TexCoord = new SDL.FPoint { X = u1, Y = v0 } };
-        _verts[2] = new SDL.Vertex { Position = new SDL.FPoint { X = p2.X, Y = p2.Y }, Color = fc, TexCoord = new SDL.FPoint { X = u1, Y = v1 } };
-        _verts[3] = new SDL.Vertex { Position = new SDL.FPoint { X = p3.X, Y = p3.Y }, Color = fc, TexCoord = new SDL.FPoint { X = u0, Y = v1 } };
-    }
-
-    private static SDL.FColor _toFColor(Color c) =>
-        new() { R = c.R / 255f, G = c.G / 255f, B = c.B / 255f, A = c.A / 255f };
 
     public void Dispose() => Renderer?.Dispose();
 }
