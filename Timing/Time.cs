@@ -4,8 +4,8 @@ namespace microgl;
 
 public static class Time
 {
-    private static ulong _lastCounter;
-    private static readonly double _frequency = SDL.GetPerformanceFrequency();
+    private static ulong _previousCounter;
+    private static readonly double _countsPerSecond = SDL.GetPerformanceFrequency();
 
     public static float DeltaTime { get; private set; }
     public static long Frame { get; private set; }
@@ -15,24 +15,27 @@ public static class Time
     internal static float Tick()
     {
         Frame++;
-        ulong current = SDL.GetPerformanceCounter();
+        ulong currentCounter = SDL.GetPerformanceCounter();
 
-        if (_lastCounter == 0)
+        if (_isFirstTick())
         {
-            _lastCounter = current;
+            _previousCounter = currentCounter;
             DeltaTime = 0.0f;
-            return 0.0f;
+            return DeltaTime;
         }
 
-        DeltaTime = (float)((current - _lastCounter) / _frequency);
-        if (DeltaTime > DeltaTimeMax) DeltaTime = DeltaTimeMax;
-
-        _lastCounter = current;
+        DeltaTime = _clampToMax(_secondsSince(_previousCounter, currentCounter));
+        _previousCounter = currentCounter;
         return DeltaTime;
     }
 
-    public static double GetTimeMillis()
-    {
-        return (SDL.GetPerformanceCounter() * 1000.0) / _frequency;
-    }
+    public static double GetTimeMillis() => SDL.GetPerformanceCounter() * 1000.0 / _countsPerSecond;
+
+    private static bool _isFirstTick() => _previousCounter == 0;
+
+    private static float _secondsSince(ulong previousCounter, ulong currentCounter) =>
+        (float)((currentCounter - previousCounter) / _countsPerSecond);
+
+    private static float _clampToMax(float seconds) =>
+        seconds > DeltaTimeMax ? DeltaTimeMax : seconds;
 }

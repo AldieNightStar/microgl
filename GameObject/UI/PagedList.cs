@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Numerics;
 
 namespace microgl;
@@ -25,8 +26,8 @@ public class PagedList : UITable
     public bool HasNextPage => Page < PageCount - 1;
     public bool HasPreviousPage => Page > 0;
 
-    public PagedList(Vector2 position, int pageSize = DEFAULT_PAGE_SIZE, GameObjectGroup? group = null, bool centerOrigin = false)
-        : base(position, group, centerOrigin)
+    public PagedList(Rectangle bounds, int pageSize = DEFAULT_PAGE_SIZE, GameObjectGroup? group = null, bool centerOrigin = false)
+        : base(bounds, group, centerOrigin)
     {
         PageSize = pageSize;
     }

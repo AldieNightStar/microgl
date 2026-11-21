@@ -31,16 +31,8 @@ public class UITable : UIElement
     public int RowCount => _rowHeights.Count;
     public int ColumnCount => _columnWidths.Count;
 
-    public UITable(Vector2 position, GameObjectGroup? group = null, bool centerOrigin = false)
-        : base(position, Vector2.Zero, centerOrigin)
-    {
-        Group = group ?? new GameObjectGroup();
-        MaxSize = new Vector2(float.MaxValue, float.MaxValue);
-        Group.OnChildrenChanged += OnGroupChanged;
-    }
-
     public UITable(Rectangle bounds, GameObjectGroup? group = null, bool centerOrigin = false)
-        : base(new Vector2(bounds.X, bounds.Y), new Vector2(bounds.Width, bounds.Height))
+        : base(bounds, centerOrigin)
     {
         Group = group ?? new GameObjectGroup();
         MaxSize = new Vector2(float.MaxValue, float.MaxValue);
@@ -116,7 +108,7 @@ public class UITable : UIElement
 
     private Vector2 _cellLimit()
     {
-        var content = Vector2.Max(SizeLimit - Padding.Total, Vector2.Zero);
+        var content = Vector2.Max(MaxSize - Padding.Total, Vector2.Zero);
         if (Columns <= 0) return content;
         return new Vector2(LayoutUtil.ShareLength(content.X, Columns, Spacing.X), content.Y);
     }

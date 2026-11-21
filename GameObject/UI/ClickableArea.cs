@@ -20,11 +20,8 @@ public class ClickableArea : UIElement
     // Mouse events arrive before Update, so an area updated on the previous frame still counts as live
     private bool IsInteractive => IsAlive && Enabled && Time.Frame - _updatedFrame <= 1;
 
-    public ClickableArea(Rectangle rect, bool centerOrigin = false)
-        : base(rect, centerOrigin) {}
-
-    public ClickableArea(Vector2 position, Vector2 size, bool centerOrigin = true)
-        : base(position, size, centerOrigin) { }
+    public ClickableArea(Rectangle bounds, bool centerOrigin = true)
+        : base(bounds, centerOrigin) { }
 
     protected override void OnInit(Drawer d)
     {

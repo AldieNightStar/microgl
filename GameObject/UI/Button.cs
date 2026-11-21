@@ -85,13 +85,12 @@ public class Button : UIElement
 
     public Button(
         GameFont font,
-        Vector2 position,
-        Vector2 size,
+        Rectangle bounds,
         string? text = null,
         Texture? icon = null,
         Texture? backgroundTexture = null,
         bool centerOrigin = true)
-        : base(position, size, centerOrigin)
+        : base(bounds, centerOrigin)
     {
         Icon = icon;
         BackgroundTexture = backgroundTexture;
@@ -184,7 +183,7 @@ public class Button : UIElement
         int h = (int)Size.Y;
         var rect = LocalBounds;
 
-        Color fillColor = !Enabled ? Color.FromArgb(45, 45, 50)
+        Color fillColor = !Enabled ? Color.Gray
                         : IsPressed ? PressedColor
                         : IsHovered ? HoverColor
                         : Color;
