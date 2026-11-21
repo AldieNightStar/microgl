@@ -2,25 +2,21 @@ using System.Numerics;
 
 namespace microgl;
 
-public class Tween : IGameUpdatable
+public class Tween : ITween
 {
     public float From { get; set; }
     public float To { get; set; }
     public float Duration { get; set; }
     public float Elapsed { get; private set; }
+    public float Progress => TweenUtil.Progress(Elapsed, Duration);
+    public float CurrentValue { get; private set; }
     public bool IsPaused { get; set; }
-    public bool Repeatable { get; set; }
+    public bool IsFinished { get; private set; }
     public bool IsActive => !IsPaused && !IsFinished;
 
     public Func<float, float> Ease { get; set; }
     public Action<float>? OnUpdate { get; set; }
-    public Action<float> OnComplete { get; set; }
-
-    private bool _completed;
-    public bool IsFinished => _completed;
-
-    public float Progress => Duration <= 0f ? 1f : Math.Clamp(Elapsed / Duration, 0f, 1f);
-    public float CurrentValue { get; private set; }
+    public event Action? OnComplete;
 
     public Tween(
         float from,
@@ -37,43 +33,34 @@ public class Tween : IGameUpdatable
         CurrentValue = from;
     }
 
-    public void Update(Drawer d)
-    {
-        Update(Time.DeltaTime);
-    }
+    public void Update(Drawer d) => Update(Time.DeltaTime);
 
-    public void Update(float dt)
+    public float Update(float dt)
     {
-        if (IsPaused || IsFinished)
-            return;
+        if (IsPaused)
+            return 0f;
+        if (IsFinished)
+            return dt;
 
-        CurrentValue = _evaluate(dt);
+        float leftover = TweenUtil.Overflow(Elapsed + dt, Duration);
+        Elapsed = MathF.Min(Elapsed + dt, Duration);
+        CurrentValue = From + (To - From) * Ease(Progress);
         OnUpdate?.Invoke(CurrentValue);
 
         if (Elapsed >= Duration)
         {
-            float overflow = Elapsed - Duration;
-            Elapsed = Duration;
-            OnComplete?.Invoke(overflow);
-
-            if (Repeatable)
-            {
-                Elapsed = 0f;
-                if (overflow > 0f && Duration > 0f)
-                    Update(overflow);
-            }
-            else
-            {
-                _completed = true;
-            }
+            IsFinished = true;
+            OnComplete?.Invoke();
         }
+
+        return leftover;
     }
 
     public void Reset()
     {
         Elapsed = 0f;
         CurrentValue = From;
-        _completed = false;
+        IsFinished = false;
     }
 
     public void Dispose()
@@ -83,14 +70,6 @@ public class Tween : IGameUpdatable
         OnComplete = null;
         Reset();
     }
-
-    private float _evaluate(float dt)
-    {
-        Elapsed += dt;
-        float t = Duration <= 0f ? 1f : Math.Clamp(Elapsed / Duration, 0f, 1f);
-        return From + (To - From) * Ease(t);
-    }
-
 
     public static TweenPlanner Call(
         float from,

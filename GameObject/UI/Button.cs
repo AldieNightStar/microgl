@@ -78,7 +78,7 @@ public class Button : UIElement
     private Color _textColor = Color.White;
     private Label? _label;
 
-    private Tween? _activeTween;
+    private ITween? _activeTween;
     private Vector2 _baseScale = Vector2.One;
 
     public Button(
@@ -228,7 +228,7 @@ public class Button : UIElement
         }
     }
 
-    private void PlayTween(Tween tween)
+    private void PlayTween(ITween tween)
     {
         if (_activeTween?.IsActive == true)
         {

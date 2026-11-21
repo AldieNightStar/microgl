@@ -9,7 +9,7 @@
 * **Masked Drawing**: `MaskScope` clips any content to an arbitrary mask texture shape (circular avatars, fog-of-war, liquid fills) with a single `using` block via `drawer.BeginMask(...)`. Built-in `Masks` factory covers circles, rectangles, rounded rectangles, and grayscale-to-mask conversion for soft edges and gradients.
 * **Scene & UI System**: Hierarchical `GameObject` and `GameObjectGroup` entities, plus built-in `UIElement` widgets (`Label`, `Button`, `ClickableArea`) and row-based `UITable` layouts.
 * **Unified Input**: Event-driven and polling APIs for `Mouse` (with automatic render-coordinate conversion), `Keyboard`, and `Gamepad` (with radial deadzones and rumble).
-* **Timing & Animations**: High-resolution `Time`, countdown `GameTimer`, 31 `Easing` curves, fluent `TweenPlanner` sequences, and ready-to-use `TweenCollection` game-feel presets.
+* **Timing & Animations**: High-resolution `Time`, countdown `GameTimer`, 31 `Easing` curves, `ITween` interfaces, fluent `TweenPlanner` and `TweenSequence` chaining, and ready-to-use `TweenCollection` game-feel presets.
 
 ## Quick Start
 
@@ -21,7 +21,7 @@ using microgl;
 
 public class MyGame : IGame
 {
-    private GameFont _font;
+    private GameFont _font = null!;
     private Label _label = null!;
 
     public static void Main()
@@ -63,7 +63,7 @@ public class MyGame : IGame
 
 ### Drawing
 * [Drawer](doc/Drawing/Drawer.md) — 2D rendering context for shapes, textures, text, and game objects.
-* [IRenderer / GPURenderer / SoftwareRenderer](doc/Drawing/IRenderer.md) — Hardware and offscreen software rendering backends.
+* [Renderer](doc/Drawing/Renderer.md) — Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) rendering backends.
 * [Texture](doc/Drawing/Texture.md) — 2D image loading (`PNG`/`BMP`) and procedural texture creation.
 * [AtlasTexture](doc/Drawing/AtlasTexture.md) — Lightweight sprite-sheet sub-regions and grid slicing.
 * [AnimatedTexture](doc/Drawing/AnimatedTexture.md) — Frame-by-frame animation over equally sized `AtlasTexture` frames.
@@ -73,24 +73,28 @@ public class MyGame : IGame
 * [Shader](doc/Drawing/Shader.md) — GPU fragment shader and render-state wrapper for effects.
 * [Masking](doc/Drawing/Masking.md) — Clip drawing to any shape with `MaskScope` and the `Masks` factory (circles, rectangles, rounded rectangles, grayscale gradients).
 
-### GameObject & UI
+### GameObject
 * [GameObject](doc/GameObject/GameObject.md) — Base scene entity with hierarchical transforms and lifecycle hooks.
 * [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects.
+
+#### UI
 * [UIElement](doc/GameObject/UI/UIElement.md) — Base class for UI widgets with size clamping, origin, and bounds.
 * [Label](doc/GameObject/UI/Label.md) — Cached TrueType text UI element.
 * [Button](doc/GameObject/UI/Button.md) — Interactive rectangle or textured button with icon, label, and tween animations.
 * [ClickableArea](doc/GameObject/UI/ClickableArea.md) — Invisible transform-aware mouse hitbox.
-* [UITable](doc/GameObject/UI/UITable.md) — Row/column layout container over a `GameObjectGroup`, with padding, spacing, alignment and a rounded colour or texture background.
+* [UITable](doc/GameObject/UI/UITable.md) — Row/column layout container over a `GameObjectGroup`, with padding, spacing, alignment, and a rounded color or texture background.
 
 ### Input
 * [Mouse](doc/Input/Mouse.md) — Cursor coordinates (mapped to logical render space) and button events.
 * [Keyboard](doc/Input/Keyboard.md) — Key press/release events and modifier key states (`Ctrl`, `Shift`, `Alt`).
 * [Gamepad](doc/Input/Gamepad.md) — Controller hot-plugging, button/axis events, radial deadzones, and rumble.
 
-### Timing & Animation
+### Timing
 * [Time](doc/Timing/Time.md) — Clamped frame `DeltaTime` and high-resolution millisecond clock.
 * [GameTimer](doc/Timing/GameTimer.md) — Single-shot and looping countdown timer.
 * [Easing](doc/Timing/Easing.md) — Standard interpolation curves (`Linear`, `Sine`, `Quad`, `Cubic`, `Back`, `Elastic`, `Bounce`, etc.).
+* [ITween](doc/Timing/ITween.md) — Base interface for controllable tweenable animations and sequences.
 * [Tween](doc/Timing/Tween.md) — Value interpolator with easing, looping, and completion callbacks.
+* [TweenSequence](doc/Timing/TweenSequence.md) — Plays multiple `ITween` instances sequentially or in parallel groups.
 * [TweenPlanner](doc/Timing/TweenPlanner.md) — Fluent builder for chaining sequential tweens, delays, and callbacks.
 * [TweenCollection](doc/Timing/TweenCollection.md) — Preset game-feel animations (shakes, flashes, squishes, jumps, and bumps).

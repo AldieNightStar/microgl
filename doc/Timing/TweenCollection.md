@@ -27,7 +27,7 @@ TweenCollection.BumpDirection(GameObject obj, Vector2 offset, float duration = 0
 
 ### Example
 ```csharp
-Tween shake = TweenCollection.DamageShake(enemy).ToTween();
-Tween wobble = TweenCollection.JellyWobble(slime).ToTween();
-Tween jump = TweenCollection.CartoonJump(player, height: 60f).ToTween();
+ITween shake = TweenCollection.DamageShake(enemy).ToTween();
+ITween wobble = TweenCollection.JellyWobble(slime).ToTween();
+ITween jump = TweenCollection.CartoonJump(player, height: 60f).ToTween();
 ```
