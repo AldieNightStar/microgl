@@ -54,16 +54,29 @@ public abstract class GameObject : IDisposable
     public Vector2 ToGlobal(Vector2 gpos) => GlobalTransform.ToGlobal(gpos);
 
     public void Init(Drawer d, Transform? parent = null)
-        => _runInScope(d, parent, OnInit);
+    {
+        using (_executeInTempScope(d, parent, BlendColor))
+        {
+            OnInit(d);
+        }
+    }
 
     public void Update(Drawer d, Transform? parent = null)
     {
-        if (IsAlive) _runInScope(d, parent, OnUpdate);
+        if (!IsAlive) return;
+        using (_executeInTempScope(d, parent, BlendColor))
+        {
+            OnUpdate(d);
+        }
     }
 
     public void Draw(Drawer d, Transform? parent = null)
     {
-        if (IsAlive) _runInScope(d, parent, OnDraw, BlendColor);
+        if (!IsAlive) return;
+        using (_executeInTempScope(d, parent, BlendColor))
+        {
+            OnDraw(d);
+        }
     }
 
     public void Init(Drawer d, GameObject parent) => Init(d, parent.GlobalTransform);
@@ -75,16 +88,11 @@ public abstract class GameObject : IDisposable
     protected abstract void OnDraw(Drawer d);
     public abstract void Dispose();
 
-    private void _runInScope(Drawer d, Transform? parent, Action<Drawer> step, Color? blend = null)
+    private DrawerTempScope _executeInTempScope(Drawer d, Transform? parent, Color blend)
     {
         _parentTransform = parent ?? Transform.Identity;
         var renderTransform = _getRenderTransform();
-
-        using var scope = blend is { } color
-            ? new DrawerScope(d, renderTransform, GlobalTransform, color)
-            : new DrawerScope(d, renderTransform, GlobalTransform);
-
-        step(d);
+        return new DrawerTempScope(d, renderTransform, GlobalTransform, blend);
     }
 
     private Transform _getRenderTransform()
