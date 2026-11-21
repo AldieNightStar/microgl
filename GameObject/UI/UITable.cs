@@ -5,150 +5,159 @@ namespace microgl;
 
 public class UITable : UIElement
 {
-    // Sentinel — inserted into _flat on NextLine(); never added to _group.
-    private sealed class NextLineMarker : UIElement
-    {
-        public NextLineMarker() : base(Vector2.Zero, Vector2.Zero) { }
-        protected override void OnInit(Drawer d) { }
-        protected override void OnUpdate(Drawer d) { }
-        protected override void OnDraw(Drawer d) { }
-        public override void Dispose() { }
-    }
+    private const float DEFAULT_SPACING = 6f;
 
-    // Flat ordered list of real elements + NextLineMarker sentinels.
-    private readonly List<UIElement> _flat = new();
-    // Owns lifecycle (Init / Update / Draw / Dispose) for real elements only.
-    private readonly GameObjectGroup _group = new();
-    // Cached layout bounds per element, keyed by reference.
-    private readonly Dictionary<UIElement, Rectangle> _bounds = new();
+    private readonly List<float> _rowHeights = new();
+    private readonly List<float> _rowWidths = new();
+    private readonly List<float> _columnWidths = new();
+    private Vector2 _contentSize;
 
-    private Drawer _drawer;
+    public GameObjectGroup Group { get; }
+
+    public Insets Padding { get; set; }
+    public Vector2 Spacing { get; set; } = new(DEFAULT_SPACING, DEFAULT_SPACING);
+    public TextAlign HorizontalAlign { get; set; } = TextAlign.Left;
+    public VerticalAlign VerticalAlign { get; set; } = VerticalAlign.Middle;
+    public bool UniformColumns { get; set; } = true;
+    public bool AutoLayout { get; set; } = true;
 
     public Texture? BackgroundTexture { get; set; }
     public Color BackgroundColor { get; set; } = Color.Transparent;
+    public int CornerRadius { get; set; }
 
-    public float Spacing { get; set; } = 6f;
-    public Vector2 Padding { get; set; } = Vector2.Zero;
+    public int RowCount => _rowHeights.Count;
+    public int ColumnCount => _columnWidths.Count;
 
-    public UITable(Vector2 position, bool centerOrigin = false)
+    public UITable(Vector2 position, GameObjectGroup? group = null, bool centerOrigin = false)
         : base(position, Vector2.Zero, centerOrigin)
     {
+        Group = group ?? new GameObjectGroup();
+        MaxSize = new Vector2(float.MaxValue, float.MaxValue);
     }
 
-    public UITable Add(Drawer d, UIElement element)
+    public UITable Add(UIElement element)
     {
-        _flat.Add(element);
-        _group.Add(element);
-        Layout();
-
-        if (_drawer != null)
-            element.Init(_drawer, d.WorldTransform);
-
+        Group.Add(element);
         return this;
+    }
+
+    public UITable AddRow(params UIElement[] elements)
+    {
+        foreach (var element in elements)
+            Group.Add(element);
+        return NextLine();
     }
 
     public UITable NextLine()
     {
-        // Avoid inserting two markers in a row.
-        if (_flat.Count > 0 && _flat[^1] is not NextLineMarker)
-            _flat.Add(new NextLineMarker());
-
+        Group.Add(new NextLineMarker());
         return this;
     }
 
     public void Layout()
     {
-        float cursorY = Padding.Y;
-        float maxRowWidth = 0f;
+        Measure();
+        PlaceCells();
+        Size = _contentSize + Padding.Total;
+    }
 
-        // Collect one row at a time from the flat list.
-        var row = new List<UIElement>();
+    private IEnumerable<(UIElement Element, int Row, int Column)> Cells()
+    {
+        int row = -1;
+        int column = 0;
 
-        void FlushRow()
+        foreach (var child in Group.GetChildren<GameObject>())
         {
-            if (row.Count == 0) return;
+            if (!child.IsAlive) continue;
+            if (child is NextLineMarker) column = 0;
+            if (child is not UIElement element) continue;
+            if (column == 0) row++;
+            yield return (element, row, column++);
+        }
+    }
 
-            float rowHeight = 0f;
-            foreach (var el in row)
-                if (el.Size.Y > rowHeight) rowHeight = el.Size.Y;
+    private void Measure()
+    {
+        _rowHeights.Clear();
+        _rowWidths.Clear();
+        _columnWidths.Clear();
 
-            float cursorX = Padding.X;
-            for (int i = 0; i < row.Count; i++)
+        foreach (var (element, row, column) in Cells())
+        {
+            LayoutUtil.GrowAt(_rowHeights, row, element.Size.Y);
+            LayoutUtil.GrowAt(_columnWidths, column, element.Size.X);
+            LayoutUtil.GrowAt(_rowWidths, row, 0f);
+            _rowWidths[row] += element.Size.X + (column > 0 ? Spacing.X : 0f);
+        }
+
+        float width = UniformColumns ? LayoutUtil.SpanLength(_columnWidths, Spacing.X) : _rowWidths.DefaultIfEmpty().Max();
+        _contentSize = new Vector2(width, LayoutUtil.SpanLength(_rowHeights, Spacing.Y));
+    }
+
+    private void PlaceCells()
+    {
+        float x = 0f;
+        float y = Padding.Top;
+
+        foreach (var (element, row, column) in Cells())
+        {
+            if (column == 0)
             {
-                var el = row[i];
-                float y = cursorY + (rowHeight - el.Size.Y) / 2f;
-                var bounds = new Rectangle((int)cursorX, (int)y, (int)el.Size.X, (int)el.Size.Y);
-                _bounds[el] = bounds;
-                el.Bounds = bounds;
-
-                cursorX += el.Size.X + (i < row.Count - 1 ? Spacing : 0f);
+                x = RowStart(row);
+                if (row > 0) y += _rowHeights[row - 1] + Spacing.Y;
             }
 
-            if (cursorX > maxRowWidth) maxRowWidth = cursorX;
-            cursorY += rowHeight + Spacing;
-            row.Clear();
+            float cellWidth = UniformColumns ? _columnWidths[column] : element.Size.X;
+            var cell = new RectangleF(x, y, cellWidth, _rowHeights[row]);
+            element.Position = AlignUtil.Place(element.Size, cell, HorizontalAlign, VerticalAlign) + element.CenterPoint;
+            x += cellWidth + Spacing.X;
         }
+    }
 
-        foreach (var item in _flat)
-        {
-            if (item is NextLineMarker) FlushRow();
-            else row.Add(item);
-        }
-        FlushRow(); // last row
-
-        if (cursorY > Padding.Y) cursorY -= Spacing;
-
-        var contentSize = new Vector2(maxRowWidth + Padding.X, cursorY + Padding.Y);
-        MaxSize = contentSize;
-        Size = contentSize;
+    private float RowStart(int row)
+    {
+        if (UniformColumns) return Padding.Left;
+        return Padding.Left + AlignUtil.Offset(_contentSize.X - _rowWidths[row], HorizontalAlign);
     }
 
     protected override void OnInit(Drawer d)
     {
-        _drawer = d;
         Layout();
-        _group.Init(d, d.WorldTransform);
+        Group.Init(d, d.Transform);
     }
 
     protected override void OnUpdate(Drawer d)
     {
-        // Sync positions from cached layout bounds, then delegate update.
-        foreach (var el in _group.GetChildren<UIElement>())
-        {
-            if (_bounds.TryGetValue(el, out var b))
-            {
-                var expectedPos = new Vector2(b.X, b.Y) + el.CenterPoint;
-                if (el.Position != expectedPos)
-                    el.Position = expectedPos;
-            }
-        }
-
-        _group.Update(d, d.WorldTransform);
+        Group.Update(d, d.Transform);
+        if (AutoLayout) Layout();
     }
 
     protected override void OnDraw(Drawer d)
     {
-        if (Size.X > 0 && Size.Y > 0)
+        DrawBackground(d);
+        Group.Draw(d, d.Transform);
+    }
+
+    private void DrawBackground(Drawer d)
+    {
+        if (Size.X <= 0f || Size.Y <= 0f) return;
+
+        if (BackgroundTexture != null)
         {
-            if (BackgroundTexture != null)
-            {
-                d.BlendColor = BlendColor;
-                d.DrawTexture(BackgroundTexture, LocalBounds);
-            }
-            else if (BackgroundColor.A > 0)
-            {
-                d.Color = BackgroundColor;
-                d.DrawRect(LocalBounds);
-            }
+            d.DrawRoundedTexture(BackgroundTexture, LocalBounds, CornerRadius);
+            return;
         }
 
-        _group.Draw(d, d.WorldTransform);
+        if (BackgroundColor.A == 0) return;
+        d.Color = BackgroundColor;
+        d.DrawRoundedRect(LocalBounds, CornerRadius);
     }
 
     public override void Dispose()
     {
-        _group.Dispose();
-        _flat.Clear();
-        _bounds.Clear();
+        Group.Dispose();
+        _rowHeights.Clear();
+        _rowWidths.Clear();
+        _columnWidths.Clear();
     }
 }

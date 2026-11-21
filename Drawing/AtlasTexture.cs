@@ -5,71 +5,50 @@ namespace microgl;
 
 public readonly struct AtlasTexture
 {
-    internal readonly Texture _texture { get; init; }
-    internal readonly Rectangle _source { get; init; }
+    public Texture Texture { get; }
+    public Rectangle Bounds { get; }
 
     public AtlasTexture(Texture atlas, Rectangle source)
     {
-        _texture = atlas;
-        _source = source;
+        Texture = atlas;
+        Bounds = source;
     }
+
+    public Vector2 Size => new(Bounds.Width, Bounds.Height);
 
     public static AtlasTexture[] FromTexture(Texture t, Vector2 tileSize, int spacing = 0, int margin = 0)
     {
         var size = t.Size;
-        var usableRegion = new Rectangle(
-            margin,
-            margin,
-            (int)size.X - margin * 2,
-            (int)size.Y - margin * 2
-        );
-        return new AtlasTexture(t, usableRegion).SliceGrid(tileSize, spacing);
+        var usableRegion = new Rectangle(margin, margin, (int)size.X - margin * 2, (int)size.Y - margin * 2);
+        return FromRegion(t, usableRegion, tileSize, spacing);
     }
 
     public static AtlasTexture[] FromRegion(Texture t, Rectangle region, Vector2 tileSize, int spacing = 0)
-    {
-        var subAtlas = new AtlasTexture(t, region);
-        return subAtlas.SliceGrid(tileSize, spacing);
-    }
+        => new AtlasTexture(t, region).SliceGrid(tileSize, spacing);
 
     public AtlasTexture[] SliceGrid(Vector2 tileSize, int spacing = 0)
     {
         int w = (int)tileSize.X;
         int h = (int)tileSize.Y;
-        int cols = (_source.Width + spacing) / (w + spacing);
-        int rows = (_source.Height + spacing) / (h + spacing);
+        if (w <= 0 || h <= 0 || spacing < 0)
+            throw new ArgumentOutOfRangeException(nameof(tileSize), "Tile size must be positive and spacing non-negative.");
 
+        int cols = Math.Max(0, (Bounds.Width + spacing) / (w + spacing));
+        int rows = Math.Max(0, (Bounds.Height + spacing) / (h + spacing));
         var result = new AtlasTexture[cols * rows];
-        int index = 0;
 
-        for (int y = 0; y < rows; y++)
-        {
-            for (int x = 0; x < cols; x++)
-            {
-                var rect = new Rectangle(
-                    _source.X + x * (w + spacing),
-                    _source.Y + y * (h + spacing),
-                    w,
-                    h
-                );
-                result[index++] = new AtlasTexture(_texture, rect);
-            }
-        }
+        for (int i = 0; i < result.Length; i++)
+            result[i] = SubRegion(new Rectangle(i % cols * (w + spacing), i / cols * (h + spacing), w, h));
 
         return result;
     }
 
-    public Vector2 Size => new(_source.Width, _source.Height);
-    public Rectangle Bounds => _source;
-
     public AtlasTexture SubRegion(Rectangle relativeRect)
     {
-        var offsetRect = new Rectangle(
-            _source.X + relativeRect.X,
-            _source.Y + relativeRect.Y,
-            relativeRect.Width,
-            relativeRect.Height
-        );
-        return new AtlasTexture(_texture, offsetRect);
+        var rect = relativeRect with { X = Bounds.X + relativeRect.X, Y = Bounds.Y + relativeRect.Y };
+        if (!Bounds.Contains(rect))
+            throw new ArgumentOutOfRangeException(nameof(relativeRect), $"Region ({relativeRect}) exceeds atlas bounds ({Bounds}).");
+
+        return new AtlasTexture(Texture, rect);
     }
 }

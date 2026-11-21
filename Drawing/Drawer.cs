@@ -86,31 +86,40 @@ public class Drawer : IDisposable
 
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {
-        float u0 = 0f, v0 = 0f, u1 = 1f, v1 = 1f;
+        var uvs = srcRect is Rectangle src ? TextureUtil.ComputeUVs(texture, src) : (0f, 0f, 1f, 1f);
+        DrawTextureUVs(texture, dstRect, uvs);
+    }
 
-        if (srcRect is Rectangle src)
-            (u0, v0, u1, v1) = TextureUtil.ComputeUVs(texture, src);
+    public void DrawRoundedTexture(Texture texture, Rectangle dstRect, int cornerRadius)
+    {
+        foreach (var strip in ShapeUtil.RoundedStrips(dstRect, cornerRadius))
+            DrawTextureUVs(texture, strip, ShapeUtil.RelativeUVs(strip, dstRect));
+    }
 
-        QuadUtil.FillQuad(_verts, dstRect, u0, v0, u1, v1, Transform, ColorUtil.ToSDLColor(Color));
+    private void DrawTextureUVs(Texture texture, Rectangle dstRect, (float u0, float v0, float u1, float v1) uvs)
+    {
+        var (u0, v0, u1, v1) = uvs;
+        QuadUtil.FillQuad(_verts, dstRect, u0, v0, u1, v1, Transform, ColorUtil.ToSDLColor(BlendColor));
 
         var nativeTexture = Renderer.GetNativeTexture(texture);
-        var blendF = ColorUtil.ToSDLColor(BlendColor);
-        _verts[0].Color = blendF;
-        _verts[1].Color = blendF;
-        _verts[2].Color = blendF;
-        _verts[3].Color = blendF;
-
         if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, 4, QUAD_INDICES, 6))
             throw new Exception($"RenderGeometry failed: {SDL.GetError()}");
     }
 
-    public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture._texture, rect, texture._source);
+    public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture.Texture, rect, texture.Bounds);
+    public void DrawTexture(AnimatedTexture texture, Rectangle rect) => DrawTexture(texture.CurrentFrame, rect);
     public void DrawTexture(DynamicTexture texture, Rectangle rect) => DrawTexture(texture.Texture, rect);
 
     public void DrawRect(Rectangle rect)
     {
         QuadUtil.FillQuad(_verts, rect, 0f, 0f, 0f, 0f, Transform, ColorUtil.ToSDLColor(Color));
         SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, QUAD_INDICES, 6);
+    }
+
+    public void DrawRoundedRect(Rectangle rect, int cornerRadius)
+    {
+        foreach (var strip in ShapeUtil.RoundedStrips(rect, cornerRadius))
+            DrawRect(strip);
     }
 
     public void DrawLine(Vector2 a, Vector2 b)

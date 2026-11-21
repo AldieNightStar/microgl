@@ -1,34 +1,46 @@
 # UITable
 
 ### Notes
-* **Row-based layout container** inheriting from `UIElement` that arranges child `UIElement` items horizontally in rows and advances vertically via `NextLine()`.
-* **Locks child bounds and positions**: computes each element's cell rectangle during `Layout()` and enforces its position on every `Update()` while propagating the current world transform.
-* **`Add(Drawer d, UIElement element)` requires a `Drawer`** — if called after `Init`, the element is immediately initialized with the stored drawer; before `Init` the element is registered and initialized during `OnInit`.
-* **Supports optional background styling** using either a `BackgroundTexture` or a solid `BackgroundColor`, plus configurable `Padding` and `Spacing`.
+* **Layout container** inheriting from `UIElement`. It does not store its own element list: every child lives in a `GameObjectGroup` (`table.Group`), and the table only arranges them.
+* **Accepts or creates a group**: pass an existing `GameObjectGroup` to the constructor, or let the table create one. Add, remove or clear objects through the group as usual; the table disposes the group with itself.
+* **Rows via `NextLineMarker`**: `NextLine()` adds a `NextLineMarker` object to the group. Every `UIElement` after a marker goes to the next row. Repeated or leading markers do not create empty rows. Non-`UIElement` objects in the group are updated and drawn but not laid out.
+* **Sizing**: each row is as tall as its tallest element. With `UniformColumns` (default) each column is as wide as its widest element across all rows, like a GDX `Table` or Godot `GridContainer`. With `UniformColumns = false` every row flows independently and the whole row is aligned by `HorizontalAlign`.
+* **Alignment**: `HorizontalAlign` (`TextAlign`) and `VerticalAlign` place each element inside its cell.
+* **Auto layout**: with `AutoLayout` (default) the table calls `Layout()` every `Update()`, so text or size changes are picked up immediately. Turn it off and call `Layout()` yourself for static tables.
+* **Table size** = content + `Padding`, clamped by `MinSize`. `MaxSize` is unlimited by default.
+* **Children are positioned in the table's local space** (top-left is `0,0`), even when `centerOrigin` is true.
+* **Background**: `BackgroundTexture` (drawn tinted by `BlendColor`) takes priority over `BackgroundColor`. `CornerRadius` rounds the corners of either.
+
+### Insets
+`Padding` is an `Insets` (`Left`, `Top`, `Right`, `Bottom`). A `float` converts to equal insets and a `Vector2` to horizontal/vertical insets.
+```csharp
+table.Padding = 12f;
+table.Padding = new Vector2(16f, 8f);
+table.Padding = new Insets(4f, 8f, 4f, 16f);
+table.Padding = Insets.Symmetric(16f, 8f);
+```
 
 ### Usage
 ```csharp
-// Create a table at position with optional centerOrigin
-new UITable(Vector2 position, bool centerOrigin = false);
+new UITable(Vector2 position, GameObjectGroup? group = null, bool centerOrigin = false);
 
-// Optional background texture or solid color, cell spacing (default 6f), and outer padding
+table.Group;
+table.Padding;            // Insets
+table.Spacing;            // Vector2 gap between cells (X) and rows (Y), default 6
+table.HorizontalAlign;    // TextAlign, default Left
+table.VerticalAlign;      // VerticalAlign, default Middle
+table.UniformColumns;     // default true
+table.AutoLayout;         // default true
 table.BackgroundTexture;
 table.BackgroundColor;
-table.Spacing;
-table.Padding;
+table.CornerRadius;
+table.RowCount;
+table.ColumnCount;
 
-// Fluent methods to add elements to the current row and start a new row
-table.Add(Drawer d, UIElement element);
+table.Add(UIElement element);
+table.AddRow(params UIElement[] elements);   // adds the elements, then NextLine()
 table.NextLine();
-
-// Recalculate cell bounds and table Size/MaxSize (call after changing child sizes or text)
 table.Layout();
-
-// Standard UIElement lifecycle methods (propagated to all child elements)
-table.Init(Drawer d);
-table.Update(Drawer d);
-table.Draw(Drawer d);
-table.Dispose();
 ```
 
 ### Example
@@ -36,18 +48,25 @@ table.Dispose();
 var table = new UITable(new Vector2(360f, 240f), centerOrigin: true)
 {
     BackgroundColor = Color.FromArgb(200, 30, 35, 48),
+    CornerRadius = 10,
     Padding = new Vector2(16f, 12f),
-    Spacing = 8f
+    Spacing = new Vector2(8f, 8f),
+    HorizontalAlign = TextAlign.Center,
+    UniformColumns = false
 };
 
+var play = new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Play");
+var quit = new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Quit");
+
 table
-    .Add(d, new Label(font, Vector2.Zero, "Menu", Color.Gold))
-    .NextLine()
-    .Add(d, new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Play"))
-    .Add(d, new Button(font, Vector2.Zero, new Vector2(120f, 36f), "Quit"));
+    .AddRow(new Label(font, Vector2.Zero, "Menu", Color.Gold))
+    .Add(play)
+    .Add(quit);
 
 table.Init(d);
 table.Update(d);
 table.Draw(d);
+
+table.Group.Remove(quit);
 table.Dispose();
 ```

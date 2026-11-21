@@ -35,10 +35,13 @@ drawer.DrawObject(GameObject obj, Vector2 localPos);
 // Draw textures
 drawer.DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null);
 drawer.DrawTexture(AtlasTexture texture, Rectangle rect);
+drawer.DrawTexture(AnimatedTexture texture, Rectangle rect);   // draws the current frame
 drawer.DrawTexture(DynamicTexture texture, Rectangle rect);
+drawer.DrawRoundedTexture(Texture texture, Rectangle dstRect, int cornerRadius);
 
 // Draw primitives and text
 drawer.DrawRect(Rectangle rect);
+drawer.DrawRoundedRect(Rectangle rect, int cornerRadius);   // radius is clamped to half the shortest side
 drawer.DrawLine(Vector2 a, Vector2 b);
 drawer.DrawText(string text, Vector2 pos);
 drawer.DrawDebugText(string text, Vector2 pos);

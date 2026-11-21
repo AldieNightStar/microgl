@@ -5,7 +5,7 @@
 ## Features
 
 * **Core Game Loop**: Simple `IGame` lifecycle (`Init`, `Update`, `Draw`, `Dispose`) with pixel-perfect `Nearest` scaling and automatic `Letterbox` window resizing.
-* **2D Rendering & Textures**: Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing via `Drawer`, supporting primitives, `Transform` hierarchies, `Texture`, `AtlasTexture` sprite sheets, `DynamicTexture`, and TrueType fonts (`GameFont`).
+* **2D Rendering & Textures**: Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing via `Drawer`, supporting primitives, `Transform` hierarchies, `Texture`, `AtlasTexture` sprite sheets, `AnimatedTexture`, `DynamicTexture`, and TrueType fonts (`GameFont`).
 * **Masked Drawing**: `MaskScope` clips any content to an arbitrary mask texture shape (circular avatars, fog-of-war, liquid fills) with a single `using` block via `drawer.BeginMask(...)`. Built-in `Masks` factory covers circles, rectangles, rounded rectangles, and grayscale-to-mask conversion for soft edges and gradients.
 * **Scene & UI System**: Hierarchical `GameObject` and `GameObjectGroup` entities, plus built-in `UIElement` widgets (`Label`, `Button`, `ClickableArea`) and row-based `UITable` layouts.
 * **Unified Input**: Event-driven and polling APIs for `Mouse` (with automatic render-coordinate conversion), `Keyboard`, and `Gamepad` (with radial deadzones and rumble).
@@ -66,6 +66,7 @@ public class MyGame : IGame
 * [IRenderer / GPURenderer / SoftwareRenderer](doc/Drawing/IRenderer.md) — Hardware and offscreen software rendering backends.
 * [Texture](doc/Drawing/Texture.md) — 2D image loading (`PNG`/`BMP`) and procedural texture creation.
 * [AtlasTexture](doc/Drawing/AtlasTexture.md) — Lightweight sprite-sheet sub-regions and grid slicing.
+* [AnimatedTexture](doc/Drawing/AnimatedTexture.md) — Frame-by-frame animation over equally sized `AtlasTexture` frames.
 * [DynamicTexture](doc/Drawing/DynamicTexture.md) — Mutable offscreen texture updated on demand.
 * [GameFont](doc/Drawing/GameFont.md) — TrueType (`.ttf`) font loading and text measurement.
 * [Transform](doc/Drawing/Transform.md) — Immutable 2D affine matrix transformations and coordinate conversions.
@@ -79,7 +80,7 @@ public class MyGame : IGame
 * [Label](doc/GameObject/UI/Label.md) — Cached TrueType text UI element.
 * [Button](doc/GameObject/UI/Button.md) — Interactive rectangle or textured button with icon, label, and tween animations.
 * [ClickableArea](doc/GameObject/UI/ClickableArea.md) — Invisible transform-aware mouse hitbox.
-* [UITable](doc/GameObject/UI/UITable.md) — Row-based UI layout container with locked child bounds and optional background.
+* [UITable](doc/GameObject/UI/UITable.md) — Row/column layout container over a `GameObjectGroup`, with padding, spacing, alignment and a rounded colour or texture background.
 
 ### Input
 * [Mouse](doc/Input/Mouse.md) — Cursor coordinates (mapped to logical render space) and button events.

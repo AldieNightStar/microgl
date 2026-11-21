@@ -4,6 +4,7 @@
 * **Lightweight `readonly struct` view** representing a rectangular sub-region (`source`) inside a parent `Texture` without duplicating pixel data.
 * **Supports grid slicing** from an entire texture (`FromTexture`), a specific sub-region (`FromRegion`), or an existing atlas slice (`SliceGrid`), with optional `spacing` and `margin`.
 * **Does not own the underlying `Texture`**: disposing the parent `Texture` frees the shared image memory.
+* **Validates input**: `SliceGrid` throws for non-positive tile sizes or negative spacing, and `SubRegion` throws when the region falls outside the atlas bounds.
 
 ### Usage
 ```csharp
@@ -18,7 +19,8 @@ AtlasTexture.FromRegion(Texture t, Rectangle region, Vector2 tileSize, int spaci
 atlasTex.SliceGrid(Vector2 tileSize, int spacing = 0);
 atlasTex.SubRegion(Rectangle relativeRect);
 
-// Read sub-region dimensions (Vector2) or source Rectangle inside the parent Texture
+// Read the parent Texture, sub-region dimensions (Vector2) or source Rectangle inside the parent Texture
+atlasTex.Texture;
 atlasTex.Size;
 atlasTex.Bounds;
 ```
