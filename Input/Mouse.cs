@@ -16,13 +16,15 @@ public static class Mouse
         (uint) SDL.EventType.MouseWheel,
     ];
 
-    internal static Vector2 LastPosition;
-
     public static event Action<Vector2>? OnMove;
     public static event Action<uint>? OnDown;
     public static event Action<uint>? OnUp;
+    public static event Action<Vector2>? OnWheel;
 
-    public static Vector2 Position => LastPosition;
+    private static uint _heldMask;
+
+    public static Vector2 Position { get; private set; }
+    public static bool IsDown(uint button) => (_heldMask & (1u << (int)button)) != 0;
 
     internal static void ProcessEvent(Drawer drawer, ref SDL.Event ev)
     {
@@ -34,24 +36,33 @@ public static class Mouse
         if (type == (uint)SDL.EventType.MouseMotion)
         {
             var motion = ev.Motion;
-            LastPosition = new Vector2(motion.X, motion.Y);
-            OnMove?.Invoke(LastPosition);
+            Position = new Vector2(motion.X, motion.Y);
+            OnMove?.Invoke(Position);
         }
-
         else if (type == (uint)SDL.EventType.MouseButtonDown)
         {
             var buttons = ev.Button;
-            LastPosition = new Vector2(buttons.X, buttons.Y);
+            Position = new Vector2(buttons.X, buttons.Y);
+            _setHeld(buttons.Button);
             OnDown?.Invoke(buttons.Button);
         }
-
         else if (type == (uint)SDL.EventType.MouseButtonUp)
         {
             var buttons = ev.Button;
-            LastPosition = new Vector2(buttons.X, buttons.Y);
+            Position = new Vector2(buttons.X, buttons.Y);
+            _unsetHeld(buttons.Button);
             OnUp?.Invoke(buttons.Button);
         }
+        else if (type == (uint)SDL.EventType.MouseWheel)
+        {
+            var wheel = ev.Wheel;
+            float dir = wheel.Direction == SDL.MouseWheelDirection.Flipped ? -1f : 1f;
+            OnWheel?.Invoke(new Vector2(wheel.X * dir, wheel.Y * dir));
+        }
     }
+
+    private static void _setHeld(uint button) => _heldMask |= 1u << (int)button;
+    private static void _unsetHeld(uint button) => _heldMask &= ~(1u << (int)button);
 
     internal static bool IsMouseEvent(ref SDL.Event ev) => MOUSE_EVENTS.Contains(ev.Type);
 }

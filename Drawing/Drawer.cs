@@ -78,7 +78,7 @@ public class Drawer : IDisposable
     // == Masked drawing =======================================================
 
     public MaskScope BeginMask(Texture mask, int width, int height, Rectangle dstRect)
-        => new MaskScope(this, mask, width, height, dstRect);
+        => new MaskScope(Renderer, mask, width, height, dstRect);
 
     // == Primitive drawing ====================================================
 

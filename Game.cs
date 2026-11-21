@@ -29,18 +29,24 @@ public class Game : IDisposable
 
     public void Start()
     {
-        _initSdl();
-        _createWindowOrThrow();
-        _initGpuDeviceAndRenderer();
-        _configureRenderer();
+        try
+        {
+            _initSdl();
+            _createWindowOrThrow();
+            _initGpuDeviceAndRenderer();
+            _configureRenderer();
 
-        _drawer = new Drawer(_renderer) { ScreenSize = _windowSize };
-        _game.Init(_drawer);
+            _drawer = new Drawer(_renderer) { ScreenSize = _windowSize };
+            _game.Init(_drawer);
 
-        _runGameLoop();
-
-        Dispose();
-        SDL.Quit();
+            _runGameLoop();
+        }
+        finally
+        {
+            _game?.Dispose();
+            _drawer?.Dispose();
+            _renderer?.Dispose();
+        }
     }
 
     public void Dispose()

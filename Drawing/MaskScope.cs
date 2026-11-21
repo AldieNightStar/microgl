@@ -22,9 +22,9 @@ public ref struct MaskScope
     private readonly SDL.FRect     _dstRect;
     private bool                   _disposed;
 
-    internal MaskScope(Drawer drawer, Texture mask, int width, int height, Rectangle dstRect)
+    internal MaskScope(IRenderer renderer, Texture mask, int width, int height, Rectangle dstRect)
     {
-        _renderer = drawer.Renderer;
+        _renderer = renderer;
         _mask     = mask;
         _dstRect  = new SDL.FRect { X = dstRect.X, Y = dstRect.Y, W = dstRect.Width, H = dstRect.Height };
 
