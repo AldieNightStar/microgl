@@ -36,7 +36,7 @@ new UITable(Rectangle bounds, GameObjectGroup? group = null, bool centerOrigin =
 table.Group;
 table.Padding;            // Insets
 table.Spacing;            // Vector2 gap between cells (X) and rows (Y), default 6
-table.HorizontalAlign;    // TextAlign, default Left
+table.HorizontalAlign;    // TextAlign, default Center
 table.VerticalAlign;      // VerticalAlign, default Middle
 table.UniformColumns;     // default true
 table.Columns;            // elements per row before wrapping, 0 = no limit

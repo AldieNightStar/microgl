@@ -18,7 +18,7 @@ public class UITable : UIElement
 
     public Insets Padding { get; set; }
     public Vector2 Spacing { get; set; } = new(DEFAULT_SPACING, DEFAULT_SPACING);
-    public TextAlign HorizontalAlign { get; set; } = TextAlign.Left;
+    public TextAlign HorizontalAlign { get; set; } = TextAlign.Center;
     public VerticalAlign VerticalAlign { get; set; } = VerticalAlign.Middle;
     public bool UniformColumns { get; set; } = true;
     public int Columns { get; set; }
