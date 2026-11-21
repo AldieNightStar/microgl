@@ -25,8 +25,8 @@ public class GameObjectGroup : GameObject
     protected override void OnUpdate(Drawer d)
     {
         bool removed = _updateAndRemoveDead(d);
-        bool added = _addQueued(d);
-        if (removed || added) _emitChanged();
+        bool foundInQueue = _processQueue(d);
+        if (removed || foundInQueue) _emitChildrenChanged();
     }
 
     private bool _updateAndRemoveDead(Drawer d)
@@ -36,15 +36,18 @@ public class GameObjectGroup : GameObject
         {
             var gameObject = _list[i];
             if (gameObject.IsAlive) gameObject.Update(d, d.WorldTransform);
-            if (gameObject.IsAlive) continue;
 
-            gameObject.Dispose();
-            _list.RemoveAt(i);
+            // If after update object is dead
+            if (!gameObject.IsAlive)
+            {
+                gameObject.Dispose();
+                _list.RemoveAt(i);
+            }
         }
         return _list.Count != countBefore;
     }
 
-    private bool _addQueued(Drawer d)
+    private bool _processQueue(Drawer d)
     {
         if (_queued.Count == 0) return false;
 
@@ -60,7 +63,9 @@ public class GameObjectGroup : GameObject
     protected override void OnDraw(Drawer d)
     {
         foreach (var el in _list)
+        {
             el.Draw(d, d.WorldTransform);
+        }
     }
 
     public override void Dispose()
@@ -89,7 +94,9 @@ public class GameObjectGroup : GameObject
     private static void _appendOfType<T>(List<GameObject> source, List<T> target) where T : GameObject
     {
         foreach (var el in source)
-            if (el is T match) target.Add(match);
+        {
+            if (el is T typedElement) target.Add(typedElement);
+        }
     }
 
     public void Remove(GameObject obj)
@@ -104,7 +111,7 @@ public class GameObjectGroup : GameObject
     {
         if (!_queued.Remove(obj)) return;
         obj.Dispose();
-        _emitChanged();
+        _emitChildrenChanged();
     }
 
     public void Clear()
@@ -113,7 +120,7 @@ public class GameObjectGroup : GameObject
 
         _disposeAll(_list);
         _disposeAll(_queued);
-        _emitChanged();
+        _emitChildrenChanged();
     }
 
     private static void _disposeAll(List<GameObject> objects)
@@ -123,5 +130,5 @@ public class GameObjectGroup : GameObject
         objects.Clear();
     }
 
-    private void _emitChanged() => OnChildrenChanged?.Invoke();
+    private void _emitChildrenChanged() => OnChildrenChanged?.Invoke();
 }

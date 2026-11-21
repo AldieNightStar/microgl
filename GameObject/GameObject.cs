@@ -50,6 +50,9 @@ public abstract class GameObject : IDisposable
         set => Transform = Transform.WithGlobalScale(_parentTransform, value);
     }
 
+    public Vector2 ToLocal(Vector2 gpos) => GlobalTransform.ToLocal(gpos);
+    public Vector2 ToGlobal(Vector2 gpos) => GlobalTransform.ToGlobal(gpos);
+
     public void Init(Drawer d, Transform? parent = null)
         => _runInScope(d, parent, OnInit);
 
