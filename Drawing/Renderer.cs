@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Drawing;
 using SDL3;
 
@@ -108,6 +107,7 @@ public sealed class SoftwareRenderer : IRenderer
         if (SDLRenderer == IntPtr.Zero) throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());
 
         SDL.SetDefaultTextureScaleMode(SDLRenderer, SDL.ScaleMode.Nearest);
+        _textureCache = new(SDLRenderer);
     }
 
     public Texture ProduceTexture(ushort w, ushort h)

@@ -91,11 +91,11 @@ public abstract class GameObject : IDisposable
     private DrawerTempScope _executeInTempScope(Drawer d, Transform? parent, Color blend)
     {
         _parentTransform = parent ?? Transform.Identity;
-        var renderTransform = _getRenderTransform();
+        var renderTransform = _getPivotTransform();
         return new DrawerTempScope(d, renderTransform, GlobalTransform, blend);
     }
 
-    private Transform _getRenderTransform()
+    private Transform _getPivotTransform()
     {
         return CenterPoint == Vector2.Zero
             ? GlobalTransform
