@@ -8,9 +8,11 @@ public abstract class UIElement : GameObject
 {
     private const float MAX_SIZE_DEFAULT = 1000;
 
+    private Vector2 _requestedSize;
     private Vector2 _size;
     private Vector2 _minSize = Vector2.Zero;
     private Vector2 _maxSize = new(MAX_SIZE_DEFAULT, MAX_SIZE_DEFAULT);
+    private Vector2 _availableSize = new(float.MaxValue, float.MaxValue);
     private bool _centerOrigin;
 
     public Vector2 Size
@@ -18,11 +20,8 @@ public abstract class UIElement : GameObject
         get => _size;
         set
         {
-            var clamped = Vector2.Clamp(value, _minSize, _maxSize);
-            if (_size == clamped) return;
-            _size = clamped;
-            _updateOrigin();
-            OnResized();
+            _requestedSize = value;
+            ApplySize();
         }
     }
 
@@ -31,9 +30,8 @@ public abstract class UIElement : GameObject
         get => _minSize;
         set
         {
-            if (_minSize == value) return;
             _minSize = value;
-            Size = _size;
+            ApplySize();
         }
     }
 
@@ -42,11 +40,22 @@ public abstract class UIElement : GameObject
         get => _maxSize;
         set
         {
-            if (_maxSize == value) return;
             _maxSize = value;
-            Size = _size;
+            ApplySize();
         }
     }
+
+    public Vector2 AvailableSize
+    {
+        get => _availableSize;
+        set
+        {
+            _availableSize = value;
+            ApplySize();
+        }
+    }
+
+    public Vector2 SizeLimit => Vector2.Min(_maxSize, _availableSize);
 
     public bool CenterOrigin
     {
@@ -84,14 +93,16 @@ public abstract class UIElement : GameObject
     protected UIElement(Vector2 position, Vector2 size, bool centerOrigin = false)
     {
         Position = position;
-        _size = Vector2.Clamp(size, _minSize, _maxSize);
+        _requestedSize = size;
+        _size = ClampedSize();
         _centerOrigin = centerOrigin;
         _updateOrigin();
     }
 
     protected UIElement(Rectangle bounds, bool centerOrigin = false)
     {
-        _size = Vector2.Clamp(new Vector2(bounds.Width, bounds.Height), _minSize, _maxSize);
+        _requestedSize = new Vector2(bounds.Width, bounds.Height);
+        _size = ClampedSize();
         _centerOrigin = centerOrigin;
         _updateOrigin();
         Position = new Vector2(bounds.X, bounds.Y) + CenterPoint;
@@ -102,6 +113,17 @@ public abstract class UIElement : GameObject
         Vector2 local = ToLocal(screenPos);
         return local.X >= 0f && local.X <= Size.X &&
                local.Y >= 0f && local.Y <= Size.Y;
+    }
+
+    private Vector2 ClampedSize() => Vector2.Clamp(_requestedSize, _minSize, SizeLimit);
+
+    private void ApplySize()
+    {
+        var size = ClampedSize();
+        if (_size == size) return;
+        _size = size;
+        _updateOrigin();
+        OnResized();
     }
 
     private void _updateOrigin()

@@ -8,6 +8,11 @@ internal static class LayoutUtil
         return sizes.Sum() + spacing * (sizes.Count - 1);
     }
 
+    public static float ShareLength(float total, int count, float spacing)
+    {
+        return MathF.Max(0f, (total - spacing * (count - 1)) / count);
+    }
+
     public static void GrowAt(List<float> sizes, int index, float size)
     {
         if (index == sizes.Count) sizes.Add(0f);

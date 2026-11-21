@@ -78,7 +78,7 @@ public class MyGame : IGame
 * [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects.
 
 #### UI
-* [UIElement](doc/GameObject/UI/UIElement.md) — Base class for UI widgets with size clamping, origin, and bounds.
+* [UIElement](doc/GameObject/UI/UIElement.md) — Base class for UI widgets with min/max size limits that containers enforce, origin, and bounds.
 * [Label](doc/GameObject/UI/Label.md) — Cached TrueType text UI element.
 * [Button](doc/GameObject/UI/Button.md) — Interactive rectangle or textured button with icon, label, and tween animations.
 * [ClickableArea](doc/GameObject/UI/ClickableArea.md) — Invisible transform-aware mouse hitbox.

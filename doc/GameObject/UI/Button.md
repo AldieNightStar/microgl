@@ -4,6 +4,7 @@
 * **Interactive UI button** inheriting from `UIElement` that delegates hit-testing to `ClickableArea` and text rendering to `Label`.
 * **Renders either as a bordered rectangle or a tinted `BackgroundTexture`**, automatically adjusting tint defaults when a texture is supplied.
 * **Supports centered text, icons, or `[Icon + Gap + Text]` layouts**, plus customizable `HoverAnimation` and `PressAnimation` tweens.
+* **Content stays inside the button**: whenever the text, font, icon or button size changes, the label's `AvailableSize` is set to the button size minus a 6px padding on each side and the icon space, so long text is cut at the button edge instead of overflowing. The hit area's `MaxSize` follows the button size too.
 
 ### Usage
 ```csharp

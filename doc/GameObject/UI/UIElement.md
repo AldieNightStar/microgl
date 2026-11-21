@@ -2,7 +2,9 @@
 
 ### Notes
 * **Abstract base class** for all UI widgets in `microgl`, inheriting from `GameObject`.
-* **Enforces size bounds** by clamping `Size` between `MinSize` (default `0, 0`) and `MaxSize` (default `1000, 1000`), triggering `OnResized()` on changes.
+* **Size never exceeds its limit**: `Size` is clamped between `MinSize` (default `0, 0`) and `SizeLimit`, which is the smaller of `MaxSize` (default `1000, 1000`) and `AvailableSize` (unlimited by default). If `MinSize` is larger than the limit, the limit wins. `OnResized()` runs whenever the clamped size changes.
+* **The requested size is kept**: setting `Size` stores the value you asked for. When `MaxSize` or `AvailableSize` later grows, the element grows back toward it, so an element can change any of these values in `OnInit`, `OnUpdate` or any other method at any time.
+* **`AvailableSize` is set by containers**: `UITable` and `PagedList` give each child the space of its cell, and `Button` gives its label the space inside the button. Your own `MaxSize` stays untouched.
 * **Manages origin and bounding boxes**: `CenterOrigin` keeps `CenterPoint` synced to `Size / 2`, while `LocalBounds`, `Bounds`, and `GlobalBounds` expose exact rectangles.
 * **`ContainsPoint` and `GlobalBounds` use the stored `GlobalTransform`**, so they work anywhere, including mouse-event handlers.
 
@@ -17,6 +19,8 @@ protected UIElement(Rectangle bounds, bool centerOrigin = false);
 element.Size;
 element.MinSize;
 element.MaxSize;
+element.AvailableSize;    // limit set by the parent container, unlimited by default
+element.SizeLimit;        // Min(MaxSize, AvailableSize), the size never goes above it
 element.CenterOrigin;
 
 // Bounding rectangles in local, parent, and global world/screen space

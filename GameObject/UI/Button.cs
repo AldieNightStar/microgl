@@ -6,6 +6,8 @@ namespace microgl;
 
 public class Button : UIElement
 {
+    private const float CONTENT_PADDING = 6f;
+
     // Background (Rectangle or Texture)
     public Texture? BackgroundTexture { get; set; }
     public Color Color { get; set; } = Color.FromArgb(65, 75, 95);
@@ -106,13 +108,13 @@ public class Button : UIElement
         _hitArea.OnHoverEnter += () =>
         {
             if (!_hitArea.IsPressed && HoverAnimation != null)
-                PlayTween(HoverAnimation(this).ToTween());
+                _playTween(HoverAnimation(this).ToTween());
         };
 
         _hitArea.OnClick += () =>
         {
             if (PressAnimation != null)
-                PlayTween(PressAnimation(this).ToTween());
+                _playTween(PressAnimation(this).ToTween());
         };
 
         _font = font;
@@ -122,8 +124,18 @@ public class Button : UIElement
 
     protected override void OnResized()
     {
-        if (_hitArea != null)
-            _hitArea.Size = Size;
+        if (_hitArea == null) return;
+        _hitArea.MaxSize = Size;
+        _hitArea.Size = Size;
+        FitLabel();
+    }
+
+    private void FitLabel()
+    {
+        if (_label == null) return;
+        float iconSpace = Icon != null ? IconSize.X + ContentGap : 0f;
+        var reserved = new Vector2(CONTENT_PADDING * 2f + iconSpace, 0f);
+        _label.AvailableSize = Vector2.Max(Size - reserved, Vector2.Zero);
     }
 
     private void SyncLabel()
@@ -145,6 +157,8 @@ public class Button : UIElement
             _label.Text = _text;
             _label.TextColor = _textColor;
         }
+
+        FitLabel();
     }
 
     protected override void OnInit(Drawer d)
@@ -160,6 +174,7 @@ public class Button : UIElement
         _hitArea.Update(d, d.WorldTransform);
 
         _activeTween?.Update(d);
+        FitLabel();
         _label?.Update(d);
     }
 
@@ -201,7 +216,7 @@ public class Button : UIElement
         {
             var textSize = _label!.Size;
             float totalWidth = IconSize.X + ContentGap + textSize.X;
-            float startX = MathF.Max(8f, (w - totalWidth) / 2f);
+            float startX = MathF.Max(CONTENT_PADDING, (w - totalWidth) / 2f);
 
             float iconY = (h - IconSize.Y) / 2f;
             d.BlendColor = BlendColor;
@@ -220,7 +235,7 @@ public class Button : UIElement
         else if (hasLabel)
         {
             var textSize = _label!.Size;
-            float textX = MathF.Max(6f, (w - textSize.X) / 2f);
+            float textX = MathF.Max(CONTENT_PADDING, (w - textSize.X) / 2f);
             float textY = (h - textSize.Y) / 2f;
 
             _label.Position = new Vector2(textX, textY);
@@ -228,7 +243,7 @@ public class Button : UIElement
         }
     }
 
-    private void PlayTween(ITween tween)
+    private void _playTween(ITween tween)
     {
         if (_activeTween?.IsActive == true)
         {

@@ -53,8 +53,15 @@ public class Label : UIElement
 
     private void RefreshTexture()
     {
+        var previous = Size;
         Size = string.IsNullOrEmpty(Text) ? Vector2.Zero : Font.MeasureText(Text);
+        if (Size == previous) RebuildTexture();
+    }
 
+    protected override void OnResized() => RebuildTexture();
+
+    private void RebuildTexture()
+    {
         ushort w = (ushort)Math.Ceiling(Size.X);
         ushort h = (ushort)Math.Ceiling(Size.Y);
 

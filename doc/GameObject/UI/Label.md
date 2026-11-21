@@ -3,6 +3,7 @@
 ### Notes
 * **Text UI element** inheriting from `UIElement` that renders strings using a `GameFont`.
 * **Caches rendered glyphs in a `DynamicTexture`** and automatically recalculates `Size` and `CenterPoint` whenever `Text`, `Font`, or `TextColor` changes.
+* **Respects its size limit**: `Size` is the measured text clamped by `MaxSize` and `AvailableSize`. Text larger than the limit is cut at the edge, and the texture is rebuilt when the limit changes.
 * **Associated enums**: `TextAlign` (`Left`, `Center`, `Right`) and `VerticalAlign` (`Top`, `Middle`, `Bottom`) are defined alongside `Label`.
 
 ### Usage

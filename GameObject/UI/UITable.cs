@@ -83,8 +83,11 @@ public class UITable : UIElement
         _rowWidths.Clear();
         _columnWidths.Clear();
 
+        var cellLimit = CellLimit();
+
         foreach (var (element, row, column) in Cells())
         {
+            element.AvailableSize = cellLimit;
             LayoutUtil.GrowAt(_rowHeights, row, element.Size.Y);
             LayoutUtil.GrowAt(_columnWidths, column, element.Size.X);
             LayoutUtil.GrowAt(_rowWidths, row, 0f);
@@ -93,6 +96,13 @@ public class UITable : UIElement
 
         float width = UniformColumns ? LayoutUtil.SpanLength(_columnWidths, Spacing.X) : _rowWidths.DefaultIfEmpty().Max();
         _contentSize = new Vector2(width, LayoutUtil.SpanLength(_rowHeights, Spacing.Y));
+    }
+
+    private Vector2 CellLimit()
+    {
+        var content = Vector2.Max(SizeLimit - Padding.Total, Vector2.Zero);
+        if (Columns <= 0) return content;
+        return new Vector2(LayoutUtil.ShareLength(content.X, Columns, Spacing.X), content.Y);
     }
 
     private void PlaceCells()
