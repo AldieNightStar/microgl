@@ -1,5 +1,9 @@
 # UIElement
 
+The base class of every UI widget. It adds a size, size limits and bounds to `GameObject`. Inherit from it to make your own widget.
+
+New to this? See [Tutorial 4: UI layout with UITable and PagedList](../../Tutorials/04-UILayout.md).
+
 ### Notes
 * **Abstract base class** for all UI widgets in `microgl`, inheriting from `GameObject`.
 * **Size never exceeds its limit**: `Size` is clamped between `MinSize` (default `0, 0`) and `SizeLimit`, which is the smaller of `MaxSize` (default `1000, 1000`) and `AvailableSize` (unlimited by default). If `MinSize` is larger than the limit, the limit wins. `OnResized()` runs whenever the clamped size changes.

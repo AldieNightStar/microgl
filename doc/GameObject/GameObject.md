@@ -1,85 +1,101 @@
 # GameObject
 
-### Notes
-* **Base entity class** for all scene and UI objects in `microgl`, implementing `IDisposable`.
-* **Supports hierarchical 2D transforms** — the global transform is computed as `parent * Transform`, kept pure with no pivot baked in.
-* **`GlobalTransform` is stored on the object** — it is refreshed on every `Init` / `Update` / `Draw` call and whenever the local `Transform` changes, so `GlobalPosition`, `GlobalRotation`, `GlobalScale`, `ToLocal` and `ToGlobal` work without a `Drawer`. Until the first `Init` / `Update` / `Draw`, the parent is `Transform.Identity`.
-* **`CenterPoint`** shifts the draw origin (pivot) without affecting the global position. The offset is applied only at render time via an internal render transform.
-* **`DrawerScope`** (internal) automatically saves and restores `d.Transform`, `d.WorldTransform`, and `d.BlendColor` around each `OnDraw`/`OnUpdate` call, so the caller's draw state is never clobbered.
-* **Subclasses implement four hooks**: `OnInit`, `OnUpdate`, `OnDraw`, and `Dispose`.
+The base class for everything in your game: players, enemies, bullets, UI widgets. Inherit from it, fill in four methods, and it handles position, rotation, scale and parent-child movement for you.
 
-### Usage
-```csharp
-// Local transform
-obj.Position;  obj.Rotation;  obj.Scale;
-obj.Transform;
-
-// Global transform — parent from the last Init/Update/Draw call
-obj.GlobalTransform;
-obj.GlobalPosition;  obj.GlobalRotation;  obj.GlobalScale;
-
-// Pivot & tint
-obj.CenterPoint;
-obj.BlendColor;
-
-// Lifecycle
-obj.IsAlive;
-obj.Delete();
-obj.IsActive;   // false skips Update and Draw but keeps the object in its group
-
-// Coordinate space conversion
-obj.ToLocal(Vector2 global);
-obj.ToGlobal(Vector2 local);
-
-// Check that object is displayed on screen. Uses GlobalPosition
-obj.IsOnScreen(Drawer d, Vector2 size);
-
-// Lifecycle methods — no-parent overloads use Transform.Identity as parent
-// Use drawer.DrawObject(o) to draw something with relative coords 
-obj.Init(Drawer d);
-obj.Init(Drawer d, Transform? parent);
-obj.Update(Drawer d);
-obj.Update(Drawer d, Transform? parent);
-obj.Draw(Drawer d);
-obj.Draw(Drawer d, Transform? parent);
-obj.Dispose();
-```
+New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
 
 ### Example
 ```csharp
 public class Box : GameObject
 {
-    protected override void OnInit(Drawer d)
+    private const int SIZE = 32;
+    private const float SPIN_SPEED = 2f;
+
+    public Box(Vector2 position)
     {
-        // CenterPoint pivots drawing around the box center
-        // without shifting the global position
-        CenterPoint = new Vector2(16f, 16f);
+        Position = position;
+        CenterPoint = new Vector2(SIZE / 2f, SIZE / 2f);
     }
+
+    protected override void OnInit(Drawer d) { }
 
     protected override void OnUpdate(Drawer d)
     {
-        var gpos = GlobalPosition;
+        Rotation += SPIN_SPEED * Time.DeltaTime;
     }
 
     protected override void OnDraw(Drawer d)
     {
-        // d.Transform already includes position, rotation, scale, and CenterPoint
         d.Color = Color.Cyan;
-        d.DrawRect(new Rectangle(0, 0, 32, 32));
-
-        // Draw a child object — it inherits this object's WorldTransform
-        d.DrawObject(childIcon);
+        d.DrawRect(new Rectangle(0, 0, SIZE, SIZE));
     }
 
     public override void Dispose() { }
 }
 
-// Root usage (no parent — uses Transform.Identity)
-var box = new Box { Position = new Vector2(100f, 100f) };
-box.Init(d);
-box.Update(d);
-box.Draw(d);
+// In IGame
+var box = new Box(new Vector2(100f, 100f));
+box.Init(d);      // in Init
+box.Update(d);    // in Update
+box.Draw(d);      // in Draw
+box.Dispose();    // in Dispose
+```
 
-// Child usage — pass parent's current world transform
-box.Draw(d, parentWorldTransform);
+Most of the time you add objects to a [GameObjectGroup](GameObjectGroup.md) instead, which calls these four methods for all of its children.
+
+### Notes
+* **Four methods to fill in**: `OnInit` (once), `OnUpdate` and `OnDraw` (every frame), and `Dispose`. You call `Init`, `Update` and `Draw`, never the `On...` methods.
+* **Draw at `(0, 0)`**: in `OnDraw` the drawer is already moved, rotated and scaled to the object.
+* **Frame time**: `OnUpdate` gets no `dt`, use `Time.DeltaTime`.
+* **`CenterPoint` is the pivot**: rotation and scale happen around it, and `Position` refers to it. It does not move the object.
+* **`BlendColor` tints the object**: it is set as `drawer.BlendColor` during `OnDraw`, so textures, labels and buttons are tinted. Shapes drawn with `drawer.Color` are not.
+* **Local and global**: `Position`, `Rotation` and `Scale` are relative to the parent. `GlobalPosition`, `GlobalRotation` and `GlobalScale` are on screen, and can also be set. They use the parent from the last `Init`, `Update` or `Draw`, and `Transform.Identity` before that.
+* **Delete and hide**: `Delete()` sets `IsAlive = false`, and the owning group disposes and removes the object on its next update. `IsActive = false` skips `Update` and `Draw` but keeps the object.
+* **The drawer state is restored** after `OnUpdate` and `OnDraw`, so an object never changes how the caller draws.
+
+### Usage
+```csharp
+// Local transform, relative to the parent
+obj.Position;  obj.Rotation;  obj.Scale;
+obj.Transform;
+
+// Global transform, on screen
+obj.GlobalTransform;
+obj.GlobalPosition;  obj.GlobalRotation;  obj.GlobalScale;
+
+// Pivot and tint
+obj.CenterPoint;
+obj.BlendColor;
+
+// State
+obj.IsAlive;
+obj.Delete();
+obj.IsActive;
+
+// Coordinate conversion
+obj.ToLocal(Vector2 global);
+obj.ToGlobal(Vector2 local);
+
+// Lifecycle, parent defaults to Transform.Identity
+obj.Init(Drawer d, Transform? parent = null);
+obj.Update(Drawer d, Transform? parent = null);
+obj.Draw(Drawer d, Transform? parent = null);
+obj.Dispose();
+
+// Hooks to override
+protected abstract void OnInit(Drawer d);
+protected abstract void OnUpdate(Drawer d);
+protected abstract void OnDraw(Drawer d);
+public abstract void Dispose();
+```
+
+### Example: child objects
+Inside `OnDraw`, `d.DrawObject` draws another object relative to this one, so it follows its parent.
+```csharp
+protected override void OnDraw(Drawer d)
+{
+    d.Color = Color.Cyan;
+    d.DrawRect(new Rectangle(0, 0, 32, 32));
+    d.DrawObject(_icon, new Vector2(8f, -16f));
+}
 ```

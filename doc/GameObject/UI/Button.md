@@ -1,5 +1,9 @@
 # Button
 
+A clickable button with text, an optional icon or background image, and hover and press animations.
+
+New to this? See [Tutorial 3: Buttons and menus](../../Tutorials/03-ButtonsAndMenus.md).
+
 ### Notes
 * **Interactive UI button** inheriting from `UIElement` that delegates hit-testing to `ClickableArea` and text rendering to `Label`.
 * **Renders either as a bordered rectangle or a tinted `BackgroundTexture`**, automatically adjusting tint defaults when a texture is supplied.
@@ -34,11 +38,27 @@ button.Dispose();
 
 ### Example
 ```csharp
-var btn = new Button(font, new Vector2(360f, 240f), new Vector2(160f, 44f), "Play");
-btn.OnClick += () => Console.WriteLine("Clicked!");
+var play = new Button(font, new Vector2(360f, 240f), new Vector2(160f, 44f), "Play");
+play.OnClick += () => StartGame();
 
-btn.Init(d);
-btn.Update(d);
-btn.Draw(d);
-btn.Dispose();
+play.Init(d);      // in Init
+play.Update(d);    // in Update
+play.Draw(d);      // in Draw
+play.Dispose();    // in Dispose
 ```
+
+`position` is the button's center, because `centerOrigin` defaults to `true`.
+
+### Example: styling
+```csharp
+play.Color = Color.SeaGreen;
+play.HoverColor = Color.MediumSeaGreen;
+play.PressedColor = Color.DarkGreen;
+play.Icon = Texture.FromPNG("play.png");
+
+play.HoverAnimation = btn => TweenCollection.Wiggle(btn);
+play.PressAnimation = null;
+play.Enabled = false;
+```
+
+The default animations are `TweenCollection.Pulse` on hover and `TweenCollection.ButtonPress` on click. A disabled button is drawn grey and ignores the mouse.

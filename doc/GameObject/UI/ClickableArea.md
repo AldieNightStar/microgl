@@ -1,5 +1,9 @@
 # ClickableArea
 
+An invisible area that reports hover and clicks. Use it to make anything clickable, such as a sprite or a region of a map.
+
+New to this? See [Tutorial 3: Buttons and menus](../../Tutorials/03-ButtonsAndMenus.md).
+
 ### Notes
 * **Invisible interactive hitbox** inheriting from `UIElement` that tracks left-mouse hover, press, and click events without rendering anything.
 * **Supports hierarchical transforms** via `UIElement.ContainsPoint()`, working accurately even when moved, rotated, scaled, or nested inside a parent container.

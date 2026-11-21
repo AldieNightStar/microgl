@@ -1,5 +1,9 @@
 # DynamicTexture
 
+A texture you draw with code and redraw when its content changes, for example a score panel or a minimap.
+
+New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
+
 ### Notes
 * **Mutable procedural texture wrapper** implementing `IDisposable` that bakes drawing commands into an offscreen `Texture`.
 * **Uses lazy generation**: the underlying `Texture` is only created on first access to the `Texture` property, or when `UpdateTexture()` or `Resize()` is called.

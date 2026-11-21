@@ -1,5 +1,9 @@
 # IGame
 
+The interface your game class implements. `Game` calls its four methods for you: `Init` once, `Update` and `Draw` every frame, `Dispose` at the end.
+
+New to this? See [Tutorial 1: First window and drawing](Tutorials/01-FirstWindow.md).
+
 ### Notes
 * **Core scene/game contract** passed into `Game`, extending `IDisposable`.
 * **Defines lifecycle hooks** (`Init`, `Update`, `Draw`, and `Dispose`) driven automatically by the `Game` loop.

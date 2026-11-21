@@ -1,5 +1,9 @@
 # Game
 
+Opens the window and runs your game. Create one in `Main`, pass it your `IGame`, and call `Start()`.
+
+New to this? See [Tutorial 1: First window and drawing](Tutorials/01-FirstWindow.md).
+
 ### Notes
 * **Entry point and lifecycle manager** for a `microgl` application, implementing `IDisposable`.
 * **Initializes SDL3 subsystems** (`Video` and `Gamepad`), creates a resizable window, configures `Nearest` pixel-art scaling with `Letterbox` logical presentation, and sets `Drawer.ScreenSize` to the logical window dimensions.
@@ -24,10 +28,13 @@ game.Dispose();
 
 ### Example
 ```csharp
-// Create and start the game window
-var game = new Game("My Game", 720, 480, new MyGame());
-game.Start();
-
-// Manual disposal (only needed if managing lifetime outside Start)
-game.Dispose();
+public static void Main()
+{
+    var game = new Game("My Game", 720, 480, new MyGame());
+    game.Start();
+}
 ```
+
+`Start()` returns when the window is closed, and has already disposed your game and the window by then.
+
+The window can be resized freely. The picture is scaled to fit and keeps its shape (letterboxing), so you always draw in the size you passed, here 720x480. `Mouse.Position` is in that size too.

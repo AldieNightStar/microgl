@@ -1,70 +1,72 @@
 # GameObjectGroup
 
-A `GameObject` that owns and manages a collection of child objects.
+A `GameObject` that holds other game objects and runs them: it inits, updates, draws and disposes all of its children. Use one for your game world, for each screen, or to move several objects together.
+
+New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
+
+### Example
+```csharp
+private readonly GameObjectGroup _world = new();
+
+public void Init(Drawer d)
+{
+    _world.Add(new Player());
+    _world.Add(new Enemy());
+    _world.Init(d);
+}
+
+public void Update(Drawer d, ReadOnlySpan<SDL.Event> events, float dt) => _world.Update(d);
+
+public void Draw(Drawer d, float dt) => _world.Draw(d);
+
+public void Dispose() => _world.Dispose();
+```
 
 ### Notes
-* **Composite container** inheriting from `GameObject` that manages, updates, draws, and disposes a collection of child `GameObject` instances.
-* **Propagates parent transforms** to all children, allowing an entire group to be moved, rotated, or scaled together.
-* **Safely handles dynamic additions and removals**: new objects queued via `Add()` are initialized on the next `Update()`, while objects with `IsAlive == false` are automatically disposed and removed.
-* **`OnChildrenChanged` event** fires when the child list changes: once per `Update()` in which queued objects were added or dead objects were removed, and right away when `Remove()` drops a queued object or `Clear()` empties a non-empty group. Containers like `UITable` use it to re-layout.
-* **`CollectChildren<T>(list)`** clears the given list and fills it with children of type `T`, queued ones included. Unlike `GetChildren<T>()`, it allocates nothing, so prefer it in code that runs every frame.
-* **Dispose** removes all `OnChildrenChanged` subscribers first, then disposes every child.
+* **Children follow the group**: they are placed relative to the group, so moving, rotating or scaling the group moves all of them.
+* **Adding is delayed**: `Add()` queues the object, and the group inits it on its next `Update()`. That makes it safe to add objects at any time, even from a child's `OnUpdate`.
+* **Removing**: call `obj.Delete()` or `group.Remove(obj)`. The group disposes and removes the object on its next `Update()`. A queued object is removed and disposed right away.
+* **`Clear()`** disposes all children at once.
+* **Finding children**: `GetChildren()` returns the active list. `GetChildren<T>()` returns children of one type, queued ones included. `CollectChildren<T>(list)` does the same into a list you keep and allocates nothing, so prefer it in code that runs every frame.
+* **`OnChildrenChanged`** fires once per `Update()` in which children were added or removed, and right away when `Remove()` drops a queued object or `Clear()` empties a non-empty group. `UITable` uses it to re-layout.
+* **`Dispose()`** removes all `OnChildrenChanged` subscribers, then disposes every child.
 
 ### Usage
 ```csharp
-// Create new Group
-var group = new GameObjectGroup();
+new GameObjectGroup();
+new GameObjectGroup(List<GameObject> objects);
 
-// Add new object inside
-group.Add(new Enemy());
-group.Add(new Coin());
-
-// Get children
-foreach (var child in group.GetChildren())
-    Debug.WriteLine(child);
-
-// Get specific type of children
-foreach (var enemy in group.GetChildren<Enemy>())
-    enemy.Alert();
-
-// Fill a reusable list without allocating, for per-frame code
-var enemies = new List<Enemy>();
-group.CollectChildren(enemies);
-
-// Addition & Removeal
-group.Add(boss);
-group.Remove(boss);
-
-// Wipe all objects inside
+group.Add(GameObject obj);
+group.Remove(GameObject obj);
 group.Clear();
 
-// React to added, removed or dead children
-group.OnChildrenChanged += () => Debug.WriteLine(group.GetChildren().Count);
+group.GetChildren();                    // IReadOnlyList<GameObject>
+group.GetChildren<T>();                 // IEnumerable<T>, queued included
+group.CollectChildren<T>(List<T> list); // no allocation
+
+group.OnChildrenChanged;
 ```
 
-### Samples
+### Example: find and remove children
 ```csharp
-var group = new GameObjectGroup();
+private readonly List<Enemy> _enemies = new();
 
-// --- Add ---
-group.Add(new Enemy());
-group.Add(new Coin());
+public void Update(Drawer d, ReadOnlySpan<SDL.Event> events, float dt)
+{
+    _world.Update(d);
+    _world.CollectChildren(_enemies);
 
-// --- GetChildren ---
-foreach (var child in group.GetChildren())
-    Console.WriteLine(child);
+    foreach (var enemy in _enemies)
+        if (enemy.Health <= 0) enemy.Delete();
+}
+```
 
-// --- GetChildren<T> ---
-foreach (var enemy in group.GetChildren<Enemy>())
-    enemy.Alert();
+### Example: move objects together
+```csharp
+var squad = new GameObjectGroup { Position = new Vector2(400f, 100f) };
+squad.Add(new Enemy { Position = new Vector2(0f, 0f) });
+squad.Add(new Enemy { Position = new Vector2(40f, 0f) });
+_world.Add(squad);
 
-// --- Remove a specific object ---
-var boss = new Boss();
-group.Add(boss);
-
-// later…
-group.Remove(boss);   // killed on next tick
-
-// --- Clear everything ---
-group.Clear();
+squad.Position += new Vector2(10f, 0f);
 ```

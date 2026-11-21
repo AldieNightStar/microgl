@@ -66,6 +66,7 @@ public class Game : IDisposable
         while (running)
         {
             deltaTime = Time.Tick();
+            Keyboard.BeginFrame();
 
             while (SDL.PollEvent(out _event))
             {

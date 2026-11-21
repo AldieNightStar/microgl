@@ -1,5 +1,9 @@
 # Texture
 
+An image loaded from a file or drawn with code. Load it once, draw it as often as you like, and dispose it at the end.
+
+New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
+
 ### Notes
 * **2D image resource** wrapping an SDL `Surface` and implementing `IDisposable`.
 * **Supports loading from image files** (`FromPNG`, `FromBMP`) as well as **procedural offscreen generation** via `FromDrawing` using a temporary `SoftwareRenderer` and `Drawer`.

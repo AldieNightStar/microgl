@@ -1,5 +1,9 @@
 # UITable
 
+Places UI elements in rows and columns. Use it for menus, toolbars, forms and grids instead of positioning elements by hand.
+
+New to this? See [Tutorial 4: UI layout with UITable and PagedList](../../Tutorials/04-UILayout.md).
+
 ### Notes
 * **Layout container** inheriting from `UIElement`. It does not store its own element list: every child lives in a `GameObjectGroup` (`table.Group`), and the table only arranges them.
 * **Accepts or creates a group**: pass an existing `GameObjectGroup` to the constructor, or let the table create one. Add, remove or clear objects through the group as usual; the table disposes the group with itself.

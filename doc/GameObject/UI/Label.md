@@ -1,10 +1,15 @@
 # Label
 
+Text on screen. It renders the text once and redraws only when the text, font or color changes.
+
+New to this? See [Tutorial 3: Buttons and menus](../../Tutorials/03-ButtonsAndMenus.md).
+
 ### Notes
 * **Text UI element** inheriting from `UIElement` that renders strings using a `GameFont`.
 * **Caches rendered glyphs in a `DynamicTexture`** and automatically recalculates `Size` and `CenterPoint` whenever `Text`, `Font`, or `TextColor` changes.
 * **Respects its size limit**: `Size` is the measured text clamped by `MaxSize` and `AvailableSize`. Text larger than the limit is cut at the edge, and the texture is rebuilt when the limit changes.
-* **Associated enums**: `TextAlign` (`Left`, `Center`, `Right`) and `VerticalAlign` (`Top`, `Middle`, `Bottom`) are defined alongside `Label`.
+* **Alignment enums**: `TextAlign` (`Left`, `Center`, `Right`) and `VerticalAlign` (`Top`, `Middle`, `Bottom`) live in `Align.cs` and are used by `UITable` to place elements in their cells.
+* **Draw state**: a label is drawn as a texture, so its `BlendColor` tints it and fades it with alpha.
 
 ### Usage
 ```csharp

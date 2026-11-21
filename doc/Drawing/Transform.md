@@ -1,5 +1,9 @@
 # Transform
 
+Position, rotation and scale in one value. Every `GameObject` has one. You need it directly only for coordinate math.
+
+New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
+
 ### Notes
 * **Immutable 2D affine transformation** `readonly struct` wrapping `System.Numerics.Matrix3x2`.
 * **Separates local and global operations**: local methods (`Translate`, `Rotate`, `Scale`, `Skew`) apply in object space, while global methods (`GlobalTranslate`, `GlobalRotate`, `GlobalScale`, `GlobalSkew`) apply in parent/world space.
@@ -30,6 +34,11 @@ t.Position; t.Rotation; t.ScaleFactor;
 t.WithPosition(Vector2 pos);
 t.WithRotation(float rad);
 t.WithScale(Vector2 scale);
+
+// Replace a value given in parent space with a global (screen) value
+t.WithGlobalPosition(Transform parent, Vector2 globalPos);
+t.WithGlobalRotation(Transform parent, float globalRot);
+t.WithGlobalScale(Transform parent, Vector2 globalScale);
 
 // Hierarchy multiplication, coordinate space conversion, and aim helpers
 Transform combined = parent * child;

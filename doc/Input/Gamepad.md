@@ -1,5 +1,9 @@
 # Gamepad
 
+Reads game controllers: buttons, sticks, triggers and rumble. It works with Xbox, PlayStation, Switch and other controllers, and handles plugging them in and out.
+
+New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
+
 ### Notes
 * **Static gamepad input handler** backed by SDL3's unified Gamepad API (supporting Xbox, PlayStation, Switch, and standard controllers).
 * **Applies radial deadzone filtering** (configurable via `Deadzone`, default `0.15f`) to analog sticks and linear deadzone rescaling to triggers.

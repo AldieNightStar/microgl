@@ -1,5 +1,9 @@
 # TweenPlanner
 
+Builds a chain of animation steps: move, wait, run code. Call `ToTween()` to get a tween you can play.
+
+New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
+
 ### Notes
 * **Fluent builder** that queues value tweens, waits, instant callbacks, and any other `ITween` into a `TweenSequence`.
 * **Supports `float` and `Vector2` interpolation**, timed waits, action triggers, custom steps via `Add`, and merging other planners via `Append`.

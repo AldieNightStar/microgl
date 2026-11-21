@@ -1,5 +1,9 @@
 # Time
 
+Frame time and clocks. `Game` updates it for you every frame.
+
+New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
+
 ### Notes
 * **Static high-resolution frame timer** backed by SDL3 performance counters.
 * **Updated automatically** each frame by `Game` via `Time.Tick()`.
@@ -12,20 +16,26 @@
   Gets the number of frames since the game started.
 * `Time.DeltaTimeMax`
   Gets or sets the maximum allowed frame delta time in seconds (`0.25f` by default).
+* `Time.EpochMillis`
+  Gets the current wall-clock time in milliseconds since 1970 (UTC). Use it for save dates or anything stored across runs.
 * `Time.GetTimeMillis()`
-  Returns the current high-resolution timestamp in milliseconds.
+  Returns a high-resolution timestamp in milliseconds. Use it to measure how long something takes.
 
 ### Example
 ```csharp
-// Set maximum delta time for lags
-Time.DeltaTimeMax = 0.1f;
-
-// Use delta time
+// Move at the same speed on every computer
 position.X += speed * Time.DeltaTime;
 
-// Get time in milliseconds since epoch
-long nowMs = Time.EpochMillis;
+// Never move more than 0.1 seconds' worth in one frame, even after a lag spike
+Time.DeltaTimeMax = 0.1f;
 
-// Get time by SDL perfomance counter
-double nowMs = Time.GetTimeMillis();
+// Measure how long loading takes
+double start = Time.GetTimeMillis();
+LoadLevel();
+double loadMs = Time.GetTimeMillis() - start;
+
+// Remember when the game was saved
+long savedAt = Time.EpochMillis;
 ```
+
+`IGame.Update` and `IGame.Draw` receive the same value as `dt`. Inside `GameObject.OnUpdate`, use `Time.DeltaTime`.

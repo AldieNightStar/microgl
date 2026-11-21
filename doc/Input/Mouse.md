@@ -1,5 +1,9 @@
 # Mouse
 
+The cursor position in game coordinates, and mouse button events.
+
+New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
+
 ### Notes
 * **Static mouse input handler** driven automatically by the `Game` event loop via `ProcessEvent`.
 * **Converts window coordinates to logical render space** using `SDL.ConvertEventToRenderCoordinates`, keeping `Position` accurate across window resizing and letterboxing.

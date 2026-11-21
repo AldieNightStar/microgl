@@ -1,5 +1,7 @@
 # Shader
 
+A GPU effect for textures, such as grayscale or a hit flash. Set `drawer.Shader`, draw, then set it back to `null`.
+
 ## Notes
 - Wraps a fragment shader (`SDL_GPUShader`) and its `SDL_GPURenderState` for `GPURenderer`.
 - Requires an `IRenderer` backed by an active `SDL_GPUDevice` (`SoftwareRenderer` is not supported).

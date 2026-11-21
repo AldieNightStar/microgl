@@ -1,5 +1,9 @@
 # AnimatedTexture
 
+Plays a sprite-sheet animation. Give it the frames and a frame time, update it every frame, and draw it like any texture.
+
+New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
+
 ### Notes
 * **Frame animation** over an array of `AtlasTexture` frames, implementing `IGameUpdatable`.
 * **All frames must share the same width and height**; the constructor throws for an empty array or mismatched sizes.

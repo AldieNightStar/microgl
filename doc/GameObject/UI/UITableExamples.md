@@ -64,16 +64,13 @@ grid.AddRow(MakeButton("Play"), MakeButton("Shop"))
 ```
 
 ### Grid of any size
-Start a new row every `columns` elements.
+`Columns` starts a new row after that many elements, so no `NextRow()` calls are needed.
 ```csharp
-const int columns = 3;
-var inventory = new UITable(new Vector2(40f, 40f));
+const int INVENTORY_COLUMNS = 3;
+var inventory = new UITable(new Vector2(40f, 40f)) { Columns = INVENTORY_COLUMNS };
 
-for (int i = 0; i < items.Count; i++)
-{
-    if (i > 0 && i % columns == 0) inventory.NextRow();
-    inventory.Add(MakeButton(items[i].Name));
-}
+foreach (var item in items)
+    inventory.Add(MakeButton(item.Name));
 ```
 
 ### Title above a grid

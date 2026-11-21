@@ -1,5 +1,9 @@
 # Tween
 
+Moves one number from a start value to an end value over time. It is also the starting point for chained animations with `Tween.Call(...)`.
+
+New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
+
 ### Notes
 * **Simple `ITween`** that moves one `float` from `From` to `To` over `Duration` seconds using an `Ease` curve.
 * **`Update(float dt)` returns overflow time** past `Duration`, so a parent sequence can pass it to the next step.
@@ -30,10 +34,25 @@ Tween.Wait(float seconds);
 ```
 
 ### Example
+A tween only moves when you update it, so keep it in a field and update it every frame.
 ```csharp
-var tween = new Tween(0f, 100f, 1.0f, x => pos.X = x, Easing.EaseOutQuad);
-tween.OnComplete += () => Console.WriteLine("Done");
-tween.Update(d);
+private Tween _fadeIn = null!;
+
+public void Init(Drawer d)
+{
+    _fadeIn = new Tween(0f, 255f, 1.0f, a => _title.BlendColor = Color.FromArgb((int)a, Color.White), Easing.EaseOutQuad);
+    _fadeIn.OnComplete += () => Console.WriteLine("Title visible");
+}
+
+public void Update(Drawer d, ReadOnlySpan<SDL.Event> events, float dt)
+{
+    _fadeIn.Update(dt);
+}
+```
+
+### Example: a chain of steps
+`Tween.Call`, `Wait`, `CallFunc` and `For` start a [TweenPlanner](TweenPlanner.md). `ToTween()` turns it into one tween.
+```csharp
 
 var seq = Tween.Call(0f, 1f, 0.4f, a => alpha = a)
     .Wait(0.2f)

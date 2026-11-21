@@ -1,5 +1,9 @@
 # PagedList
 
+A `UITable` that shows one page of elements at a time, for level lists, inventories and long menus.
+
+New to this? See [Tutorial 4: UI layout with UITable and PagedList](../../Tutorials/04-UILayout.md).
+
 ### Notes
 * **Paged container** inheriting from `UITable`. It shows `PageSize` elements of its `Group` at a time and lays them out with all the usual `UITable` settings (`Columns`, `Padding`, `Spacing`, alignment, background).
 * **Group-based**: add, remove or clear elements through `list.Group` (or `Add` / `AddRow`). The list never copies them.
