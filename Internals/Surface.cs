@@ -5,9 +5,9 @@ using SDL3;
 
 namespace microgl;
 
-public readonly struct Surface : IDisposable
+public sealed class Surface : IDisposable
 {
-    public readonly nint Pointer { get; init; }
+    public nint Pointer { get; private set; }
 
     public Vector2 Size => new Vector2(
         Marshal.ReadInt32(Pointer, 8),
