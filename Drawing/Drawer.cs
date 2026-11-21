@@ -16,10 +16,7 @@ public class Drawer : IDisposable
     public Vector2 ScreenSize { get; internal set; }
     public Rectangle ScreenBounds => new(0, 0, (int)ScreenSize.X, (int)ScreenSize.Y);
 
-    /// <summary>Render transform (includes CenterPoint pivot). Used by all draw primitives.</summary>
     public Transform Transform { get; set; } = Transform.Identity;
-
-    /// <summary>Pure world transform of the current object (no pivot shift). Used by DrawObject as the child's parent.</summary>
     internal Transform WorldTransform { get; set; } = Transform.Identity;
 
     public Color BlendColor { get; set; } = Color.White;
@@ -88,16 +85,16 @@ public class Drawer : IDisposable
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {
         var uvs = srcRect is Rectangle src ? TextureUtil.ComputeUVs(texture, src) : (0f, 0f, 1f, 1f);
-        DrawTextureUVs(texture, dstRect, uvs);
+        _drawTextureUVs(texture, dstRect, uvs);
     }
 
-    public void DrawRoundedTexture(Texture texture, Rectangle dstRect, int cornerRadius)
+    public void DrawTextureRound(Texture texture, Rectangle dstRect, int cornerRadius)
     {
         foreach (var strip in ShapeUtil.RoundedStrips(dstRect, cornerRadius, _strips))
-            DrawTextureUVs(texture, strip, ShapeUtil.RelativeUVs(strip, dstRect));
+            _drawTextureUVs(texture, strip, ShapeUtil.RelativeUVs(strip, dstRect));
     }
 
-    private void DrawTextureUVs(Texture texture, Rectangle dstRect, (float u0, float v0, float u1, float v1) uvs)
+    private void _drawTextureUVs(Texture texture, Rectangle dstRect, (float u0, float v0, float u1, float v1) uvs)
     {
         var (u0, v0, u1, v1) = uvs;
         QuadUtil.FillQuad(_verts, dstRect, u0, v0, u1, v1, Transform, ColorUtil.ToSDLColor(BlendColor));

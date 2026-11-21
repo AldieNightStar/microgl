@@ -594,7 +594,7 @@ public static class TweenCollection
     private static TweenPlanner _appendDeleteIf(TweenPlanner planner, GameObject obj, bool deleteOnComplete)
     {
         if (deleteOnComplete)
-            planner.CallFunc(obj.Delete);
+            planner.CallFunc(() => obj.IsAlive = false);
         return planner;
     }
 }

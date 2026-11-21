@@ -5,29 +5,14 @@ namespace microgl;
 
 public abstract class GameObject : IDisposable
 {
-    private Transform _transform = Transform.Identity;
     private Transform _parentTransform = Transform.Identity;
 
     public virtual bool IsAlive { get; set; } = true;
-    public void Delete() => IsAlive = false;
-    public bool IsActive { get; set; } = true;
+    public Vector2 CenterPoint { get; set; } = Vector2.Zero;
+    public Color BlendColor { get; set; } = Color.White;
 
-    protected abstract void OnInit(Drawer d);
-    protected abstract void OnUpdate(Drawer d);
-    protected abstract void OnDraw(Drawer d);
-    public abstract void Dispose();
-
-    public Transform Transform
-    {
-        get => _transform;
-        set
-        {
-            _transform = value;
-            GlobalTransform = _parentTransform * value;
-        }
-    }
-
-    public Transform GlobalTransform { get; private set; } = Transform.Identity;
+    public Transform Transform { get; set; } = Transform.Identity;
+    public Transform GlobalTransform => _parentTransform * Transform;
 
     public Vector2 Position
     {
@@ -65,43 +50,44 @@ public abstract class GameObject : IDisposable
         set => Transform = Transform.WithGlobalScale(_parentTransform, value);
     }
 
-    public Vector2 CenterPoint { get; set; } = Vector2.Zero;
-
-    public Color BlendColor { get; set; } = Color.White;
-
-    public Vector2 ToLocal(Vector2 global) => GlobalTransform.ToLocal(global);
-    public Vector2 ToGlobal(Vector2 local) => GlobalTransform.ToGlobal(local);
-
     public void Init(Drawer d, Transform? parent = null)
-    {
-        _setParent(parent);
-        using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform);
-        OnInit(d);
-    }
+        => _runInScope(d, parent, OnInit);
 
     public void Update(Drawer d, Transform? parent = null)
     {
-        if (!IsAlive || !IsActive) return;
-        _setParent(parent);
-        using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform);
-        OnUpdate(d);
+        if (IsAlive) _runInScope(d, parent, OnUpdate);
     }
 
     public void Draw(Drawer d, Transform? parent = null)
     {
-        if (!IsAlive || !IsActive) return;
-        _setParent(parent);
-        using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform, BlendColor);
-        OnDraw(d);
+        if (IsAlive) _runInScope(d, parent, OnDraw, BlendColor);
     }
 
-    private void _setParent(Transform? parent)
+    public void Init(Drawer d, GameObject parent) => Init(d, parent.GlobalTransform);
+    public void Update(Drawer d, GameObject parent) => Update(d, parent.GlobalTransform);
+    public void Draw(Drawer d, GameObject parent) => Draw(d, parent.GlobalTransform);
+
+    protected abstract void OnInit(Drawer d);
+    protected abstract void OnUpdate(Drawer d);
+    protected abstract void OnDraw(Drawer d);
+    public abstract void Dispose();
+
+    private void _runInScope(Drawer d, Transform? parent, Action<Drawer> step, Color? blend = null)
     {
         _parentTransform = parent ?? Transform.Identity;
-        GlobalTransform = _parentTransform * Transform;
+        var renderTransform = _getRenderTransform();
+
+        using var scope = blend is { } color
+            ? new DrawerScope(d, renderTransform, GlobalTransform, color)
+            : new DrawerScope(d, renderTransform, GlobalTransform);
+
+        step(d);
     }
 
-    private Transform _renderTransform() => CenterPoint == Vector2.Zero
-        ? GlobalTransform
-        : GlobalTransform.Translate(-CenterPoint);
+    private Transform _getRenderTransform()
+    {
+        return CenterPoint == Vector2.Zero
+            ? GlobalTransform
+            : GlobalTransform.Translate(-CenterPoint);
+    }
 }

@@ -124,7 +124,6 @@ public class Game : IDisposable
         while (true)
         {
             float deltaTime = Time.Tick();
-            Keyboard.BeginFrame();
 
             if (!_pumpEvents(events)) return;
 

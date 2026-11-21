@@ -95,7 +95,7 @@ public class GameObjectGroup : GameObject
     public void Remove(GameObject obj)
     {
         if (_list.Contains(obj))
-            obj.Delete();
+            obj.IsAlive = false;
         else
             _removeFromQueued(obj);
     }
