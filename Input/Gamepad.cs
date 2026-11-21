@@ -23,7 +23,12 @@ public static class Gamepad
     private static float _leftTrigger;
     private static float _rightTrigger;
 
-    public static float Deadzone { get; set; } = 0.15f;
+    public static float Deadzone
+    {
+        get => field;
+        set => field = Math.Clamp(value, 0f, 0.99f);
+    } = 0.15f;
+    
     public static bool IsConnected => _openGamepads.Count > 0;
     public static int ConnectedCount => _openGamepads.Count;
 
@@ -59,9 +64,6 @@ public static class Gamepad
         _ => _rawAxes.TryGetValue(axis, out float val) ? val : 0f
     };
 
-    /// <summary>
-    /// Vibrates all connected gamepads (0.0 to 1.0 intensity).
-    /// </summary>
     public static void Rumble(float lowFrequency, float highFrequency, uint durationMs)
     {
         ushort low = (ushort)(Math.Clamp(lowFrequency, 0f, 1f) * ushort.MaxValue);
@@ -81,119 +83,119 @@ public static class Gamepad
         switch (type)
         {
             case SDL.EventType.GamepadAdded:
-            {
-                uint instanceId = ev.GDevice.Which;
-                nint handle = SDL.OpenGamepad(instanceId);
-                if (handle != IntPtr.Zero)
                 {
-                    _openGamepads[instanceId] = handle;
-                    OnConnected?.Invoke(instanceId);
+                    uint instanceId = ev.GDevice.Which;
+                    nint handle = SDL.OpenGamepad(instanceId);
+                    if (handle != IntPtr.Zero)
+                    {
+                        _openGamepads[instanceId] = handle;
+                        OnConnected?.Invoke(instanceId);
+                    }
+                    break;
                 }
-                break;
-            }
 
             case SDL.EventType.GamepadRemoved:
-            {
-                uint instanceId = ev.GDevice.Which;
-                if (_openGamepads.Remove(instanceId, out nint handle))
-                    SDL.CloseGamepad(handle);
-
-                if (_openGamepads.Count == 0)
                 {
-                    _pressedButtons.Clear();
-                    _rawAxes.Clear();
-                    _leftStick = Vector2.Zero;
-                    _rightStick = Vector2.Zero;
-                    _leftTrigger = 0f;
-                    _rightTrigger = 0f;
-                }
+                    uint instanceId = ev.GDevice.Which;
+                    if (_openGamepads.Remove(instanceId, out nint handle))
+                        SDL.CloseGamepad(handle);
 
-                OnDisconnected?.Invoke(instanceId);
-                break;
-            }
+                    if (_openGamepads.Count == 0)
+                    {
+                        _pressedButtons.Clear();
+                        _rawAxes.Clear();
+                        _leftStick = Vector2.Zero;
+                        _rightStick = Vector2.Zero;
+                        _leftTrigger = 0f;
+                        _rightTrigger = 0f;
+                    }
+
+                    OnDisconnected?.Invoke(instanceId);
+                    break;
+                }
 
             case SDL.EventType.GamepadButtonDown:
-            {
-                var button = (SDL.GamepadButton)ev.GButton.Button;
-                _pressedButtons.Add(button);
-                OnDown?.Invoke(button);
-                break;
-            }
+                {
+                    var button = (SDL.GamepadButton)ev.GButton.Button;
+                    _pressedButtons.Add(button);
+                    OnDown?.Invoke(button);
+                    break;
+                }
 
             case SDL.EventType.GamepadButtonUp:
-            {
-                var button = (SDL.GamepadButton)ev.GButton.Button;
-                _pressedButtons.Remove(button);
-                OnUp?.Invoke(button);
-                break;
-            }
+                {
+                    var button = (SDL.GamepadButton)ev.GButton.Button;
+                    _pressedButtons.Remove(button);
+                    OnUp?.Invoke(button);
+                    break;
+                }
 
             case SDL.EventType.GamepadAxisMotion:
-            {
-                var axis = (SDL.GamepadAxis)ev.GAxis.Axis;
-                float rawNorm = NormalizeRaw(axis, ev.GAxis.Value);
-                _rawAxes[axis] = rawNorm;
-
-                switch (axis)
                 {
-                    case SDL.GamepadAxis.LeftX or SDL.GamepadAxis.LeftY:
+                    var axis = (SDL.GamepadAxis)ev.GAxis.Axis;
+                    float rawNorm = NormalizeRaw(axis, ev.GAxis.Value);
+                    _rawAxes[axis] = rawNorm;
+
+                    switch (axis)
                     {
-                        var rawVec = new Vector2(
-                            _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftX),
-                            _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftY));
-                        var filtered = ApplyRadialDeadzone(rawVec);
+                        case SDL.GamepadAxis.LeftX or SDL.GamepadAxis.LeftY:
+                            {
+                                var rawVec = new Vector2(
+                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftX),
+                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftY));
+                                var filtered = ApplyRadialDeadzone(rawVec);
 
-                        if (filtered != _leftStick)
-                        {
-                            _leftStick = filtered;
-                            OnAxisMove?.Invoke(axis, axis == SDL.GamepadAxis.LeftX ? filtered.X : filtered.Y);
-                            OnLeftStickMove?.Invoke(filtered);
-                        }
-                        break;
+                                if (filtered != _leftStick)
+                                {
+                                    _leftStick = filtered;
+                                    OnAxisMove?.Invoke(axis, axis == SDL.GamepadAxis.LeftX ? filtered.X : filtered.Y);
+                                    OnLeftStickMove?.Invoke(filtered);
+                                }
+                                break;
+                            }
+
+                        case SDL.GamepadAxis.RightX or SDL.GamepadAxis.RightY:
+                            {
+                                var rawVec = new Vector2(
+                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightX),
+                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightY));
+                                var filtered = ApplyRadialDeadzone(rawVec);
+
+                                if (filtered != _rightStick)
+                                {
+                                    _rightStick = filtered;
+                                    OnAxisMove?.Invoke(axis, axis == SDL.GamepadAxis.RightX ? filtered.X : filtered.Y);
+                                    OnRightStickMove?.Invoke(filtered);
+                                }
+                                break;
+                            }
+
+                        case SDL.GamepadAxis.LeftTrigger:
+                            {
+                                float filtered = rawNorm < Deadzone ? 0f : (rawNorm - Deadzone) / (1f - Deadzone);
+                                if (filtered != _leftTrigger)
+                                {
+                                    _leftTrigger = filtered;
+                                    OnAxisMove?.Invoke(axis, filtered);
+                                    OnLeftTriggerMove?.Invoke(filtered);
+                                }
+                                break;
+                            }
+
+                        case SDL.GamepadAxis.RightTrigger:
+                            {
+                                float filtered = rawNorm < Deadzone ? 0f : (rawNorm - Deadzone) / (1f - Deadzone);
+                                if (filtered != _rightTrigger)
+                                {
+                                    _rightTrigger = filtered;
+                                    OnAxisMove?.Invoke(axis, filtered);
+                                    OnRightTriggerMove?.Invoke(filtered);
+                                }
+                                break;
+                            }
                     }
-
-                    case SDL.GamepadAxis.RightX or SDL.GamepadAxis.RightY:
-                    {
-                        var rawVec = new Vector2(
-                            _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightX),
-                            _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightY));
-                        var filtered = ApplyRadialDeadzone(rawVec);
-
-                        if (filtered != _rightStick)
-                        {
-                            _rightStick = filtered;
-                            OnAxisMove?.Invoke(axis, axis == SDL.GamepadAxis.RightX ? filtered.X : filtered.Y);
-                            OnRightStickMove?.Invoke(filtered);
-                        }
-                        break;
-                    }
-
-                    case SDL.GamepadAxis.LeftTrigger:
-                    {
-                        float filtered = rawNorm < Deadzone ? 0f : (rawNorm - Deadzone) / (1f - Deadzone);
-                        if (filtered != _leftTrigger)
-                        {
-                            _leftTrigger = filtered;
-                            OnAxisMove?.Invoke(axis, filtered);
-                            OnLeftTriggerMove?.Invoke(filtered);
-                        }
-                        break;
-                    }
-
-                    case SDL.GamepadAxis.RightTrigger:
-                    {
-                        float filtered = rawNorm < Deadzone ? 0f : (rawNorm - Deadzone) / (1f - Deadzone);
-                        if (filtered != _rightTrigger)
-                        {
-                            _rightTrigger = filtered;
-                            OnAxisMove?.Invoke(axis, filtered);
-                            OnRightTriggerMove?.Invoke(filtered);
-                        }
-                        break;
-                    }
+                    break;
                 }
-                break;
-            }
         }
     }
 
