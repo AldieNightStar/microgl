@@ -39,6 +39,14 @@ public class UITable : UIElement
         Group.OnChildrenChanged += OnGroupChanged;
     }
 
+    public UITable(Rectangle bounds, GameObjectGroup? group = null, bool centerOrigin = false)
+        : base(new Vector2(bounds.X, bounds.Y), new Vector2(bounds.Width, bounds.Height))
+    {
+        Group = group ?? new GameObjectGroup();
+        MaxSize = new Vector2(float.MaxValue, float.MaxValue);
+        Group.OnChildrenChanged += OnGroupChanged;
+    }
+
     protected virtual void OnGroupChanged() => Layout();
 
     public UITable Add(UIElement element)

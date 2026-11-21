@@ -31,6 +31,7 @@ table.Padding = Insets.Symmetric(16f, 8f);
 ### Usage
 ```csharp
 new UITable(Vector2 position, GameObjectGroup? group = null, bool centerOrigin = false);
+new UITable(Rectangle bounds, GameObjectGroup? group = null, bool centerOrigin = false)
 
 table.Group;
 table.Padding;            // Insets
