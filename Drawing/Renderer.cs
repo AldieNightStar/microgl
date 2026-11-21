@@ -11,19 +11,14 @@ public interface IRenderer : IDisposable
     nint GetNativeTexture(Texture texture);
     void SetShader(Shader? shader);
 
-    /// <summary>Creates an RGBA render-target texture of the given size.</summary>
     RenderTarget CreateTargetTexture(int width, int height);
 
-    /// <summary>Returns the currently active render target (null = default back-buffer).</summary>
     RenderTarget? GetRenderTarget();
 
-    /// <summary>Switches the active render target. Pass null to restore the default back-buffer.</summary>
     void SetRenderTarget(RenderTarget? target);
 
-    /// <summary>Sets the blend mode on a render target's texture.</summary>
     void SetRenderTargetBlendMode(RenderTarget target, SDL.BlendMode mode);
 
-    /// <summary>Draws the render target to the given screen-space rect.</summary>
     void RenderTargetToScreen(RenderTarget target, SDL.FRect dstRect);
 }
 

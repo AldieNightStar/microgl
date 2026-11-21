@@ -6,6 +6,15 @@ public readonly struct Transform
 {
     public readonly Matrix3x2 Matrix;
 
+    public static Transform Create(Vector2 position, float rotation, Vector2 scale, Vector2 skew = default)
+    {
+        var m = Matrix3x2.CreateScale(scale)
+              * Matrix3x2.CreateSkew(skew.X, skew.Y)
+              * Matrix3x2.CreateRotation(rotation)
+              * Matrix3x2.CreateTranslation(position);
+        return new Transform(m);
+    }
+
     public static readonly Transform Identity = new(Matrix3x2.Identity);
 
     public Transform(Matrix3x2 mat)
@@ -37,14 +46,22 @@ public readonly struct Transform
 
     public Transform GlobalRotateAround(float rad, Vector2 worldPivot) => _global(Matrix3x2.CreateRotation(rad, worldPivot));
 
+    // --- Decomposition ---
+
     public Vector2 Position => Matrix.Translation;
 
     public float Rotation => MathF.Atan2(Matrix.M12, Matrix.M11);
 
-    public Vector2 ScaleFactor => new(
-        new Vector2(Matrix.M11, Matrix.M12).Length(),
-        new Vector2(Matrix.M21, Matrix.M22).Length()
-    );
+    public Vector2 ScaleFactor
+    {
+        get
+        {
+            float sx = new Vector2(Matrix.M11, Matrix.M12).Length();
+            float sy = new Vector2(Matrix.M21, Matrix.M22).Length();
+            float det = Matrix.M11 * Matrix.M22 - Matrix.M12 * Matrix.M21;
+            return new Vector2(sx, det < 0f ? -sy : sy);
+        }
+    }
 
     public Transform WithPosition(Vector2 pos)
     {
@@ -55,12 +72,10 @@ public readonly struct Transform
 
     public Transform WithRotation(float rad)
     {
-        // Preserve current position and scale, replace rotation
         Vector2 pos = Matrix.Translation;
-        float scaleX = new Vector2(Matrix.M11, Matrix.M12).Length();
-        float scaleY = new Vector2(Matrix.M21, Matrix.M22).Length();
+        Vector2 scale = ScaleFactor;
 
-        var m = Matrix3x2.CreateScale(scaleX, scaleY)
+        var m = Matrix3x2.CreateScale(scale)
               * Matrix3x2.CreateRotation(rad)
               * Matrix3x2.CreateTranslation(pos);
 
@@ -69,9 +84,8 @@ public readonly struct Transform
 
     public Transform WithScale(Vector2 scale)
     {
-        // Preserve current position and rotation, replace scale
         Vector2 pos = Matrix.Translation;
-        float rot = MathF.Atan2(Matrix.M12, Matrix.M11);
+        float rot = Rotation;
 
         var m = Matrix3x2.CreateScale(scale)
               * Matrix3x2.CreateRotation(rot)
@@ -81,7 +95,7 @@ public readonly struct Transform
     }
 
     public Transform WithGlobalPosition(Transform parent, Vector2 globalPos)
-    => WithPosition(parent.ToLocal(globalPos));
+        => WithPosition(parent.ToLocal(globalPos));
 
     public Transform WithGlobalRotation(Transform parent, float globalRot)
         => WithRotation(globalRot - parent.Rotation);
@@ -90,8 +104,8 @@ public readonly struct Transform
     {
         var ps = parent.ScaleFactor;
         return WithScale(new Vector2(
-            ps.X != 0f ? globalScale.X / ps.X : globalScale.X,
-            ps.Y != 0f ? globalScale.Y / ps.Y : globalScale.Y));
+            ps.X != 0f ? globalScale.X / ps.X : 0f,
+            ps.Y != 0f ? globalScale.Y / ps.Y : 0f));
     }
 
     // --- Hierarchy & Coordinate Conversions ---
@@ -100,24 +114,25 @@ public readonly struct Transform
 
     public Vector2 ToGlobal(Vector2 local) => Vector2.Transform(local, Matrix);
 
-    public Vector2 ToLocal(Vector2 global)
+    public Vector2 ToLocal(Vector2 global) =>
+        Matrix3x2.Invert(Matrix, out var invertedMatrix)
+            ? Vector2.Transform(global, invertedMatrix)
+            : Vector2.Zero;
+
+    public Transform LookAt(Vector2 target)
     {
-        Matrix3x2.Invert(Matrix, out var invertedMatrix);
-        return Vector2.Transform(global, invertedMatrix);
+        var dir = target - Position;
+        if (dir.LengthSquared() == 0f) return this;
+        return WithRotation(MathF.Atan2(dir.Y, dir.X));
     }
 
-    public Transform LookAt(Vector2 from, Vector2 target)
+    public Transform LookAtCentered(Vector2 target, Vector2 size)
     {
-        var dir = target - from;
-        float angle = MathF.Atan2(dir.Y, dir.X);
-        return _local(Matrix3x2.CreateRotation(angle));
-    }
-
-    public Transform LookAtCentered(Vector2 fromCentered, Vector2 target, Vector2 size)
-    {
-        var dir = target - fromCentered;
-        float angle = MathF.Atan2(dir.Y, dir.X);
-        return _local(Matrix3x2.CreateRotation(angle, size / 2f));
+        var center = ToGlobal(size / 2f);
+        var dir = target - center;
+        if (dir.LengthSquared() == 0f) return this;
+        float targetAngle = MathF.Atan2(dir.Y, dir.X);
+        return RotateCentered(targetAngle - Rotation, size);
     }
 
     // Applies 'm' first in local object space, then existing 'Matrix'
