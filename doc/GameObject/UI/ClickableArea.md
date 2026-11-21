@@ -3,6 +3,7 @@
 ### Notes
 * **Invisible interactive hitbox** inheriting from `UIElement` that tracks left-mouse hover, press, and click events without rendering anything.
 * **Supports hierarchical transforms** via `UIElement.ContainsPoint()`, working accurately even when moved, rotated, scaled, or nested inside a parent container.
+* **Only reacts while it is updated**: an area (or a `Button`) that missed the last frame's `Update`, for example because it is inactive or on another `PagedList` page, ignores the mouse.
 * **Can be initialized from a `Rectangle`** (top-left origin by default) or from `(Vector2 position, Vector2 size)` (centered origin by default).
 
 ### Usage

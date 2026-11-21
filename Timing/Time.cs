@@ -8,11 +8,13 @@ public static class Time
     private static readonly double _frequency = SDL.GetPerformanceFrequency();
 
     public static float DeltaTime { get; private set; }
+    public static long Frame { get; private set; }
     public static float DeltaTimeMax { get; set; } = 0.25f;
     public static long EpochMillis => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
     internal static float Tick()
     {
+        Frame++;
         ulong current = SDL.GetPerformanceCounter();
 
         if (_lastCounter == 0)

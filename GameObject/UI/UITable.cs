@@ -19,6 +19,7 @@ public class UITable : UIElement
     public TextAlign HorizontalAlign { get; set; } = TextAlign.Left;
     public VerticalAlign VerticalAlign { get; set; } = VerticalAlign.Middle;
     public bool UniformColumns { get; set; } = true;
+    public int Columns { get; set; }
     public bool AutoLayout { get; set; } = true;
 
     public Texture? BackgroundTexture { get; set; }
@@ -45,12 +46,12 @@ public class UITable : UIElement
     {
         foreach (var element in elements)
             Group.Add(element);
-        return NextLine();
+        return NextRow();
     }
 
-    public UITable NextLine()
+    public UITable NextRow()
     {
-        Group.Add(new NextLineMarker());
+        Group.Add(new NextRowMarker());
         return this;
     }
 
@@ -68,8 +69,8 @@ public class UITable : UIElement
 
         foreach (var child in Group.GetChildren<GameObject>())
         {
-            if (!child.IsAlive) continue;
-            if (child is NextLineMarker) column = 0;
+            if (!child.IsAlive || !child.IsActive) continue;
+            if (child is NextRowMarker || column == Columns) column = 0;
             if (child is not UIElement element) continue;
             if (column == 0) row++;
             yield return (element, row, column++);

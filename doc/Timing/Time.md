@@ -8,6 +8,8 @@
 ### Usage
 * `Time.DeltaTime`
   Gets the elapsed time in seconds since the previous frame (clamped to `DeltaTimeMax`).
+* `Time.Frame`
+  Gets the number of frames since the game started.
 * `Time.DeltaTimeMax`
   Gets or sets the maximum allowed frame delta time in seconds (`0.25f` by default).
 * `Time.GetTimeMillis()`

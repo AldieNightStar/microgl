@@ -7,7 +7,7 @@
 * **Core Game Loop**: Simple `IGame` lifecycle (`Init`, `Update`, `Draw`, `Dispose`) with pixel-perfect `Nearest` scaling and automatic `Letterbox` window resizing.
 * **2D Rendering & Textures**: Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing via `Drawer`, supporting primitives, `Transform` hierarchies, `Texture`, `AtlasTexture` sprite sheets, `AnimatedTexture`, `DynamicTexture`, and TrueType fonts (`GameFont`).
 * **Masked Drawing**: `MaskScope` clips any content to an arbitrary mask texture shape (circular avatars, fog-of-war, liquid fills) with a single `using` block via `drawer.BeginMask(...)`. Built-in `Masks` factory covers circles, rectangles, rounded rectangles, and grayscale-to-mask conversion for soft edges and gradients.
-* **Scene & UI System**: Hierarchical `GameObject` and `GameObjectGroup` entities, plus built-in `UIElement` widgets (`Label`, `Button`, `ClickableArea`) and row-based `UITable` layouts.
+* **Scene & UI System**: Hierarchical `GameObject` and `GameObjectGroup` entities, plus built-in `UIElement` widgets (`Label`, `Button`, `ClickableArea`), row-based `UITable` layouts, and `PagedList` paged containers.
 * **Unified Input**: Event-driven and polling APIs for `Mouse` (with automatic render-coordinate conversion), `Keyboard`, and `Gamepad` (with radial deadzones and rumble).
 * **Timing & Animations**: High-resolution `Time`, countdown `GameTimer`, 31 `Easing` curves, `ITween` interfaces, fluent `TweenPlanner` and `TweenSequence` chaining, and ready-to-use `TweenCollection` game-feel presets.
 
@@ -83,6 +83,8 @@ public class MyGame : IGame
 * [Button](doc/GameObject/UI/Button.md) — Interactive rectangle or textured button with icon, label, and tween animations.
 * [ClickableArea](doc/GameObject/UI/ClickableArea.md) — Invisible transform-aware mouse hitbox.
 * [UITable](doc/GameObject/UI/UITable.md) — Row/column layout container over a `GameObjectGroup`, with padding, spacing, alignment, and a rounded color or texture background.
+* [PagedList](doc/GameObject/UI/PagedList.md) — `UITable` that shows one page of its group at a time, for paged lists, 2x2 menus, and inventories.
+* [UITable Examples](doc/GameObject/UI/UITableExamples.md) — Copy-ready layouts: vertical list, horizontal bar, 2x2 menu, grids, forms, dialogs, and nested tables.
 
 ### Input
 * [Mouse](doc/Input/Mouse.md) — Cursor coordinates (mapped to logical render space) and button events.

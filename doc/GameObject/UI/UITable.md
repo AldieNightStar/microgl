@@ -3,7 +3,9 @@
 ### Notes
 * **Layout container** inheriting from `UIElement`. It does not store its own element list: every child lives in a `GameObjectGroup` (`table.Group`), and the table only arranges them.
 * **Accepts or creates a group**: pass an existing `GameObjectGroup` to the constructor, or let the table create one. Add, remove or clear objects through the group as usual; the table disposes the group with itself.
-* **Rows via `NextLineMarker`**: `NextLine()` adds a `NextLineMarker` object to the group. Every `UIElement` after a marker goes to the next row. Repeated or leading markers do not create empty rows. Non-`UIElement` objects in the group are updated and drawn but not laid out.
+* **Rows via `NextRowMarker`**: `NextRow()` adds a `NextRowMarker` object to the group. Every `UIElement` after a marker goes to the next row. Repeated or leading markers do not create empty rows. Non-`UIElement` objects in the group are updated and drawn but not laid out.
+* **Column limit**: with `Columns` above 0 a new row starts automatically after that many elements, so a grid needs no `NextRow()` calls. `0` (default) means no limit.
+* **Inactive objects** (`IsActive = false`) are skipped by the layout, so hidden elements leave no gap.
 * **Sizing**: each row is as tall as its tallest element. With `UniformColumns` (default) each column is as wide as its widest element across all rows, like a GDX `Table` or Godot `GridContainer`. With `UniformColumns = false` every row flows independently and the whole row is aligned by `HorizontalAlign`.
 * **Alignment**: `HorizontalAlign` (`TextAlign`) and `VerticalAlign` place each element inside its cell.
 * **Auto layout**: with `AutoLayout` (default) the table calls `Layout()` every `Update()`, so text or size changes are picked up immediately. Turn it off and call `Layout()` yourself for static tables.
@@ -30,6 +32,7 @@ table.Spacing;            // Vector2 gap between cells (X) and rows (Y), default
 table.HorizontalAlign;    // TextAlign, default Left
 table.VerticalAlign;      // VerticalAlign, default Middle
 table.UniformColumns;     // default true
+table.Columns;            // elements per row before wrapping, 0 = no limit
 table.AutoLayout;         // default true
 table.BackgroundTexture;
 table.BackgroundColor;
@@ -38,8 +41,8 @@ table.RowCount;
 table.ColumnCount;
 
 table.Add(UIElement element);
-table.AddRow(params UIElement[] elements);   // adds the elements, then NextLine()
-table.NextLine();
+table.AddRow(params UIElement[] elements);   // adds the elements, then NextRow()
+table.NextRow();
 table.Layout();
 ```
 
@@ -70,3 +73,5 @@ table.Draw(d);
 table.Group.Remove(quit);
 table.Dispose();
 ```
+
+More layouts (vertical list, 2x2 menu, grids, forms, dialogs, nested tables): [UITable Examples](UITableExamples.md).

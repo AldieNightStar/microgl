@@ -15,6 +15,11 @@ public class ClickableArea : UIElement
 
     private const uint LeftButton = Mouse.LEFT;
 
+    private long _updatedFrame;
+
+    // Mouse events arrive before Update, so an area updated on the previous frame still counts as live
+    private bool IsInteractive => IsAlive && Enabled && Time.Frame - _updatedFrame <= 1;
+
     public ClickableArea(Rectangle rect, bool centerOrigin = false)
         : base(rect, centerOrigin) {}
 
@@ -30,6 +35,7 @@ public class ClickableArea : UIElement
 
     protected override void OnUpdate(Drawer d)
     {
+        _updatedFrame = Time.Frame;
         if (!Enabled)
         {
             IsHovered = false;
@@ -44,7 +50,7 @@ public class ClickableArea : UIElement
 
     private void HandleMouseMove(Vector2 pos)
     {
-        if (!IsAlive || !Enabled) return;
+        if (!IsInteractive) return;
 
         bool inside = ContainsPoint(pos);
 
@@ -63,7 +69,7 @@ public class ClickableArea : UIElement
 
     private void HandleMouseDown(uint button)
     {
-        if (!IsAlive || !Enabled || button != LeftButton) return;
+        if (!IsInteractive || button != LeftButton) return;
 
         if (ContainsPoint(Mouse.Position))
             IsPressed = true;
@@ -71,7 +77,7 @@ public class ClickableArea : UIElement
 
     private void HandleMouseUp(uint button)
     {
-        if (!IsAlive || !Enabled || button != LeftButton) return;
+        if (!IsInteractive || button != LeftButton) return;
 
         bool inside = ContainsPoint(Mouse.Position);
 

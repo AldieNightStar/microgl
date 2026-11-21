@@ -10,6 +10,7 @@ public abstract class GameObject : IDisposable
 
     public virtual bool IsAlive { get; set; } = true;
     public void Delete() => IsAlive = false;
+    public bool IsActive { get; set; } = true;
 
     protected abstract void OnInit(Drawer d);
     protected abstract void OnUpdate(Drawer d);
@@ -80,7 +81,7 @@ public abstract class GameObject : IDisposable
 
     public void Update(Drawer d, Transform? parent = null)
     {
-        if (!IsAlive) return;
+        if (!IsAlive || !IsActive) return;
         _setParent(parent);
         using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform);
         OnUpdate(d);
@@ -88,7 +89,7 @@ public abstract class GameObject : IDisposable
 
     public void Draw(Drawer d, Transform? parent = null)
     {
-        if (!IsAlive) return;
+        if (!IsAlive || !IsActive) return;
         _setParent(parent);
         using var scope = new DrawerScope(d, _renderTransform(), GlobalTransform, BlendColor);
         OnDraw(d);

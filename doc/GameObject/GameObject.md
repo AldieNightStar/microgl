@@ -25,6 +25,7 @@ obj.BlendColor;
 // Lifecycle
 obj.IsAlive;
 obj.Delete();
+obj.IsActive;   // false skips Update and Draw but keeps the object in its group
 
 // Coordinate space conversion
 obj.ToLocal(Vector2 global);
