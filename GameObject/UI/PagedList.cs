@@ -6,6 +6,8 @@ public class PagedList : UITable
 {
     private const int DEFAULT_PAGE_SIZE = 5;
 
+    private readonly List<UIElement> _items = new();
+
     public int PageSize
     {
         get => field;
@@ -18,7 +20,7 @@ public class PagedList : UITable
         set => field = Math.Clamp(value, 0, PageCount - 1);
     }
 
-    public int ItemCount => _items().Count();
+    public int ItemCount => _collectItems().Count;
     public int PageCount => Math.Max(1, (ItemCount + PageSize - 1) / PageSize);
     public bool HasNextPage => Page < PageCount - 1;
     public bool HasPreviousPage => Page > 0;
@@ -32,14 +34,19 @@ public class PagedList : UITable
     public void NextPage() => Page++;
     public void PreviousPage() => Page--;
 
-    private IEnumerable<UIElement> _items() => Group.GetChildren<UIElement>().Where(item => item.IsAlive);
+    private List<UIElement> _collectItems()
+    {
+        Group.CollectChildren(_items);
+        _items.RemoveAll(static item => !item.IsAlive);
+        return _items;
+    }
 
     private void _showPage()
     {
         int first = Page * PageSize;
         int index = 0;
 
-        foreach (var item in _items())
+        foreach (var item in _collectItems())
         {
             item.IsActive = index >= first && index < first + PageSize;
             index++;

@@ -5,6 +5,9 @@ namespace microgl;
 
 public class Game : IDisposable
 {
+    private const int VSYNC_EVERY_FRAME = 1;
+    private const int VSYNC_DISABLED = 0;
+
     private readonly string _title;
     private readonly Vector2 _winSize;
     private nint _windowHandle;
@@ -12,6 +15,8 @@ public class Game : IDisposable
     private nint _gpuDevice;
     private readonly IGame _game;
     private bool _disposed;
+
+    public bool VSync { get; set; } = true;
 
     // Drawing tools
     private Drawer _drawer;
@@ -43,14 +48,7 @@ public class Game : IDisposable
         // Init GPU renderer
         _initGpuDeviceAndRenderer();
 
-        var rendererPtr = _renderer.GetNativePointer();
-
-        // Make pixel perfect rendering without ugly mipmapping
-        SDL.SetDefaultTextureScaleMode(rendererPtr, SDL.ScaleMode.Nearest);
-
-        // Ensure swapchain dimensions are initialized before setting logical presentation
-        SDL.RenderPresent(rendererPtr);
-        SDL.SetRenderLogicalPresentation(rendererPtr, w, h, SDL.RendererLogicalPresentation.Letterbox);
+        _configureRenderer(w, h);
 
         // Initialization
         _drawer = new Drawer(_renderer)
@@ -91,6 +89,19 @@ public class Game : IDisposable
 
         Dispose();
         SDL.Quit();
+    }
+
+    private void _configureRenderer(int w, int h)
+    {
+        var rendererPtr = _renderer.GetNativePointer();
+
+        // Make pixel perfect rendering without ugly mipmapping
+        SDL.SetDefaultTextureScaleMode(rendererPtr, SDL.ScaleMode.Nearest);
+        SDL.SetRenderVSync(rendererPtr, VSync ? VSYNC_EVERY_FRAME : VSYNC_DISABLED);
+
+        // Ensure swapchain dimensions are initialized before setting logical presentation
+        SDL.RenderPresent(rendererPtr);
+        SDL.SetRenderLogicalPresentation(rendererPtr, w, h, SDL.RendererLogicalPresentation.Letterbox);
     }
 
     private void _processEvents(ref SDL.Event ev, ref bool running)

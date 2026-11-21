@@ -4,6 +4,7 @@ public class GameObjectGroup : GameObject
 {
     private readonly List<GameObject> _list;
     private readonly List<GameObject> _queued = new();
+    private readonly IReadOnlyList<GameObject> _readOnlyList;
 
     public event Action? OnChildrenChanged;
 
@@ -12,6 +13,7 @@ public class GameObjectGroup : GameObject
     public GameObjectGroup(List<GameObject> objects)
     {
         _list = objects;
+        _readOnlyList = objects.AsReadOnly();
     }
 
     protected override void OnInit(Drawer d)
@@ -72,10 +74,23 @@ public class GameObjectGroup : GameObject
         _queued.Add(obj);
     }
 
-    public IReadOnlyList<GameObject> GetChildren() => _list.AsReadOnly();
+    public IReadOnlyList<GameObject> GetChildren() => _readOnlyList;
 
     public IEnumerable<T> GetChildren<T>() where T : GameObject
         => _list.OfType<T>().Concat(_queued.OfType<T>());
+
+    public void CollectChildren<T>(List<T> target) where T : GameObject
+    {
+        target.Clear();
+        _appendOfType(_list, target);
+        _appendOfType(_queued, target);
+    }
+
+    private static void _appendOfType<T>(List<GameObject> source, List<T> target) where T : GameObject
+    {
+        foreach (var el in source)
+            if (el is T match) target.Add(match);
+    }
 
     public void Remove(GameObject obj)
     {

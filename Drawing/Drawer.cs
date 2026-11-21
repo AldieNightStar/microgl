@@ -8,6 +8,7 @@ public class Drawer : IDisposable
 {
     private static readonly int[] QUAD_INDICES = [0, 1, 2, 0, 2, 3];
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
+    private readonly List<Rectangle> _strips = new();
 
     // == State ================================================================
 
@@ -92,7 +93,7 @@ public class Drawer : IDisposable
 
     public void DrawRoundedTexture(Texture texture, Rectangle dstRect, int cornerRadius)
     {
-        foreach (var strip in ShapeUtil.RoundedStrips(dstRect, cornerRadius))
+        foreach (var strip in ShapeUtil.RoundedStrips(dstRect, cornerRadius, _strips))
             DrawTextureUVs(texture, strip, ShapeUtil.RelativeUVs(strip, dstRect));
     }
 
@@ -118,7 +119,7 @@ public class Drawer : IDisposable
 
     public void DrawRoundedRect(Rectangle rect, int cornerRadius)
     {
-        foreach (var strip in ShapeUtil.RoundedStrips(rect, cornerRadius))
+        foreach (var strip in ShapeUtil.RoundedStrips(rect, cornerRadius, _strips))
             DrawRect(strip);
     }
 

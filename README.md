@@ -4,7 +4,7 @@
 
 ## Features
 
-* **Core Game Loop**: Simple `IGame` lifecycle (`Init`, `Update`, `Draw`, `Dispose`) with pixel-perfect `Nearest` scaling and automatic `Letterbox` window resizing.
+* **Core Game Loop**: Simple `IGame` lifecycle (`Init`, `Update`, `Draw`, `Dispose`) with pixel-perfect `Nearest` scaling, automatic `Letterbox` window resizing, VSync on by default, and allocation-free per-frame UI layout.
 * **2D Rendering & Textures**: Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing via `Drawer`, supporting primitives, `Transform` hierarchies, `Texture`, `AtlasTexture` sprite sheets, `AnimatedTexture`, `DynamicTexture`, and TrueType fonts (`GameFont`).
 * **Masked Drawing**: `MaskScope` clips any content to an arbitrary mask texture shape (circular avatars, fog-of-war, liquid fills) with a single `using` block via `drawer.BeginMask(...)`. Built-in `Masks` factory covers circles, rectangles, rounded rectangles, and grayscale-to-mask conversion for soft edges and gradients.
 * **Scene & UI System**: Hierarchical `GameObject` and `GameObjectGroup` entities, plus built-in `UIElement` widgets (`Label`, `Button`, `ClickableArea`), row-based `UITable` layouts, and `PagedList` paged containers.
@@ -58,7 +58,7 @@ public class MyGame : IGame
 ## Documentation Reference
 
 ### Core
-* [Game](doc/Game.md) — Application entry point, SDL3 initialization, and main game loop.
+* [Game](doc/Game.md) — Application entry point, SDL3 initialization, and main game loop with optional `VSync`.
 * [IGame](doc/IGame.md) — Core lifecycle interface implemented by your game or scene.
 
 ### Drawing
@@ -75,7 +75,7 @@ public class MyGame : IGame
 
 ### GameObject
 * [GameObject](doc/GameObject/GameObject.md) — Base scene entity with hierarchical transforms and lifecycle hooks.
-* [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects, with an `OnChildrenChanged` event.
+* [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects, with an `OnChildrenChanged` event and allocation-free `CollectChildren<T>`.
 
 #### UI
 * [UIElement](doc/GameObject/UI/UIElement.md) — Base class for UI widgets with min/max size limits that containers enforce, origin, and bounds.

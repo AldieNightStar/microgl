@@ -10,6 +10,8 @@ public class UITable : UIElement
     private readonly List<float> _rowHeights = new();
     private readonly List<float> _rowWidths = new();
     private readonly List<float> _columnWidths = new();
+    private readonly List<GameObject> _children = new();
+    private readonly List<(UIElement Element, int Row, int Column)> _cells = new();
     private Vector2 _contentSize;
 
     public GameObjectGroup Group { get; }
@@ -60,23 +62,26 @@ public class UITable : UIElement
 
     public void Layout()
     {
+        _collectCells();
         _measure();
         _placeCells();
         Size = _contentSize + Padding.Total;
     }
 
-    private IEnumerable<(UIElement Element, int Row, int Column)> _cells()
+    private void _collectCells()
     {
+        _cells.Clear();
+        Group.CollectChildren(_children);
         int row = -1;
         int column = 0;
 
-        foreach (var child in Group.GetChildren<GameObject>())
+        foreach (var child in _children)
         {
             if (!child.IsAlive || !child.IsActive) continue;
             if (child is NextRowMarker || column == Columns) column = 0;
             if (child is not UIElement element) continue;
             if (column == 0) row++;
-            yield return (element, row, column++);
+            _cells.Add((element, row, column++));
         }
     }
 
@@ -88,7 +93,7 @@ public class UITable : UIElement
 
         var cellLimit = _cellLimit();
 
-        foreach (var (element, row, column) in _cells())
+        foreach (var (element, row, column) in _cells)
         {
             element.AvailableSize = cellLimit;
             LayoutUtil.GrowAt(_rowHeights, row, element.Size.Y);
@@ -97,7 +102,7 @@ public class UITable : UIElement
             _rowWidths[row] += element.Size.X + (column > 0 ? Spacing.X : 0f);
         }
 
-        float width = UniformColumns ? LayoutUtil.SpanLength(_columnWidths, Spacing.X) : _rowWidths.DefaultIfEmpty().Max();
+        float width = UniformColumns ? LayoutUtil.SpanLength(_columnWidths, Spacing.X) : (_rowWidths.Count == 0 ? 0f : _rowWidths.Max());
         _contentSize = new Vector2(width, LayoutUtil.SpanLength(_rowHeights, Spacing.Y));
     }
 
@@ -113,7 +118,7 @@ public class UITable : UIElement
         float x = 0f;
         float y = Padding.Top;
 
-        foreach (var (element, row, column) in _cells())
+        foreach (var (element, row, column) in _cells)
         {
             if (column == 0)
             {
@@ -174,5 +179,7 @@ public class UITable : UIElement
         _rowHeights.Clear();
         _rowWidths.Clear();
         _columnWidths.Clear();
+        _children.Clear();
+        _cells.Clear();
     }
 }

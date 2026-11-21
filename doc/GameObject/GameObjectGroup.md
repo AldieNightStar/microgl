@@ -7,6 +7,7 @@ A `GameObject` that owns and manages a collection of child objects.
 * **Propagates parent transforms** to all children, allowing an entire group to be moved, rotated, or scaled together.
 * **Safely handles dynamic additions and removals**: new objects queued via `Add()` are initialized on the next `Update()`, while objects with `IsAlive == false` are automatically disposed and removed.
 * **`OnChildrenChanged` event** fires when the child list changes: once per `Update()` in which queued objects were added or dead objects were removed, and right away when `Remove()` drops a queued object or `Clear()` empties a non-empty group. Containers like `UITable` use it to re-layout.
+* **`CollectChildren<T>(list)`** clears the given list and fills it with children of type `T`, queued ones included. Unlike `GetChildren<T>()`, it allocates nothing, so prefer it in code that runs every frame.
 * **Dispose** removes all `OnChildrenChanged` subscribers first, then disposes every child.
 
 ### Usage
@@ -25,6 +26,10 @@ foreach (var child in group.GetChildren())
 // Get specific type of children
 foreach (var enemy in group.GetChildren<Enemy>())
     enemy.Alert();
+
+// Fill a reusable list without allocating, for per-frame code
+var enemies = new List<Enemy>();
+group.CollectChildren(enemies);
 
 // Addition & Removeal
 group.Add(boss);
