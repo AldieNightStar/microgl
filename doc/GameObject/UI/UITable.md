@@ -8,6 +8,7 @@
 * **Inactive objects** (`IsActive = false`) are skipped by the layout, so hidden elements leave no gap.
 * **Sizing**: each row is as tall as its tallest element. With `UniformColumns` (default) each column is as wide as its widest element across all rows, like a GDX `Table` or Godot `GridContainer`. With `UniformColumns = false` every row flows independently and the whole row is aligned by `HorizontalAlign`.
 * **Alignment**: `HorizontalAlign` (`TextAlign`) and `VerticalAlign` place each element inside its cell.
+* **Group events**: the table subscribes to `Group.OnChildrenChanged` and calls `Layout()` whenever an object is added, removed or dies, even with `AutoLayout` off. `Dispose()` unsubscribes and then disposes the group.
 * **Auto layout**: with `AutoLayout` (default) the table calls `Layout()` every `Update()`, so text or size changes are picked up immediately. Turn it off and call `Layout()` yourself for static tables.
 * **Table size** = content + `Padding`, clamped by `MinSize` and `SizeLimit`. `MaxSize` is unlimited by default.
 * **Children respect the table limit**: on every `Layout()` each laid out child gets `AvailableSize` = the table's `SizeLimit` minus `Padding`. With `Columns` above 0 that width is split evenly between the columns (minus `Spacing`). No single child grows past its cell limit, and nested tables pass the limit on to their own children. Rows that do not fit vertically still overflow, so use a `PagedList` for long lists.

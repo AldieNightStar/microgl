@@ -3,6 +3,7 @@
 ### Notes
 * **Static library of preset `TweenPlanner` animations** for `GameObject` instances.
 * **Covers game-feel effects** including damage reactions, squash-and-stretch, jumps, and bumps.
+* **Bound to the animated object.** Every preset uses `Tween.For(obj)`, so it stops once `obj` is no longer `IsAlive`.
 * **Returns `TweenPlanner` sequences** ready to chain or convert via `.ToTween()`.
 
 ### Usage

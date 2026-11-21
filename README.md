@@ -75,14 +75,14 @@ public class MyGame : IGame
 
 ### GameObject
 * [GameObject](doc/GameObject/GameObject.md) — Base scene entity with hierarchical transforms and lifecycle hooks.
-* [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects.
+* [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects, with an `OnChildrenChanged` event.
 
 #### UI
 * [UIElement](doc/GameObject/UI/UIElement.md) — Base class for UI widgets with min/max size limits that containers enforce, origin, and bounds.
 * [Label](doc/GameObject/UI/Label.md) — Cached TrueType text UI element.
 * [Button](doc/GameObject/UI/Button.md) — Interactive rectangle or textured button with icon, label, and tween animations.
 * [ClickableArea](doc/GameObject/UI/ClickableArea.md) — Invisible transform-aware mouse hitbox.
-* [UITable](doc/GameObject/UI/UITable.md) — Row/column layout container over a `GameObjectGroup`, with padding, spacing, alignment, and a rounded color or texture background.
+* [UITable](doc/GameObject/UI/UITable.md) — Row/column layout container over a `GameObjectGroup` that re-lays out when the group changes, with padding, spacing, alignment, and a rounded color or texture background.
 * [PagedList](doc/GameObject/UI/PagedList.md) — `UITable` that shows one page of its group at a time, for paged lists, 2x2 menus, and inventories.
 * [UITable Examples](doc/GameObject/UI/UITableExamples.md) — Copy-ready layouts: vertical list, horizontal bar, 2x2 menu, grids, forms, dialogs, and nested tables.
 
@@ -96,7 +96,7 @@ public class MyGame : IGame
 * [GameTimer](doc/Timing/GameTimer.md) — Single-shot and looping countdown timer.
 * [Easing](doc/Timing/Easing.md) — Standard interpolation curves (`Linear`, `Sine`, `Quad`, `Cubic`, `Back`, `Elastic`, `Bounce`, etc.).
 * [ITween](doc/Timing/ITween.md) — Base interface for controllable tweenable animations and sequences.
-* [Tween](doc/Timing/Tween.md) — Value interpolator with easing, looping, and completion callbacks.
-* [TweenSequence](doc/Timing/TweenSequence.md) — Plays multiple `ITween` instances sequentially or in parallel groups.
-* [TweenPlanner](doc/Timing/TweenPlanner.md) — Fluent builder for chaining sequential tweens, delays, and callbacks.
+* [Tween](doc/Timing/Tween.md) — Single value interpolator with easing and completion callbacks.
+* [TweenSequence](doc/Timing/TweenSequence.md) — Plays multiple `ITween` instances in order, loops, and stops when a target object dies.
+* [TweenPlanner](doc/Timing/TweenPlanner.md) — Fluent builder for chaining tweens, delays, and callbacks, with `For(obj)` object binding.
 * [TweenCollection](doc/Timing/TweenCollection.md) — Preset game-feel animations (shakes, flashes, squishes, jumps, and bumps).

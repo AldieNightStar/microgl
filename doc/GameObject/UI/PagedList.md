@@ -4,6 +4,7 @@
 * **Paged container** inheriting from `UITable`. It shows `PageSize` elements of its `Group` at a time and lays them out with all the usual `UITable` settings (`Columns`, `Padding`, `Spacing`, alignment, background).
 * **Group-based**: add, remove or clear elements through `list.Group` (or `Add` / `AddRow`). The list never copies them.
 * **Hidden elements stay in the group**: elements outside the current page get `IsActive = false`, so they are not updated, drawn, laid out or clickable, and keep their state.
+* **Group events**: when `Group.OnChildrenChanged` fires, the list refreshes the visible page and calls `Layout()`.
 * **`Page` is clamped** to `0 .. PageCount - 1`, also when elements are removed. `PageCount` is at least 1.
 * **Grid pages**: set `Columns` to wrap the page into a grid, e.g. `PageSize = 4, Columns = 2` gives 2x2 pages. Without `Columns` every element goes into one row, so use `Columns = 1` for a vertical list.
 * **Size follows the page**: a short last page makes the list smaller. Set `MinSize` to keep a fixed size, and `MaxSize` to limit the list and every item on the page (see `UITable`).

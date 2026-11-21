@@ -5,6 +5,13 @@ namespace microgl;
 public sealed class TweenPlanner
 {
     private readonly List<ITween> _steps = new();
+    private readonly HashSet<GameObject> _targets = new();
+
+    public TweenPlanner For(GameObject target)
+    {
+        _targets.Add(target);
+        return this;
+    }
 
     public TweenPlanner Call(
         float from,
@@ -47,8 +54,9 @@ public sealed class TweenPlanner
             throw new InvalidOperationException("Cannot append a TweenPlanner to itself.");
 
         _steps.AddRange(other._steps);
+        _targets.UnionWith(other._targets);
         return this;
     }
 
-    public TweenSequence ToTween(bool repeat = false) => new(_steps, repeat);
+    public TweenSequence ToTween(bool repeat = false) => new(_steps, repeat, _targets);
 }

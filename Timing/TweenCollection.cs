@@ -15,7 +15,7 @@ public static class TweenCollection
         float originX = obj.Position.X;
         float step = duration / 6f;
 
-        return Tween
+        return Tween.For(obj)
             .Call(originX, originX - intensity, step, x => obj.Position = new Vector2(x, obj.Position.Y), Easing.EaseOutQuad)
             .Call(originX - intensity, originX + intensity, step, x => obj.Position = new Vector2(x, obj.Position.Y), Easing.EaseInOutQuad)
             .Call(originX + intensity, originX - intensity * 0.6f, step, x => obj.Position = new Vector2(x, obj.Position.Y), Easing.EaseInOutQuad)
@@ -31,7 +31,7 @@ public static class TweenCollection
         var hitColor = Color.FromArgb(original.A, 255, 60, 60);
         float quarter = duration / 4f;
 
-        return Tween
+        return Tween.For(obj)
             .CallFunc(() => obj.BlendColor = hitColor)
             .Wait(quarter)
             .CallFunc(() => obj.BlendColor = original)
@@ -48,7 +48,7 @@ public static class TweenCollection
         var start = obj.Position;
         var peak = start + impulse;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, duration * 0.3f, t => obj.Position = Vector2.Lerp(start, peak, t), Easing.EaseOutCubic)
             .Call(0f, 1f, duration * 0.7f, t => obj.Position = Vector2.Lerp(peak, start, t), Easing.EaseInOutQuad);
     }
@@ -62,7 +62,7 @@ public static class TweenCollection
     {
         var baseScale = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, amount, duration * 0.35f, a =>
                 obj.Scale = new Vector2(baseScale.X * (1f + a), baseScale.Y * (1f - a)), Easing.EaseOutQuad)
             .Call(amount, 0f, duration * 0.65f, a =>
@@ -74,7 +74,7 @@ public static class TweenCollection
     {
         var target = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             .CallFunc(() => obj.Scale = new Vector2(target.X * (1f + startSquish), target.Y * (1f - startSquish)))
             .Call(startSquish, 0f, duration, a =>
                 obj.Scale = new Vector2(target.X * (1f + a), target.Y * (1f - a)), Easing.EaseOutElastic);
@@ -85,7 +85,7 @@ public static class TweenCollection
     {
         var baseScale = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, amount, duration * 0.35f, a =>
                 obj.Scale = new Vector2(baseScale.X * (1f - a * 0.6f), baseScale.Y * (1f + a)), Easing.EaseOutQuad)
             .Call(amount, 0f, duration * 0.65f, a =>
@@ -97,7 +97,7 @@ public static class TweenCollection
     {
         var baseScale = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, intensity, duration * 0.25f, a =>
                 obj.Scale = new Vector2(baseScale.X * (1f + a), baseScale.Y * (1f - a)), Easing.EaseOutQuad)
             .Call(intensity, -intensity * 0.6f, duration * 0.35f, a =>
@@ -115,7 +115,7 @@ public static class TweenCollection
     {
         float groundY = obj.Position.Y;
 
-        return Tween
+        return Tween.For(obj)
             .Call(groundY, groundY - height, duration * 0.48f, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseOutQuad)
             .Call(groundY - height, groundY, duration * 0.52f, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseInQuad);
     }
@@ -126,7 +126,7 @@ public static class TweenCollection
         float groundY = obj.Position.Y;
         var baseScale = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             // Anticipation squash
             .Call(0f, 0.22f, duration * 0.16f, a =>
                 obj.Scale = new Vector2(baseScale.X * (1f + a), baseScale.Y * (1f - a)), Easing.EaseOutQuad)
@@ -149,7 +149,7 @@ public static class TweenCollection
     {
         float startY = obj.Position.Y;
 
-        return Tween
+        return Tween.For(obj)
             .Call(startY, startY - distance, duration * 0.4f, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseOutQuad)
             .Call(startY - distance, startY, duration * 0.6f, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseOutBounce);
     }
@@ -160,7 +160,7 @@ public static class TweenCollection
         var origin = obj.Position;
         var target = origin + offset;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, duration * 0.4f, t => obj.Position = Vector2.Lerp(origin, target, t), Easing.EaseOutQuad)
             .Call(1f, 0f, duration * 0.6f, t => obj.Position = Vector2.Lerp(origin, target, t), Easing.EaseOutBack);
     }
@@ -176,7 +176,7 @@ public static class TweenCollection
         float rad = float.DegreesToRadians(degrees);
         float quarter = duration / 4f;
 
-        return Tween
+        return Tween.For(obj)
             .Call(baseRot, baseRot + rad, quarter, r => obj.Rotation = r, Easing.EaseOutSine)
             .Call(baseRot + rad, baseRot - rad, quarter, r => obj.Rotation = r, Easing.EaseInOutSine)
             .Call(baseRot - rad, baseRot + rad * 0.5f, quarter, r => obj.Rotation = r, Easing.EaseInOutSine)
@@ -189,7 +189,7 @@ public static class TweenCollection
         float startX = obj.Position.X;
         float step = duration / 4f;
 
-        return Tween
+        return Tween.For(obj)
             .Call(startX, startX - distance, step, x => obj.Position = new Vector2(x, obj.Position.Y), Easing.EaseOutQuad)
             .Call(startX - distance, startX + distance, step, x => obj.Position = new Vector2(x, obj.Position.Y), Easing.EaseInOutQuad)
             .Call(startX + distance, startX - distance * 0.5f, step, x => obj.Position = new Vector2(x, obj.Position.Y), Easing.EaseInOutQuad)
@@ -201,7 +201,7 @@ public static class TweenCollection
     {
         float startY = obj.Position.Y;
         float step = duration / 4f;
-        return Tween
+        return Tween.For(obj)
         .Call(startY, startY + distance, step, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseOutQuad)
         .Call(startY + distance, startY - distance * 0.4f, step, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseInOutQuad)
         .Call(startY - distance * 0.4f, startY + distance * 0.6f, step, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseInOutQuad)
@@ -212,7 +212,7 @@ public static class TweenCollection
     {
         float start = obj.Rotation;
         float delta = float.DegreesToRadians(clockwise ? 360f : -360f);
-        return Tween.Call(start, start + delta, duration, r => obj.Rotation = r, Easing.EaseInOutBack);
+        return Tween.For(obj).Call(start, start + delta, duration, r => obj.Rotation = r, Easing.EaseInOutBack);
     }
     // =========================================================================
     // 5. PULSES, IDLE & ENTRANCE / EXIT
@@ -222,7 +222,7 @@ public static class TweenCollection
     {
         var baseScale = obj.Scale;
         var peakScale = baseScale * scaleMultiplier;
-        return Tween
+        return Tween.For(obj)
         .Call(0f, 1f, duration * 0.45f, t => obj.Scale = Vector2.Lerp(baseScale, peakScale, t), Easing.EaseOutQuad)
         .Call(1f, 0f, duration * 0.55f, t => obj.Scale = Vector2.Lerp(baseScale, peakScale, t), Easing.EaseInOutSine);
     }
@@ -231,7 +231,7 @@ public static class TweenCollection
     {
         var baseScale = obj.Scale;
         var expanded = baseScale * (1f + amount);
-        return Tween
+        return Tween.For(obj)
         .Call(0f, 1f, duration * 0.5f, t => obj.Scale = Vector2.Lerp(baseScale, expanded, t), Easing.EaseInOutSine)
         .Call(1f, 0f, duration * 0.5f, t => obj.Scale = Vector2.Lerp(baseScale, expanded, t), Easing.EaseInOutSine);
     }
@@ -239,7 +239,7 @@ public static class TweenCollection
     public static TweenPlanner HoverFloat(GameObject obj, float amplitude = 8f, float duration = 1.8f)
     {
         float baseY = obj.Position.Y;
-        return Tween
+        return Tween.For(obj)
         .Call(baseY, baseY - amplitude, duration * 0.5f, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseInOutSine)
         .Call(baseY - amplitude, baseY, duration * 0.5f, y => obj.Position = new Vector2(obj.Position.X, y), Easing.EaseInOutSine);
     }
@@ -247,7 +247,7 @@ public static class TweenCollection
     public static TweenPlanner PopIn(GameObject obj, float duration = 0.5f)
     {
         var targetScale = obj.Scale == Vector2.Zero ? Vector2.One : obj.Scale;
-        return Tween.CallFunc(() =>
+        return Tween.For(obj).CallFunc(() =>
         {
             obj.Scale = Vector2.Zero;
             obj.BlendColor = Color.FromArgb(255, obj.BlendColor.R, obj.BlendColor.G, obj.BlendColor.B);
@@ -260,7 +260,7 @@ public static class TweenCollection
     {
         var startScale = obj.Scale;
         var startColor = obj.BlendColor;
-        var planner = Tween
+        var planner = Tween.For(obj)
         .Call(1f, 0f, duration, t =>
         {
             obj.Scale = startScale * t;
@@ -282,7 +282,7 @@ public static class TweenCollection
         var windup = origin - targetOffset * 0.2f;
         var strike = origin + targetOffset;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, duration * 0.25f, t => obj.Position = Vector2.Lerp(origin, windup, t), Easing.EaseOutQuad)
             .Call(0f, 1f, duration * 0.25f, t => obj.Position = Vector2.Lerp(windup, strike, t), Easing.EaseInExpo)
             .Call(0f, 1f, duration * 0.50f, t => obj.Position = Vector2.Lerp(strike, origin, t), Easing.EaseOutCubic);
@@ -294,7 +294,7 @@ public static class TweenCollection
         var origin = obj.Position;
         var kicked = origin + kickbackOffset;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, duration * 0.2f, t => obj.Position = Vector2.Lerp(origin, kicked, t), Easing.EaseOutQuad)
             .Call(0f, 1f, duration * 0.8f, t => obj.Position = Vector2.Lerp(kicked, origin, t), Easing.EaseOutBack);
     }
@@ -306,7 +306,7 @@ public static class TweenCollection
         var originalColor = obj.BlendColor;
         var parryColor = Color.FromArgb(originalColor.A, 140, 255, 255);
 
-        return Tween
+        return Tween.For(obj)
             .CallFunc(() =>
             {
                 obj.BlendColor = parryColor;
@@ -325,7 +325,7 @@ public static class TweenCollection
         float rad = float.DegreesToRadians(tiltDegrees);
         float quarter = duration / 4f;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, quarter, t =>
             {
                 obj.Position = origin + new Vector2(-swayDistance * t, -4f * t);
@@ -357,7 +357,7 @@ public static class TweenCollection
     {
         var baseScale = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             .Call(1f, -1f, duration * 0.5f, sx => obj.Scale = new Vector2(baseScale.X * sx, baseScale.Y), Easing.EaseInOutSine)
             .Call(-1f, 1f, duration * 0.5f, sx => obj.Scale = new Vector2(baseScale.X * sx, baseScale.Y), Easing.EaseInOutSine);
     }
@@ -370,7 +370,7 @@ public static class TweenCollection
         if (float.IsNaN(dir.X)) dir = Vector2.Zero;
         var tugBack = start - dir * 18f;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, duration * 0.28f, t => obj.Position = Vector2.Lerp(start, tugBack, t), Easing.EaseOutQuad)
             .Call(0f, 1f, duration * 0.72f, t => obj.Position = Vector2.Lerp(tugBack, targetPos, t), Easing.EaseInBack);
     }
@@ -382,7 +382,7 @@ public static class TweenCollection
         float startRot = obj.Rotation;
         float fullSpin = float.DegreesToRadians(360f);
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, duration * 0.45f, t =>
             {
                 obj.Position = new Vector2(obj.Position.X, groundY - height * t);
@@ -399,7 +399,7 @@ public static class TweenCollection
         var originalColor = obj.BlendColor;
         var goldColor = Color.FromArgb(originalColor.A, 255, 220, 80);
 
-        return Tween
+        return Tween.For(obj)
             .CallFunc(() => obj.BlendColor = goldColor)
             .Call(1f, peakMultiplier, duration * 0.35f, s => obj.Scale = baseScale * s, Easing.EaseOutBack)
             .Wait(duration * 0.25f)
@@ -416,7 +416,7 @@ public static class TweenCollection
     {
         var baseScale = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             .Call(1f, pressScale, duration * 0.35f, s => obj.Scale = baseScale * s, Easing.EaseOutQuad)
             .Call(pressScale, 1f, duration * 0.65f, s => obj.Scale = baseScale * s, Easing.EaseOutBack);
     }
@@ -428,7 +428,7 @@ public static class TweenCollection
         float rad = float.DegreesToRadians(degrees);
         float step = duration / 6f;
 
-        return Tween
+        return Tween.For(obj)
             .Call(baseRot, baseRot + rad, step, r => obj.Rotation = r, Easing.EaseOutSine)
             .Call(baseRot + rad, baseRot - rad, step, r => obj.Rotation = r, Easing.EaseInOutSine)
             .Call(baseRot - rad, baseRot + rad * 0.8f, step, r => obj.Rotation = r, Easing.EaseInOutSine)
@@ -443,7 +443,7 @@ public static class TweenCollection
         float startX = obj.Position.X;
         var baseScale = obj.Scale;
 
-        return Tween
+        return Tween.For(obj)
             .Call(0f, 1f, duration * 0.35f, t =>
             {
                 obj.Position = new Vector2(startX - pullX * t, obj.Position.Y);
@@ -463,7 +463,7 @@ public static class TweenCollection
         var startPos = new Vector2(targetPos.X, targetPos.Y - dropDistance);
         var baseColor = obj.BlendColor;
 
-        return Tween
+        return Tween.For(obj)
             .CallFunc(() =>
             {
                 obj.Position = startPos;
@@ -485,7 +485,7 @@ public static class TweenCollection
         var groundPos = obj.Position;
         var skyPos = new Vector2(groundPos.X, groundPos.Y - dropHeight);
         var baseScale = obj.Scale;
-        return Tween
+        return Tween.For(obj)
             .CallFunc(() => obj.Position = skyPos)
             .Call(0f, 1f, duration * 0.45f, t => obj.Position = Vector2.Lerp(skyPos, groundPos, t), Easing.EaseInQuad)
             .Call(0f, 0.35f, duration * 0.20f, a =>
@@ -500,7 +500,7 @@ public static class TweenCollection
         float startRot = obj.Rotation;
         var startColor = obj.BlendColor;
         float totalSpin = float.DegreesToRadians(720f);
-        var planner = Tween.Call(0f, 1f, duration, t =>
+        var planner = Tween.For(obj).Call(0f, 1f, duration, t =>
         {
             obj.Scale = startScale * (1f - t);
             obj.Rotation = startRot + totalSpin * t;
@@ -521,7 +521,7 @@ public static class TweenCollection
         var startPos = obj.Position;
         var endPos = new Vector2(startPos.X, startPos.Y - riseDistance);
         var startColor = obj.BlendColor;
-        var planner = Tween.Call(0f, 1f, duration, t =>
+        var planner = Tween.For(obj).Call(0f, 1f, duration, t =>
         {
             obj.Position = Vector2.Lerp(startPos, endPos, t);
             obj.BlendColor = Color.FromArgb(
@@ -539,7 +539,7 @@ public static class TweenCollection
     public static TweenPlanner FlipReveal(GameObject obj, float duration = 0.45f)
     {
         var targetScale = obj.Scale == Vector2.Zero ? Vector2.One : obj.Scale;
-        return Tween
+        return Tween.For(obj)
         .CallFunc(() => obj.Scale = new Vector2(0f, targetScale.Y))
         .Call(0f, 1f, duration, t => obj.Scale = new Vector2(targetScale.X * t, targetScale.Y), Easing.EaseOutBack);
     }
@@ -551,7 +551,7 @@ public static class TweenCollection
     {
         float centerRot = obj.Rotation;
         float rad = float.DegreesToRadians(maxDegrees);
-        return Tween
+        return Tween.For(obj)
             .Call(centerRot, centerRot + rad, duration * 0.25f, r => obj.Rotation = r, Easing.EaseOutSine)
             .Call(centerRot + rad, centerRot - rad, duration * 0.50f, r => obj.Rotation = r, Easing.EaseInOutSine)
             .Call(centerRot - rad, centerRot, duration * 0.25f, r => obj.Rotation = r, Easing.EaseInSine);
@@ -561,7 +561,7 @@ public static class TweenCollection
     {
         var startPos = obj.Position;
         var baseScale = obj.Scale;
-        return Tween
+        return Tween.For(obj)
         // Stretch forward
         .Call(0f, 1f, duration * 0.35f, t =>
         {
@@ -586,7 +586,7 @@ public static class TweenCollection
         var origin = obj.Position;
         int steps = 10;
         float stepTime = duration / steps;
-        var planner = Tween.CallFunc(() => { });
+        var planner = Tween.For(obj).CallFunc(() => { });
         for (int i = 0; i < steps; i++)
         {
             float decay = 1f - (i / (float)steps);
@@ -604,7 +604,7 @@ public static class TweenCollection
         var baseScale = obj.Scale;
         var bigBeat = baseScale * beatScale;
         var smallBeat = baseScale * (1f + (beatScale - 1f) * 0.65f);
-        return Tween
+        return Tween.For(obj)
             // First beat (Lub)
             .Call(0f, 1f, duration * 0.14f, t => obj.Scale = Vector2.Lerp(baseScale, bigBeat, t), Easing.EaseOutQuad)
             .Call(1f, 0f, duration * 0.16f, t => obj.Scale = Vector2.Lerp(baseScale, bigBeat, t), Easing.EaseInQuad)

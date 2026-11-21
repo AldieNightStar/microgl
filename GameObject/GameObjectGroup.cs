@@ -5,6 +5,8 @@ public class GameObjectGroup : GameObject
     private readonly List<GameObject> _list;
     private readonly List<GameObject> _queued = new();
 
+    public event Action? OnChildrenChanged;
+
     public GameObjectGroup() : this(new List<GameObject>()) { }
 
     public GameObjectGroup(List<GameObject> objects)
@@ -20,30 +22,37 @@ public class GameObjectGroup : GameObject
 
     protected override void OnUpdate(Drawer d)
     {
-        // Update each object in reverse order (to remove dead objects)
+        bool removed = _updateAndRemoveDead(d);
+        bool added = _addQueued(d);
+        if (removed || added) _emitChanged();
+    }
+
+    private bool _updateAndRemoveDead(Drawer d)
+    {
+        int countBefore = _list.Count;
         for (int i = _list.Count - 1; i >= 0; i--)
         {
             var gameObject = _list[i];
             if (gameObject.IsAlive) gameObject.Update(d, d.WorldTransform);
+            if (gameObject.IsAlive) continue;
 
-            // Later, i need to check that object s 
-            if (!gameObject.IsAlive)
-            {
-                gameObject.Dispose();
-                _list.RemoveAt(i);
-            }
+            gameObject.Dispose();
+            _list.RemoveAt(i);
         }
+        return _list.Count != countBefore;
+    }
 
-        // In progress of adding new objects
-        if (_queued.Count > 0)
+    private bool _addQueued(Drawer d)
+    {
+        if (_queued.Count == 0) return false;
+
+        foreach (var el in _queued)
         {
-            foreach (var el in _queued)
-            {
-                _list.Add(el);
-                el.Init(d, d.WorldTransform);
-            }
-            _queued.Clear();
+            _list.Add(el);
+            el.Init(d, d.WorldTransform);
         }
+        _queued.Clear();
+        return true;
     }
 
     protected override void OnDraw(Drawer d)
@@ -54,13 +63,8 @@ public class GameObjectGroup : GameObject
 
     public override void Dispose()
     {
-        foreach (var el in _list)
-            el.Dispose();
-        _list.Clear();
-
-        foreach (var el in _queued)
-            el.Dispose();
-        _queued.Clear();
+        OnChildrenChanged = null;
+        Clear();
     }
 
     public void Add(GameObject obj)
@@ -83,18 +87,26 @@ public class GameObjectGroup : GameObject
 
     private void _removeFromQueued(GameObject obj)
     {
-        if (_queued.Remove(obj))
-            obj.Dispose();
+        if (!_queued.Remove(obj)) return;
+        obj.Dispose();
+        _emitChanged();
     }
 
     public void Clear()
     {
-        foreach (var el in _list)
-            el.Dispose();
-        _list.Clear();
+        if (_list.Count == 0 && _queued.Count == 0) return;
 
-        foreach (var el in _queued)
-            el.Dispose();
-        _queued.Clear();
+        _disposeAll(_list);
+        _disposeAll(_queued);
+        _emitChanged();
     }
+
+    private static void _disposeAll(List<GameObject> objects)
+    {
+        foreach (var el in objects)
+            el.Dispose();
+        objects.Clear();
+    }
+
+    private void _emitChanged() => OnChildrenChanged?.Invoke();
 }

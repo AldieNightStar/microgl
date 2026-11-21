@@ -34,7 +34,10 @@ public class UITable : UIElement
     {
         Group = group ?? new GameObjectGroup();
         MaxSize = new Vector2(float.MaxValue, float.MaxValue);
+        Group.OnChildrenChanged += OnGroupChanged;
     }
+
+    protected virtual void OnGroupChanged() => Layout();
 
     public UITable Add(UIElement element)
     {
@@ -57,12 +60,12 @@ public class UITable : UIElement
 
     public void Layout()
     {
-        Measure();
-        PlaceCells();
+        _measure();
+        _placeCells();
         Size = _contentSize + Padding.Total;
     }
 
-    private IEnumerable<(UIElement Element, int Row, int Column)> Cells()
+    private IEnumerable<(UIElement Element, int Row, int Column)> _cells()
     {
         int row = -1;
         int column = 0;
@@ -77,15 +80,15 @@ public class UITable : UIElement
         }
     }
 
-    private void Measure()
+    private void _measure()
     {
         _rowHeights.Clear();
         _rowWidths.Clear();
         _columnWidths.Clear();
 
-        var cellLimit = CellLimit();
+        var cellLimit = _cellLimit();
 
-        foreach (var (element, row, column) in Cells())
+        foreach (var (element, row, column) in _cells())
         {
             element.AvailableSize = cellLimit;
             LayoutUtil.GrowAt(_rowHeights, row, element.Size.Y);
@@ -98,23 +101,23 @@ public class UITable : UIElement
         _contentSize = new Vector2(width, LayoutUtil.SpanLength(_rowHeights, Spacing.Y));
     }
 
-    private Vector2 CellLimit()
+    private Vector2 _cellLimit()
     {
         var content = Vector2.Max(SizeLimit - Padding.Total, Vector2.Zero);
         if (Columns <= 0) return content;
         return new Vector2(LayoutUtil.ShareLength(content.X, Columns, Spacing.X), content.Y);
     }
 
-    private void PlaceCells()
+    private void _placeCells()
     {
         float x = 0f;
         float y = Padding.Top;
 
-        foreach (var (element, row, column) in Cells())
+        foreach (var (element, row, column) in _cells())
         {
             if (column == 0)
             {
-                x = RowStart(row);
+                x = _rowStart(row);
                 if (row > 0) y += _rowHeights[row - 1] + Spacing.Y;
             }
 
@@ -125,7 +128,7 @@ public class UITable : UIElement
         }
     }
 
-    private float RowStart(int row)
+    private float _rowStart(int row)
     {
         if (UniformColumns) return Padding.Left;
         return Padding.Left + AlignUtil.Offset(_contentSize.X - _rowWidths[row], HorizontalAlign);
@@ -145,11 +148,11 @@ public class UITable : UIElement
 
     protected override void OnDraw(Drawer d)
     {
-        DrawBackground(d);
+        _drawBackground(d);
         Group.Draw(d, d.Transform);
     }
 
-    private void DrawBackground(Drawer d)
+    private void _drawBackground(Drawer d)
     {
         if (Size.X <= 0f || Size.Y <= 0f) return;
 
@@ -166,6 +169,7 @@ public class UITable : UIElement
 
     public override void Dispose()
     {
+        Group.OnChildrenChanged -= OnGroupChanged;
         Group.Dispose();
         _rowHeights.Clear();
         _rowWidths.Clear();

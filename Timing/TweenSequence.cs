@@ -3,6 +3,7 @@ namespace microgl;
 public sealed class TweenSequence : ITween
 {
     private readonly List<ITween> _steps;
+    private readonly List<GameObject> _targets;
     private int _index;
 
     public bool Repeat { get; set; }
@@ -15,9 +16,10 @@ public sealed class TweenSequence : ITween
 
     public event Action? OnComplete;
 
-    public TweenSequence(IEnumerable<ITween> steps, bool repeat = false)
+    public TweenSequence(IEnumerable<ITween> steps, bool repeat = false, IEnumerable<GameObject>? targets = null)
     {
         _steps = steps.ToList();
+        _targets = targets?.ToList() ?? new List<GameObject>();
         Repeat = repeat;
     }
 
@@ -29,16 +31,21 @@ public sealed class TweenSequence : ITween
             return 0f;
         if (IsFinished)
             return dt;
+        if (_hasDeadTarget())
+        {
+            IsFinished = true;
+            return dt;
+        }
 
-        float leftover = AdvanceSteps(dt);
+        float leftover = _advanceSteps(dt);
         while (_index == _steps.Count)
         {
-            CompleteCycle();
+            _completeCycle();
             if (IsFinished)
                 return leftover;
             if (leftover <= 0f || Duration <= 0f)
                 return 0f;
-            leftover = AdvanceSteps(leftover);
+            leftover = _advanceSteps(leftover);
         }
 
         return 0f;
@@ -60,7 +67,7 @@ public sealed class TweenSequence : ITween
             step.Dispose();
     }
 
-    private float AdvanceSteps(float dt)
+    private float _advanceSteps(float dt)
     {
         while (_index < _steps.Count)
         {
@@ -74,12 +81,20 @@ public sealed class TweenSequence : ITween
         return dt;
     }
 
-    private void CompleteCycle()
+    private void _completeCycle()
     {
         OnComplete?.Invoke();
         if (Repeat)
             Reset();
         else
             IsFinished = true;
+    }
+
+    private bool _hasDeadTarget()
+    {
+        foreach (var target in _targets)
+            if (!target.IsAlive)
+                return true;
+        return false;
     }
 }

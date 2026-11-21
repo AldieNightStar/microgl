@@ -71,6 +71,8 @@ public class Tween : ITween
         Reset();
     }
 
+    public static TweenPlanner For(GameObject target) => new TweenPlanner().For(target);
+
     public static TweenPlanner Call(
         float from,
         float to,

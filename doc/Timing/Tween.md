@@ -4,7 +4,7 @@
 * **Simple `ITween`** that moves one `float` from `From` to `To` over `Duration` seconds using an `Ease` curve.
 * **`Update(float dt)` returns overflow time** past `Duration`, so a parent sequence can pass it to the next step.
 * **Zero `Duration`** finishes on the first update, which is how instant callbacks work.
-* **Fluent entry point** via static `Call`, `CallFunc`, and `Wait`, which start a `TweenPlanner`.
+* **Fluent entry point** via static `For`, `Call`, `CallFunc`, and `Wait`, which start a `TweenPlanner`. `For(obj)` stops the sequence once `obj` is dead.
 * **No built-in looping.** Use `Tween.Call(...).ToTween(repeat: true)` to loop.
 
 ### Usage
@@ -22,6 +22,7 @@ tween.Update(Drawer d);
 tween.Reset();
 tween.Dispose();
 
+Tween.For(GameObject target);
 Tween.Call(float from, float to, float duration, Action<float> callback, Func<float, float>? ease = null);
 Tween.Call(Vector2 from, Vector2 to, float duration, Action<Vector2> callback, Func<float, float>? ease = null);
 Tween.CallFunc(Action callback);
