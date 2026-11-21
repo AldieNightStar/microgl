@@ -6,11 +6,6 @@ namespace microgl;
 
 internal static class QuadUtil
 {
-    /// <summary>
-    /// Fills <paramref name="verts"/> (must have length ≥ 4) with the four corners of
-    /// <paramref name="rect"/> transformed through <paramref name="transform"/>,
-    /// UV-mapped to [u0,v0]–[u1,v1], and tinted with <paramref name="color"/>.
-    /// </summary>
     public static void FillQuad(
         SDL.Vertex[]  verts,
         Rectangle     rect,

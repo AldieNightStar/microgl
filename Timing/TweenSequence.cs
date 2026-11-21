@@ -27,10 +27,10 @@ public sealed class TweenSequence : ITween
 
     public float Update(float dt)
     {
-        if (IsPaused)
-            return 0f;
-        if (IsFinished)
-            return dt;
+        if (IsPaused) return 0f;
+        
+        if (IsFinished) return dt;
+
         if (_hasDeadTarget())
         {
             IsFinished = true;
@@ -41,10 +41,8 @@ public sealed class TweenSequence : ITween
         while (_index == _steps.Count)
         {
             _completeCycle();
-            if (IsFinished)
-                return leftover;
-            if (leftover <= 0f || Duration <= 0f)
-                return 0f;
+            if (IsFinished) return leftover;
+            if (leftover <= 0f || Duration <= 0f) return 0f;
             leftover = _advanceSteps(leftover);
         }
 
@@ -56,7 +54,9 @@ public sealed class TweenSequence : ITween
         _index = 0;
         IsFinished = false;
         foreach (var step in _steps)
+        {
             step.Reset();
+        }
     }
 
     public void Dispose()
@@ -64,7 +64,9 @@ public sealed class TweenSequence : ITween
         IsPaused = true;
         OnComplete = null;
         foreach (var step in _steps)
+        {
             step.Dispose();
+        }
     }
 
     private float _advanceSteps(float dt)
@@ -74,7 +76,9 @@ public sealed class TweenSequence : ITween
             var step = _steps[_index];
             dt = step.Update(dt);
             if (!step.IsFinished)
+            {
                 return 0f;
+            }
             _index++;
         }
 
@@ -85,16 +89,21 @@ public sealed class TweenSequence : ITween
     {
         OnComplete?.Invoke();
         if (Repeat)
+        {
             Reset();
+        }
         else
+        {
             IsFinished = true;
+        }
     }
 
     private bool _hasDeadTarget()
     {
         foreach (var target in _targets)
-            if (!target.IsAlive)
-                return true;
+        {
+            if (!target.IsAlive) return true;
+        }
         return false;
     }
 }

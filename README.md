@@ -75,16 +75,6 @@ public class MyGame : IGame
 * **Frame time**: multiply speeds by `dt` (or `Time.DeltaTime` inside game objects) so movement is the same on every computer.
 * **Load once, free once.** Load textures and fonts in `Init` and dispose them in `Dispose`, never every frame.
 
-## Tutorials
-
-Short step-by-step guides. Each one builds on the previous.
-
-1. [First window and drawing](doc/Tutorials/01-FirstWindow.md): set up a project, draw shapes, text and images, and move with the keyboard.
-2. [Game objects and sprites](doc/Tutorials/02-GameObjects.md): write a `GameObject`, animate a sprite sheet, and manage objects with a `GameObjectGroup`.
-3. [Buttons and menus](doc/Tutorials/03-ButtonsAndMenus.md): make and style buttons, build a main menu, and switch screens.
-4. [UI layout with UITable and PagedList](doc/Tutorials/04-UILayout.md): rows, grids, forms, size limits, paged lists and nested tables.
-5. [Tweens and animation](doc/Tutorials/05-Tweens.md): smooth movement, easing, chains, loops, ready-made effects and timers.
-
 ## Documentation Reference
 
 ### Core
@@ -106,15 +96,6 @@ Short step-by-step guides. Each one builds on the previous.
 ### GameObject
 * [GameObject](doc/GameObject/GameObject.md) — Base scene entity with hierarchical transforms and lifecycle hooks.
 * [GameObjectGroup](doc/GameObject/GameObjectGroup.md) — Composite container for managing and transforming groups of objects, with an `OnChildrenChanged` event and allocation-free `CollectChildren<T>`.
-
-#### UI
-* [UIElement](doc/GameObject/UI/UIElement.md) — Base class for UI widgets with min/max size limits that containers enforce, origin, and bounds.
-* [Label](doc/GameObject/UI/Label.md) — Cached TrueType text UI element.
-* [Button](doc/GameObject/UI/Button.md) — Interactive rectangle or textured button with icon, label, and tween animations.
-* [ClickableArea](doc/GameObject/UI/ClickableArea.md) — Invisible transform-aware mouse hitbox.
-* [UITable](doc/GameObject/UI/UITable.md) — Row/column layout container over a `GameObjectGroup` that re-lays out when the group changes, with padding, spacing, alignment, and a rounded color or texture background.
-* [PagedList](doc/GameObject/UI/PagedList.md) — `UITable` that shows one page of its group at a time, for paged lists, 2x2 menus, and inventories.
-* [UITable Examples](doc/GameObject/UI/UITableExamples.md) — Copy-ready layouts: vertical list, horizontal bar, 2x2 menu, grids, forms, dialogs, and nested tables.
 
 ### Input
 * [Mouse](doc/Input/Mouse.md) — Cursor coordinates (mapped to logical render space) and button events.

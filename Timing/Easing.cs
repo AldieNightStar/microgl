@@ -2,12 +2,13 @@ namespace microgl;
 
 public static class Easing
 {
+    private const float PI2 = 2f * PI;
     private const float PI = MathF.PI;
     private const float C1 = 1.70158f;
     private const float C2 = C1 * 1.525f;
     private const float C3 = C1 + 1f;
-    private const float C4 = (2f * PI) / 3f;
-    private const float C5 = (2f * PI) / 4.5f;
+    private const float C4 = PI2 / 3f;
+    private const float C5 = PI2 / 4.5f;
 
     // Linear
     public static float Linear(float t) => t;
