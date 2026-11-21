@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using SDL3;
 
 namespace microgl;
@@ -18,7 +17,7 @@ public sealed class Shader : IDisposable
         uint numUniformBuffers = 0,
         uint numSamplers = 1)
     {
-        var rendererPtr = _ValidateRenderer(renderer, out _device);
+        var rendererPtr = _validateRenderer(renderer, out _device);
 
         _shaderHandle = _CreateShaderHandle(_device, bytecode, format, entryPoint, numUniformBuffers, numSamplers);
         if (_shaderHandle == IntPtr.Zero)
@@ -53,27 +52,9 @@ public sealed class Shader : IDisposable
         string hlslSource,
         string entryPoint = "main")
     {
-        var rendererPtr = _ValidateRenderer(renderer, out var device);
-
-        if (!ShaderCross.Init())
-        {
-            throw new Exception($"Can't init SDL_shadercross: {SDL.GetError()}");
-        }
-
-        try
-        {
-            var shaderHandle = _CompileHLSLHandle(device, hlslSource, entryPoint);
-            if (shaderHandle == IntPtr.Zero)
-            {
-                throw new Exception($"Can't compile HLSL shader: {SDL.GetError()}");
-            }
-
-            return new Shader(rendererPtr, device, shaderHandle);
-        }
-        finally
-        {
-            ShaderCross.Quit();
-        }
+        var rendererPtr = _validateRenderer(renderer, out var device);
+        var shaderHandle = ShaderCrossCompiler.CompileHLSL(device, hlslSource, entryPoint);
+        return new Shader(rendererPtr, device, shaderHandle);
     }
 
     public static Shader FromHLSLFile(
@@ -118,7 +99,7 @@ public sealed class Shader : IDisposable
         }
     }
 
-    private static nint _ValidateRenderer(IRenderer renderer, out nint device)
+    private static nint _validateRenderer(IRenderer renderer, out nint device)
     {
         var rendererPtr = renderer.GetNativePointer();
         if (rendererPtr == IntPtr.Zero)
@@ -174,89 +155,6 @@ public sealed class Shader : IDisposable
             };
 
             return SDL.CreateGPUShader(device, ref shaderInfo);
-        }
-    }
-
-    private static unsafe nint _CompileHLSLHandle(nint device, string hlslSource, string entryPoint)
-    {
-        nint sourcePtr = Marshal.StringToCoTaskMemUTF8(hlslSource);
-        nint entryPtr = Marshal.StringToCoTaskMemUTF8(entryPoint);
-
-        try
-        {
-            var hlslInfo = new ShaderCross.HLSLInfo
-            {
-                Source = sourcePtr,
-                Entrypoint = entryPtr,
-                ShaderStage = ShaderCross.ShaderStage.Fragment
-            };
-
-            // 1. Compile HLSL -> SPIR-V to reflect resource counts (samplers & uniform buffers)
-            nint spirvPtr = ShaderCross.CompileSPIRVFromHLSL(ref hlslInfo, out nuint spirvSize);
-            if (spirvPtr == IntPtr.Zero) return IntPtr.Zero;
-
-            try
-            {
-                nint metadataPtr = ShaderCross.ReflectGraphicsSPIRV(spirvPtr, spirvSize, 0);
-                if (metadataPtr == IntPtr.Zero) return IntPtr.Zero;
-
-                try
-                {
-                    var metadata = Marshal.PtrToStructure<ShaderCross.GraphicsShaderMetadata>(metadataPtr);
-                    var formats = SDL.GetGPUShaderFormats(device);
-
-                    // 2a. Direct3D 12: Compile HLSL directly to DXIL so register spaces match SDL3's root signature
-                    if ((formats & SDL.GPUShaderFormat.DXIL) != 0)
-                    {
-                        nint dxilPtr = ShaderCross.CompileDXILFromHLSL(ref hlslInfo, out nuint dxilSize);
-                        if (dxilPtr == IntPtr.Zero) return IntPtr.Zero;
-
-                        try
-                        {
-                            var createInfo = new SDL.GPUShaderCreateInfo
-                            {
-                                Code = dxilPtr,
-                                CodeSize = dxilSize,
-                                Entrypoint = entryPoint,
-                                Format = SDL.GPUShaderFormat.DXIL,
-                                Stage = SDL.GPUShaderStage.Fragment,
-                                NumSamplers = metadata.ResourceInfo.NumSamplers,
-                                NumUniformBuffers = metadata.ResourceInfo.NumUniformBuffers
-                            };
-
-                            return SDL.CreateGPUShader(device, ref createInfo);
-                        }
-                        finally
-                        {
-                            SDL.Free(dxilPtr);
-                        }
-                    }
-
-                    // 2b. Vulkan / Metal: Transpile from SPIR-V
-                    var spirvInfo = new ShaderCross.SPIRVInfo
-                    {
-                        ByteCode = spirvPtr,
-                        ByteCodeSize = spirvSize,
-                        Entrypoint = entryPtr,
-                        ShaderStage = ShaderCross.ShaderStage.Fragment
-                    };
-
-                    return ShaderCross.CompileGraphicsShaderFromSPIRV(device, ref spirvInfo, ref metadata.ResourceInfo, 0);
-                }
-                finally
-                {
-                    SDL.Free(metadataPtr);
-                }
-            }
-            finally
-            {
-                SDL.Free(spirvPtr);
-            }
-        }
-        finally
-        {
-            Marshal.FreeCoTaskMem(sourcePtr);
-            Marshal.FreeCoTaskMem(entryPtr);
         }
     }
 

@@ -110,6 +110,7 @@ public class Game : IDisposable
 
         _game.Dispose();
         _drawer.Dispose();
+        _renderer?.Dispose();
         Gamepad.DisposeAll();
 
         if (_gpuDevice != IntPtr.Zero)

@@ -121,6 +121,11 @@ public sealed class SoftwareRenderer : IRenderer
 
     public void Dispose()
     {
+        if (Surface != default)
+        {
+            Surface.Dispose();
+            Surface = default;
+        }
         if (_textureCache != null)
         {
             _textureCache.Dispose();
@@ -130,11 +135,6 @@ public sealed class SoftwareRenderer : IRenderer
         {
             SDL.DestroyRenderer(SDLRenderer);
             SDLRenderer = IntPtr.Zero;
-        }
-        if (Surface == default)
-        {
-            Surface.Dispose();
-            Surface = default;
         }
     }
 
