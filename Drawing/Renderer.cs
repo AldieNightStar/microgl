@@ -92,10 +92,10 @@ public sealed class SoftwareRenderer : IRenderer
             SDL.DestroyRenderer(SDLRenderer);
             SDLRenderer = IntPtr.Zero;
         }
-        if (Surface != default)
+        if (Surface != null)
         {
             Surface.Dispose();
-            Surface = default;
+            Surface = null;
         }
     }
 
