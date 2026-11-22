@@ -6,7 +6,6 @@ namespace microgl;
 
 public class Drawer : IDisposable
 {
-    private static readonly int[] QUAD_INDICES = [0, 1, 2, 0, 2, 3];
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private readonly List<Rectangle> _strips = new();
 
@@ -77,8 +76,8 @@ public class Drawer : IDisposable
 
     // == Masked drawing =======================================================
 
-    public MaskScope BeginMask(Texture mask, int width, int height, Rectangle dstRect)
-        => new MaskScope(Renderer, mask, width, height, dstRect);
+    public MaskScope BeginMask(Texture mask, Rectangle dstRect)
+        => new MaskScope(Renderer, mask, dstRect);
 
     // == Primitive drawing ====================================================
 
@@ -100,7 +99,7 @@ public class Drawer : IDisposable
         QuadUtil.FillQuad(_verts, dstRect, u0, v0, u1, v1, Transform, ColorUtil.ToSDLColor(BlendColor));
 
         var nativeTexture = Renderer.GetNativeTexture(texture);
-        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, 4, QUAD_INDICES, 6))
+        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, 4, QuadUtil.QUAD_INDICES, 6))
             throw new Exception($"RenderGeometry failed: {SDL.GetError()}");
     }
 
@@ -111,7 +110,7 @@ public class Drawer : IDisposable
     public void DrawRect(Rectangle rect)
     {
         QuadUtil.FillQuad(_verts, rect, 0f, 0f, 0f, 0f, Transform, ColorUtil.ToSDLColor(Color));
-        SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, QUAD_INDICES, 6);
+        SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, QuadUtil.QUAD_INDICES, 6);
     }
 
     public void DrawRoundedRect(Rectangle rect, int cornerRadius)

@@ -22,13 +22,13 @@ public ref struct MaskScope
     private readonly SDL.FRect     _dstRect;
     private bool                   _disposed;
 
-    internal MaskScope(IRenderer renderer, Texture mask, int width, int height, Rectangle dstRect)
+    internal MaskScope(IRenderer renderer, Texture mask, Rectangle dstRect)
     {
         _renderer = renderer;
-        _mask     = mask;
-        _dstRect  = new SDL.FRect { X = dstRect.X, Y = dstRect.Y, W = dstRect.Width, H = dstRect.Height };
+        _mask = mask;
+        _dstRect = new SDL.FRect { X = dstRect.X, Y = dstRect.Y, W = dstRect.Width, H = dstRect.Height };
 
-        _target     = _renderer.CreateTargetTexture(width, height);
+        _target = _renderer.CreateTargetTexture(dstRect.Width, dstRect.Height);
         _prevTarget = _renderer.GetRenderTarget();
         _renderer.SetRenderTarget(_target);
 

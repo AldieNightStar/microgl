@@ -6,6 +6,8 @@ namespace microgl;
 
 internal static class QuadUtil
 {
+    public static readonly int[] QUAD_INDICES = [0, 1, 2, 0, 2, 3];
+
     public static void FillQuad(
         SDL.Vertex[]  verts,
         Rectangle     rect,
