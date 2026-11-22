@@ -113,7 +113,7 @@ public class Drawer : IDisposable
         SDL.RenderGeometry(Renderer.GetNativePointer(), 0, _verts, 4, QuadUtil.QUAD_INDICES, 6);
     }
 
-    public void DrawRoundedRect(Rectangle rect, int cornerRadius)
+    public void DrawRectRound(Rectangle rect, int cornerRadius)
     {
         foreach (var strip in ShapeUtil.RoundedStrips(rect, cornerRadius, _strips))
             DrawRect(strip);
