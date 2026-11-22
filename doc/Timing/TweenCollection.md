@@ -1,8 +1,6 @@
-# TweenCollection
+﻿# TweenCollection
 
 Ready-made game-feel effects: shakes, jumps, squishes, pops and more. Pass the object to animate, call `.ToTween()`, and update the result every frame.
-
-New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
 
 ### Example
 ```csharp
@@ -27,8 +25,7 @@ _idle = TweenCollection.Breathe(_slime).ToTween(repeat: true);
 * **Bound to the object**: every effect starts with `Tween.For(obj)`, so it stops by itself once `obj` is no longer `IsAlive`.
 * **Start values are read when you call the effect**: the object's current `Position`, `Scale`, `Rotation` or `BlendColor` is the rest pose it returns to. Create effects while the object is at rest, not halfway through another effect.
 * **Color effects change `BlendColor`**, which tints textures, labels and buttons, not shapes drawn with `drawer.Color`.
-* **Position effects and `UITable`**: a table sets its elements' positions every frame, so position effects are undone there. Scale, rotation and color effects work.
-* **`deleteOnComplete: true`** calls `obj.Delete()` when an exit effect ends.
+* **`deleteOnComplete: true`** sets `obj.IsAlive = false` when an exit effect ends. The owning group then disposes and removes the object.
 
 ### Impact and damage
 ```csharp

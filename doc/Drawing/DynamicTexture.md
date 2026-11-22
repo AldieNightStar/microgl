@@ -1,8 +1,6 @@
-# DynamicTexture
+﻿# DynamicTexture
 
 A texture you draw with code and redraw when its content changes, for example a score panel or a minimap.
-
-New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
 
 ### Notes
 * **Mutable procedural texture wrapper** implementing `IDisposable` that bakes drawing commands into an offscreen `Texture`.
@@ -33,7 +31,7 @@ int score = 10;
 var dynTex = new DynamicTexture(128, 32, d =>
 {
     d.Font = font;
-    d.DrawText(\$"Score: {score}", Vector2.Zero);
+    d.DrawText($"Score: {score}", Vector2.Zero);
 });
 
 // Access baked texture and re-bake when data changes

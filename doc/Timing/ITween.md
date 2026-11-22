@@ -1,8 +1,6 @@
-# ITween
+﻿# ITween
 
 The common interface of all tweens. Store any tween as `ITween` and call `Update` on it every frame.
-
-New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
 
 ### Notes
 * **Common interface for every tween**, implemented by the simple `Tween` and by `TweenSequence` (the result of `TweenPlanner.ToTween()`).

@@ -2,8 +2,6 @@
 
 A `GameObject` that holds other game objects and runs them: it inits, updates, draws and disposes all of its children. Use one for your game world, for each screen, or to move several objects together.
 
-New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
-
 ### Example
 ```csharp
 private readonly GameObjectGroup _world = new();
@@ -24,11 +22,11 @@ public void Dispose() => _world.Dispose();
 
 ### Notes
 * **Children follow the group**: they are placed relative to the group, so moving, rotating or scaling the group moves all of them.
-* **Adding is delayed**: `Add()` queues the object, and the group inits it on its next `Update()`. That makes it safe to add objects at any time, even from a child's `OnUpdate`.
-* **Removing**: call `obj.Delete()` or `group.Remove(obj)`. The group disposes and removes the object on its next `Update()`. A queued object is removed and disposed right away.
-* **`Clear()`** disposes all children at once.
-* **Finding children**: `GetChildren()` returns the active list. `CollectChildren<T>(list)` fills a list you keep with children of one type, queued ones included, and allocates nothing, so use it in code that runs every frame.
-* **`OnChildrenChanged`** fires once per `Update()` in which children were added or removed, and right away when `Remove()` drops a queued object or `Clear()` empties a non-empty group. `UITable` uses it to re-layout.
+* **Adding is delayed**: `Add` queues the object, and the group inits it on its next `Update`. `Add` returns `false` only while the group is starting queued objects.
+* **Removing**: `group.Remove(obj)` or `obj.IsAlive = false`. An object in the list is disposed and removed on the group's next `Update`. A queued object is disposed and removed right away.
+* **`Clear()`** disposes all children now.
+* **Finding children**: `GetChildren()` returns a read-only view of the active list. `CollectChildren<T>(list)` fills a list you keep with children of one type, queued ones included, and allocates nothing.
+* **`OnChildrenChanged`** fires after an `Update` in which children were added or removed, and right away when `Remove` drops a queued object or `Clear` empties a non-empty group.
 * **`Dispose()`** removes all `OnChildrenChanged` subscribers, then disposes every child.
 
 ### Usage
@@ -40,8 +38,8 @@ group.Add(GameObject obj);
 group.Remove(GameObject obj);
 group.Clear();
 
-group.GetChildren();                    // IReadOnlyList<GameObject>
-group.CollectChildren<T>(List<T> list); // no allocation
+group.GetChildren();
+group.CollectChildren<T>(List<T> target);
 
 group.OnChildrenChanged;
 ```
@@ -56,7 +54,7 @@ public void Update(Drawer d, ReadOnlySpan<SDL.Event> events, float dt)
     _world.CollectChildren(_enemies);
 
     foreach (var enemy in _enemies)
-        if (enemy.Health <= 0) enemy.Delete();
+        if (enemy.Health <= 0) enemy.IsAlive = false;
 }
 ```
 

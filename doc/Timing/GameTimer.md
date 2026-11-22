@@ -1,8 +1,6 @@
-# GameTimer
+﻿# GameTimer
 
 A countdown that fires `OnComplete` when it ends, once or over and over. Use it for cooldowns, spawn waves and delays.
-
-New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
 
 ### Notes
 * **Countdown and interval timer** implementing `IGameUpdatable`.

@@ -1,8 +1,6 @@
-# TweenSequence
+﻿# TweenSequence
 
 Plays several tweens one after another, optionally in a loop. You usually get one from `TweenPlanner.ToTween()` instead of creating it yourself.
-
-New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
 
 ### Notes
 * **`ITween` that holds a list of tweens** and plays them one after another. Built by `TweenPlanner.ToTween()`.

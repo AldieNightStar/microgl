@@ -1,8 +1,6 @@
-# TweenPlanner
+﻿# TweenPlanner
 
 Builds a chain of animation steps: move, wait, run code. Call `ToTween()` to get a tween you can play.
-
-New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
 
 ### Notes
 * **Fluent builder** that queues value tweens, waits, instant callbacks, and any other `ITween` into a `TweenSequence`.
@@ -44,6 +42,6 @@ ITween slide = Tween.For(enemy)
     .Call(enemy.Position, target, 0.4f, p => enemy.Position = p)
     .ToTween();
 
-enemy.Delete();
+enemy.IsAlive = false;
 slide.Update(d);
 ```

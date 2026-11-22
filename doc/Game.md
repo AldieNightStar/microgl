@@ -2,8 +2,6 @@
 
 Opens the window and runs your game. Create one in `Main`, pass it your `IGame`, and call `Start()`.
 
-New to this? See [Tutorial 1: First window and drawing](Tutorials/01-FirstWindow.md).
-
 ### Notes
 * **Entry point and lifecycle manager** for a `microgl` application, implementing `IDisposable`.
 * **Initializes SDL3 subsystems** (`Video` and `Gamepad`), creates a resizable window, configures `Nearest` pixel-art scaling with `Letterbox` logical presentation, and sets `Drawer.ScreenSize` to the logical window dimensions.

@@ -1,25 +1,28 @@
-# Easing
+﻿# Easing
 
 Curves that shape how a tween moves: start slow, end slow, overshoot, bounce. Pass one as the `ease` argument of a tween.
 
-New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
-
 ### Notes
-* **Static collection of standard interpolation curves** used by `Tween` and `TweenPlanner`.
-* **Maps normalized progress `t`** (`0.0f` to `1.0f`) to eased output values.
-* **Includes 31 easing functions** across `Linear`, `Sine`, `Quad`, `Cubic`, `Quart`, `Quint`, `Expo`, `Circ`, `Back`, `Elastic`, and `Bounce` (`EaseIn`, `EaseOut`, `EaseInOut`).
+* **Static curves** that map progress `t` from `0` to `1` to an eased value.
+* **Families**: `Linear`, then `Sine`, `Quad`, `Cubic`, `Quart`, `Quint`, `Expo`, `Circ`, `Back`, `Elastic` and `Bounce`. Each has `EaseIn`, `EaseOut` and `EaseInOut` versions.
+* **Choosing**: `EaseOut` starts fast and stops softly, for things that arrive. `EaseIn` starts softly and stops fast, for things that leave. `EaseInOut` is soft at both ends, for moving between two places.
+* **Overshoot**: `Back` overshoots a little, `Elastic` springs, `Bounce` bounces.
 
 ### Usage
-* `Easing.Linear(float t)`
-  Returns unmodified linear progress `t` (`0.0f` to `1.0f`).
-* `Easing.EaseIn<Curve>(float t)` / `Easing.EaseOut<Curve>(float t)` / `Easing.EaseInOut<Curve>(float t)`
-  Applies the chosen curve (`Sine`, `Quad`, `Cubic`, `Quart`, `Quint`, `Expo`, `Circ`, `Back`, `Elastic`, `Bounce`) to normalized time `t`.
+```csharp
+Easing.Linear(float t);
 
-### Choosing a curve
-* `EaseOut...`: fast start, soft stop. Good for things that arrive, like a menu sliding in.
-* `EaseIn...`: soft start, fast stop. Good for things that leave.
-* `EaseInOut...`: soft at both ends. Good for moving between two places.
-* `Back` overshoots a little, `Elastic` springs, `Bounce` bounces. `Sine` is gentle, `Expo` is sharp.
+Easing.EaseInSine(float t);       Easing.EaseOutSine(float t);       Easing.EaseInOutSine(float t);
+Easing.EaseInQuad(float t);       Easing.EaseOutQuad(float t);       Easing.EaseInOutQuad(float t);
+Easing.EaseInCubic(float t);      Easing.EaseOutCubic(float t);      Easing.EaseInOutCubic(float t);
+Easing.EaseInQuart(float t);      Easing.EaseOutQuart(float t);      Easing.EaseInOutQuart(float t);
+Easing.EaseInQuint(float t);      Easing.EaseOutQuint(float t);      Easing.EaseInOutQuint(float t);
+Easing.EaseInExpo(float t);       Easing.EaseOutExpo(float t);       Easing.EaseInOutExpo(float t);
+Easing.EaseInCirc(float t);       Easing.EaseOutCirc(float t);       Easing.EaseInOutCirc(float t);
+Easing.EaseInBack(float t);       Easing.EaseOutBack(float t);       Easing.EaseInOutBack(float t);
+Easing.EaseInElastic(float t);    Easing.EaseOutElastic(float t);    Easing.EaseInOutElastic(float t);
+Easing.EaseInBounce(float t);     Easing.EaseOutBounce(float t);     Easing.EaseInOutBounce(float t);
+```
 
 ### Example
 ```csharp

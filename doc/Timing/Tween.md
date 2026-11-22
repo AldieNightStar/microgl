@@ -1,8 +1,6 @@
-# Tween
+﻿# Tween
 
 Moves one number from a start value to an end value over time. It is also the starting point for chained animations with `Tween.Call(...)`.
-
-New to this? See [Tutorial 5: Tweens and animation](../Tutorials/05-Tweens.md).
 
 ### Notes
 * **Simple `ITween`** that moves one `float` from `From` to `To` over `Duration` seconds using an `Ease` curve.
@@ -53,7 +51,6 @@ public void Update(Drawer d, ReadOnlySpan<SDL.Event> events, float dt)
 ### Example: a chain of steps
 `Tween.Call`, `Wait`, `CallFunc` and `For` start a [TweenPlanner](TweenPlanner.md). `ToTween()` turns it into one tween.
 ```csharp
-
 var seq = Tween.Call(0f, 1f, 0.4f, a => alpha = a)
     .Wait(0.2f)
     .Call(Vector2.Zero, new Vector2(50f, 50f), 0.5f, v => pos = v, Easing.EaseInOutCubic)

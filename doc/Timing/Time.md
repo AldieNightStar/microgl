@@ -1,8 +1,6 @@
-# Time
+﻿# Time
 
 Frame time and clocks. `Game` updates it for you every frame.
-
-New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
 
 ### Notes
 * **Static high-resolution frame timer** backed by SDL3 performance counters.

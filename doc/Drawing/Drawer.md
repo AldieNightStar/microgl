@@ -1,8 +1,6 @@
-# Drawer
+﻿# Drawer
 
-The pen you draw with. Every `Init`, `Update` and `Draw` method receives one. Set a color or font, then call a `Draw...` method.
-
-New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
+The pen you draw with. `Game` passes one to every `Init`, `Update` and `Draw` call. Set colors, a font or a shader, then call a `Draw` method.
 
 ### Example
 ```csharp
@@ -12,67 +10,61 @@ public void Draw(Drawer d, float dt)
     d.DrawRect(new Rectangle(20, 20, 200, 100));
 
     d.Color = Color.Orange;
-    d.DrawRoundedRect(new Rectangle(240, 20, 200, 100), 12);
+    d.DrawRectRound(new Rectangle(240, 20, 200, 100), 12);
 
     d.DrawTexture(_logo, new Rectangle(20, 140, 64, 64));
 
     d.Font = _font;
     d.FontColor = Color.Gold;
     d.DrawText($"Score: {_score}", new Vector2(20f, 220f));
-
-    _world.Draw(d);
 }
 ```
 
 ### Notes
-* **Draw state sticks**: `Color` (shapes and lines), `BlendColor` (texture tint), `Font`, `FontColor` and `Shader` stay set until you change them. `Game` calls `Reset()` before each `IGame.Draw`, which clears the screen to black and resets them.
-* **Inside a `GameObject` the drawer is already moved**: in `OnDraw` and `OnUpdate`, `Transform` holds the object's position, rotation, scale and `CenterPoint`, so draw at `(0, 0)`. The previous state is restored when the object is done, so drawing after `group.Draw(d)` is in screen space again.
-* **Child objects**: inside `OnDraw`, `DrawObject(child)` draws another object relative to the current one.
-* **Text**: `DrawText` builds the text every call. For text shown every frame, a `Label` is faster.
-* **Masks**: `BeginMask` clips drawing to the shape of a mask texture. See [Masking](Masking.md).
+* **Reset before each frame**: `Game` calls `Reset()` before `IGame.Draw`. It clears the screen to black and restores `Transform`, `BlendColor`, `FontColor`, `Font` and `Shader` to their defaults. `Color` goes back to white.
+* **Sticky state**: `Color` (shapes and lines), `BlendColor` (texture tint), `FontColor`, `Font` and `Shader` stay as you set them until you change them or the frame ends.
+* **Inside a `GameObject`** the drawer is moved to the object: `Transform` holds its position, rotation, scale and `CenterPoint`, so draw at `(0, 0)`. The previous state is restored when the object is done.
+* **Text**: `DrawText` needs `Font` set, or it throws. It builds the text on every call.
+* **Masks**: `BeginMask` clips drawing to a mask texture. See [Masking](Masking.md).
+* **Offscreen drawing**: create your own `Drawer` over a `SoftwareRenderer` to draw into a texture.
 
 ### Usage
 ```csharp
-new Drawer(IRenderer renderer);
+d.Reset();
+d.Clear();
 
-// Frame
-drawer.Reset();        // clear the screen and reset Transform, colors, font and shader
-drawer.Clear();        // clear the screen only
+d.Renderer;
+d.ScreenSize;
+d.ScreenBounds;
+d.Transform;
+d.Color;
+d.BlendColor;
+d.FontColor;
+d.Font;
+d.Shader;
 
-// State
-drawer.Renderer;
-drawer.ScreenSize;     // logical screen size given to Game
-drawer.ScreenBounds;   // Rectangle(0, 0, ScreenSize)
-drawer.Transform;      // applied to everything drawn, set by GameObject
-drawer.Color;          // shapes and lines
-drawer.BlendColor;     // texture tint, White = no tint
-drawer.Font;
-drawer.FontColor;
-drawer.Shader;         // GPU effect, null = none
+d.DrawRect(Rectangle rect);
+d.DrawRectRound(Rectangle rect, int cornerRadius);
+d.DrawLine(Vector2 a, Vector2 b);
 
-// Shapes and text
-drawer.DrawRect(Rectangle rect);
-drawer.DrawRoundedRect(Rectangle rect, int cornerRadius);   // radius is clamped to half the shortest side
-drawer.DrawLine(Vector2 a, Vector2 b);
-drawer.DrawText(string text, Vector2 pos);
-drawer.DrawDebugText(string text, Vector2 pos);             // built-in font, no GameFont needed
+d.DrawText(string text, Vector2 pos);
+d.DrawDebugText(string text, Vector2 pos);
 
-// Textures
-drawer.DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null);
-drawer.DrawTexture(AtlasTexture texture, Rectangle rect);
-drawer.DrawTexture(AnimatedTexture texture, Rectangle rect);   // current frame
-drawer.DrawTexture(DynamicTexture texture, Rectangle rect);
-drawer.DrawRoundedTexture(Texture texture, Rectangle dstRect, int cornerRadius);
+d.DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null);
+d.DrawTextureRound(Texture texture, Rectangle dstRect, int cornerRadius);
+d.DrawTexture(AtlasTexture texture, Rectangle rect);
+d.DrawTexture(DynamicTexture texture, Rectangle rect);
 
-// Objects, relative to the object currently being drawn
-drawer.DrawObject(GameObject obj);
-drawer.DrawObject(GameObject obj, Vector2 localPos);
+d.DrawObject(GameObject obj);
+d.DrawObject(GameObject obj, Vector2 localPos);
 
-// Masks: clip drawing inside dstRect (local coordinates) to a mask texture
-using (drawer.BeginMask(Texture mask, Rectangle dstRect)) { ... }
-
-drawer.Dispose();
+using (d.BeginMask(Texture mask, Rectangle dstRect))
+{
+    ...
+}
 ```
+
+`ScreenSize` is the logical size given to `Game`. `DrawDebugText` uses SDL's built-in font, so it needs no `GameFont`.
 
 ### Example: child objects inside OnDraw
 ```csharp

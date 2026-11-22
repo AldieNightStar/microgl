@@ -1,8 +1,6 @@
-# Transform
+﻿# Transform
 
 Position, rotation and scale in one value. Every `GameObject` has one. You need it directly only for coordinate math.
-
-New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
 
 ### Notes
 * **Immutable 2D affine transformation** `readonly struct` wrapping `System.Numerics.Matrix3x2`.
@@ -44,8 +42,8 @@ t.WithGlobalScale(Transform parent, Vector2 globalScale);
 Transform combined = parent * child;
 t.ToGlobal(Vector2 local);
 t.ToLocal(Vector2 global);
-t.LookAt(Vector2 from, Vector2 target);
-t.LookAtCentered(Vector2 fromCentered, Vector2 target, Vector2 size);
+t.LookAt(Vector2 target);
+t.LookAtCentered(Vector2 target, Vector2 size);
 ```
 
 ### Example

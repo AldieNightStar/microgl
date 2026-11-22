@@ -1,45 +1,35 @@
-# Mouse
+﻿# Mouse
 
-The cursor position in game coordinates, and mouse button events.
-
-New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
+Static mouse input: the cursor position in game coordinates, and button and wheel events.
 
 ### Notes
-* **Static mouse input handler** driven automatically by the `Game` event loop via `ProcessEvent`.
-* **Converts window coordinates to logical render space** using `SDL.ConvertEventToRenderCoordinates`, keeping `Position` accurate across window resizing and letterboxing.
-* **Defines button constants** (`LEFT = 1`, `MIDDLE = 2`, `RIGHT = 3`) and exposes cursor movement and button press/release events (`OnMove`, `OnDown`, `OnUp`).
+* **Driven by the `Game` loop**: events are converted to the logical size you gave `Game`, so `Position` stays correct when the window is resized or letterboxed.
+* **Buttons**: `Mouse.LEFT`, `Mouse.MIDDLE` and `Mouse.RIGHT`.
+* **Polling**: `IsDown(button)` is true while a button is held.
+* **Focus loss** releases every held button and fires `OnUp` for each.
 
 ### Usage
 ```csharp
-// Standard mouse button IDs
-Mouse.LEFT; Mouse.MIDDLE; Mouse.RIGHT;
-
-// Current cursor position in logical render coordinates
 Mouse.Position;
+Mouse.IsDown(uint button);
 
-// Cursor motion and button press/release events
-Mouse.OnMove;
-Mouse.OnDown;
-Mouse.OnUp;
+Mouse.OnMove;    // Action<Vector2>
+Mouse.OnDown;    // Action<uint button>
+Mouse.OnUp;      // Action<uint button>
+Mouse.OnWheel;   // Action<Vector2>
 ```
 
 ### Example
 ```csharp
-Mouse.OnMove += pos => cursor.Position = pos;
+Mouse.OnMove += pos => _cursor.Position = pos;
 
 Mouse.OnDown += button =>
 {
-    if (button == Mouse.LEFT)
-    {
-        Shoot(Mouse.Position);
-    }
+    if (button == Mouse.LEFT) Shoot(Mouse.Position);
 };
 
 Mouse.OnUp += button =>
 {
-    if (button == Mouse.RIGHT)
-    {
-        EndAim();
-    }
+    if (button == Mouse.RIGHT) EndAim();
 };
 ```

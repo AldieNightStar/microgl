@@ -1,8 +1,6 @@
 ﻿# GameFont
 
-A TrueType font loaded from a `.ttf` file. Use it with `Label`, `Button` or `Drawer.DrawText`.
-
-New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
+A TrueType font loaded from a `.ttf` file. Use it with `Drawer.DrawText` by setting `Drawer.Font`.
 
 ### Notes
 * **TrueType font wrapper** (`sealed class` implementing `IDisposable`) backed by SDL3_ttf (`TTF_Font`).

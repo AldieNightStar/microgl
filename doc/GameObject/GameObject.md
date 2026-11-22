@@ -1,88 +1,89 @@
-# GameObject
+﻿# GameObject
 
-The base class for everything in your game: players, enemies, bullets, UI widgets. Inherit from it, fill in four methods, and it handles position, rotation, scale and parent-child movement for you.
-
-New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
+The base class for things in your game: players, enemies, bullets. Inherit from it and fill in four methods. It handles position, rotation, scale and parent-child movement.
 
 ### Example
 ```csharp
 public class Box : GameObject
 {
-    private const int SIZE = 32;
-    private const float SPIN_SPEED = 2f;
+    private const int Size = 32;
+    private const float SpinSpeed = 2f;
 
     public Box(Vector2 position)
     {
         Position = position;
-        CenterPoint = new Vector2(SIZE / 2f, SIZE / 2f);
+        CenterPoint = new Vector2(Size / 2f, Size / 2f);
     }
 
     protected override void OnInit(Drawer d) { }
 
     protected override void OnUpdate(Drawer d)
     {
-        Rotation += SPIN_SPEED * Time.DeltaTime;
+        Rotation += SpinSpeed * Time.DeltaTime;
     }
 
     protected override void OnDraw(Drawer d)
     {
         d.Color = Color.Cyan;
-        d.DrawRect(new Rectangle(0, 0, SIZE, SIZE));
+        d.DrawRect(new Rectangle(0, 0, Size, Size));
     }
 
     public override void Dispose() { }
 }
 
-// In IGame
 var box = new Box(new Vector2(100f, 100f));
-box.Init(d);      // in Init
-box.Update(d);    // in Update
-box.Draw(d);      // in Draw
-box.Dispose();    // in Dispose
+box.Init(d);
+box.Update(d);
+box.Draw(d);
+box.Dispose();
 ```
 
-Most of the time you add objects to a [GameObjectGroup](GameObjectGroup.md) instead, which calls these four methods for all of its children.
+Most of the time you add objects to a [GameObjectGroup](GameObjectGroup.md), which calls these methods for all of its children.
 
 ### Notes
 * **Four methods to fill in**: `OnInit` (once), `OnUpdate` and `OnDraw` (every frame), and `Dispose`. You call `Init`, `Update` and `Draw`, never the `On...` methods.
 * **Draw at `(0, 0)`**: in `OnDraw` the drawer is already moved, rotated and scaled to the object.
-* **Frame time**: `OnUpdate` gets no `dt`, use `Time.DeltaTime`.
-* **`CenterPoint` is the pivot**: rotation and scale happen around it, and `Position` refers to it. It does not move the object.
-* **`BlendColor` tints the object**: it is set as `drawer.BlendColor` during `OnDraw`, so textures, labels and buttons are tinted. Shapes drawn with `drawer.Color` are not.
-* **Local and global**: `Position`, `Rotation` and `Scale` are relative to the parent. `GlobalPosition`, `GlobalRotation` and `GlobalScale` are on screen, and can also be set. They use the parent from the last `Init`, `Update` or `Draw`, and `Transform.Identity` before that.
-* **Delete and hide**: `Delete()` sets `IsAlive = false`, and the owning group disposes and removes the object on its next update. `IsActive = false` skips `Update` and `Draw` but keeps the object.
-* **The drawer state is restored** after `OnUpdate` and `OnDraw`, so an object never changes how the caller draws.
+* **Frame time**: `OnUpdate` gets no `dt`. Use `Time.DeltaTime`.
+* **`CenterPoint` is the pivot**: rotation and scale happen around it, and `Position` is where that pivot sits.
+* **`BlendColor` tints textures**: it is set as the drawer's blend color during `OnDraw`. Shapes drawn with `drawer.Color` are not tinted.
+* **Global values**: `GlobalPosition`, `GlobalRotation` and `GlobalScale` are on screen, and can be set. They use the parent passed to the last `Init`, `Update` or `Draw`, or `Transform.Identity` before that.
+* **Removing**: set `IsAlive = false`. `Update` and `Draw` skip dead objects, and the owning group disposes and removes them on its next update.
+* **Drawer state is restored** after each `On...` method, so an object never changes how the caller draws.
 
 ### Usage
 ```csharp
-// Local transform, relative to the parent
-obj.Position;  obj.Rotation;  obj.Scale;
-obj.Transform;
-
-// Global transform, on screen
-obj.GlobalTransform;
-obj.GlobalPosition;  obj.GlobalRotation;  obj.GlobalScale;
-
-// Pivot and tint
+obj.Position;
+obj.Rotation;
+obj.RotationDegrees;
+obj.Scale;
+obj.Skew;
 obj.CenterPoint;
 obj.BlendColor;
 
-// State
+obj.Transform;
+obj.GlobalTransform;
+obj.GlobalPosition;
+obj.GlobalRotation;
+obj.GlobalRotationDegrees;
+obj.GlobalScale;
+
+obj.Right;
+obj.Down;
+obj.MoveLocal(Vector2 delta);
+obj.LookAt(Vector2 worldTarget);
+obj.ToLocal(Vector2 worldPos);
+obj.ToGlobal(Vector2 localPos);
+
 obj.IsAlive;
-obj.Delete();
-obj.IsActive;
 
-// Coordinate conversion
-obj.ToLocal(Vector2 global);
-obj.ToGlobal(Vector2 local);
-
-// Lifecycle, parent defaults to Transform.Identity
 obj.Init(Drawer d, Transform? parent = null);
+obj.Init(GameObject parent, Drawer d);
 obj.Update(Drawer d, Transform? parent = null);
+obj.Update(GameObject parent, Drawer d);
 obj.Draw(Drawer d, Transform? parent = null);
+obj.Draw(GameObject parent, Drawer d);
 obj.Dispose();
 
-// Hooks to override
 protected abstract void OnInit(Drawer d);
 protected abstract void OnUpdate(Drawer d);
 protected abstract void OnDraw(Drawer d);

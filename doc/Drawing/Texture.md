@@ -1,8 +1,6 @@
-# Texture
+﻿# Texture
 
 An image loaded from a file or drawn with code. Load it once, draw it as often as you like, and dispose it at the end.
-
-New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
 
 ### Notes
 * **2D image resource** wrapping an SDL `Surface` and implementing `IDisposable`.
@@ -22,6 +20,7 @@ Texture.FromDrawing(ushort w, ushort h, Action<Drawer> act);
 // Access the underlying Surface, pixel dimensions (Vector2), or release resources
 texture.Surface;
 texture.Size;
+texture.SetBlendMode(IRenderer renderer, SDL.BlendMode mode);
 texture.Dispose();
 ```
 

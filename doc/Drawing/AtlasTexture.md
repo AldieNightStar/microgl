@@ -1,8 +1,6 @@
-# AtlasTexture
+﻿# AtlasTexture
 
 One piece of a bigger image, such as a sprite on a sprite sheet or a tile of a tileset. It points into the image and copies no pixels.
-
-New to this? See [Tutorial 2: Game objects and sprites](../Tutorials/02-GameObjects.md).
 
 ### Notes
 * **Lightweight `readonly struct` view** representing a rectangular sub-region (`source`) inside a parent `Texture` without duplicating pixel data.
