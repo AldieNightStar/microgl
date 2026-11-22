@@ -20,8 +20,8 @@ public abstract class GameObject : IDisposable
 
     public float RotationDegrees
     {
-        get => Rotation * (180f / MathF.PI);
-        set => Rotation = value * (MathF.PI / 180f);
+        get => Transform.RadiansToDegrees(Rotation);
+        set => Rotation = Transform.DegreesToRadians(value);
     }
 
     public Transform Transform
@@ -47,45 +47,31 @@ public abstract class GameObject : IDisposable
 
     public float GlobalRotation
     {
-        get => _parentTransform.Rotation + Rotation;
-        set => Rotation = value - _parentTransform.Rotation;
+        get => GlobalTransform.Rotation;
+        set => Rotation = _parentTransform.LocalRotationFor(value);
     }
 
     public float GlobalRotationDegrees
     {
-        get => GlobalRotation * (180f / MathF.PI);
-        set => GlobalRotation = value * (MathF.PI / 180f);
+        get => Transform.RadiansToDegrees(GlobalRotation);
+        set => GlobalRotation = Transform.DegreesToRadians(value);
     }
 
     public Vector2 GlobalScale
     {
-        get => _parentTransform.ScaleFactor * Scale;
-        set
-        {
-            var ps = _parentTransform.ScaleFactor;
-            Scale = new Vector2(
-                ps.X != 0f ? value.X / ps.X : 0f,
-                ps.Y != 0f ? value.Y / ps.Y : 0f);
-        }
+        get => _parentTransform.ScaleChild(Scale);
+        set => Scale = _parentTransform.LocalScaleFor(value);
     }
 
-    public Vector2 Right => new(MathF.Cos(GlobalRotation), MathF.Sin(GlobalRotation));
-    public Vector2 Down => new(-MathF.Sin(GlobalRotation), MathF.Cos(GlobalRotation));
+    public Vector2 Right => GlobalTransform.Right;
+    public Vector2 Down => GlobalTransform.Down;
 
-    public void MoveLocal(Vector2 delta)
-    {
-        var cos = MathF.Cos(Rotation);
-        var sin = MathF.Sin(Rotation);
-        Position += new Vector2(
-            delta.X * cos - delta.Y * sin,
-            delta.X * sin + delta.Y * cos);
-    }
+    public void MoveLocal(Vector2 delta) => Position += Transform.RotateVector(delta);
 
     public void LookAt(Vector2 worldTarget)
     {
-        var dir = worldTarget - GlobalPosition;
-        if (dir.LengthSquared() > 0f)
-            GlobalRotation = MathF.Atan2(dir.Y, dir.X);
+        if (GlobalTransform.TryGetAngleTo(worldTarget, out float angle))
+            GlobalRotation = angle;
     }
 
     public Vector2 ToLocal(Vector2 worldPos) => GlobalTransform.ToLocal(worldPos);

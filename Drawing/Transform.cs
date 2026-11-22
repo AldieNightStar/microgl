@@ -6,6 +6,8 @@ public readonly struct Transform
 {
     public readonly Matrix3x2 Matrix;
 
+    public static readonly Transform Identity = new(Matrix3x2.Identity);
+
     public static Transform Create(Vector2 position, float rotation, Vector2 scale, Vector2 skew = default)
     {
         var m = Matrix3x2.CreateScale(scale)
@@ -15,14 +17,14 @@ public readonly struct Transform
         return new Transform(m);
     }
 
-    public static readonly Transform Identity = new(Matrix3x2.Identity);
+    public static float DegreesToRadians(float degrees) => degrees * (MathF.PI / 180f);
+
+    public static float RadiansToDegrees(float radians) => radians * (180f / MathF.PI);
 
     public Transform(Matrix3x2 mat)
     {
         Matrix = mat;
     }
-
-    // --- Local Transformations (Relative to object's own rotation & scale) ---
 
     public Transform Translate(Vector2 vec) => _local(Matrix3x2.CreateTranslation(vec));
 
@@ -34,8 +36,6 @@ public readonly struct Transform
 
     public Transform RotateCentered(float rad, Vector2 size) => _local(Matrix3x2.CreateRotation(rad, size / 2f));
 
-    // --- Global Transformations (Relative to parent / screen axes) ---
-
     public Transform GlobalTranslate(Vector2 vec) => _global(Matrix3x2.CreateTranslation(vec));
 
     public Transform GlobalScale(Vector2 scale) => _global(Matrix3x2.CreateScale(scale));
@@ -46,11 +46,13 @@ public readonly struct Transform
 
     public Transform GlobalRotateAround(float rad, Vector2 worldPivot) => _global(Matrix3x2.CreateRotation(rad, worldPivot));
 
-    // --- Decomposition ---
-
     public Vector2 Position => Matrix.Translation;
 
     public float Rotation => MathF.Atan2(Matrix.M12, Matrix.M11);
+
+    public Vector2 Right => new(MathF.Cos(Rotation), MathF.Sin(Rotation));
+
+    public Vector2 Down => new(-MathF.Sin(Rotation), MathF.Cos(Rotation));
 
     public Vector2 ScaleFactor
     {
@@ -98,17 +100,24 @@ public readonly struct Transform
         => WithPosition(parent.ToLocal(globalPos));
 
     public Transform WithGlobalRotation(Transform parent, float globalRot)
-        => WithRotation(globalRot - parent.Rotation);
+        => WithRotation(parent.LocalRotationFor(globalRot));
 
     public Transform WithGlobalScale(Transform parent, Vector2 globalScale)
+        => WithScale(parent.LocalScaleFor(globalScale));
+
+    public float LocalRotationFor(float globalRot) => globalRot - Rotation;
+
+    public Vector2 ScaleChild(Vector2 childScale) => ScaleFactor * childScale;
+
+    public Vector2 LocalScaleFor(Vector2 globalScale)
     {
-        var ps = parent.ScaleFactor;
-        return WithScale(new Vector2(
+        var ps = ScaleFactor;
+        return new Vector2(
             ps.X != 0f ? globalScale.X / ps.X : 0f,
-            ps.Y != 0f ? globalScale.Y / ps.Y : 0f));
+            ps.Y != 0f ? globalScale.Y / ps.Y : 0f);
     }
 
-    // --- Hierarchy & Coordinate Conversions ---
+    public Vector2 RotateVector(Vector2 vec) => Vector2.Transform(vec, Matrix3x2.CreateRotation(Rotation));
 
     public static Transform operator *(Transform parent, Transform child) => new(child.Matrix * parent.Matrix);
 
@@ -119,11 +128,17 @@ public readonly struct Transform
             ? Vector2.Transform(global, invertedMatrix)
             : Vector2.Zero;
 
-    public Transform LookAt(Vector2 target)
+    public bool TryGetAngleTo(Vector2 target, out float rad)
     {
         var dir = target - Position;
-        if (dir.LengthSquared() == 0f) return this;
-        return WithRotation(MathF.Atan2(dir.Y, dir.X));
+        rad = MathF.Atan2(dir.Y, dir.X);
+        return dir.LengthSquared() != 0f;
+    }
+
+    public Transform LookAt(Vector2 target)
+    {
+        if (!TryGetAngleTo(target, out float rad)) return this;
+        return WithRotation(rad);
     }
 
     public Transform LookAtCentered(Vector2 target, Vector2 size)
@@ -135,9 +150,7 @@ public readonly struct Transform
         return RotateCentered(targetAngle - Rotation, size);
     }
 
-    // Applies 'm' first in local object space, then existing 'Matrix'
     private Transform _local(Matrix3x2 m) => new(m * Matrix);
 
-    // Applies existing 'Matrix' first, then 'm' in parent/world space
     private Transform _global(Matrix3x2 m) => new(Matrix * m);
 }
