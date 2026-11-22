@@ -91,12 +91,12 @@ public abstract void Dispose();
 ```
 
 ### Example: child objects
-Inside `OnDraw`, `d.DrawObject` draws another object relative to this one, so it follows its parent.
+Inside `OnDraw`, call the child's `Draw` with this object as the parent, so the child follows it. Do not draw children with the `Drawer`.
 ```csharp
 protected override void OnDraw(Drawer d)
 {
     d.Color = Color.Cyan;
     d.DrawRect(new Rectangle(0, 0, 32, 32));
-    d.DrawObject(_icon, new Vector2(8f, -16f));
+    _icon.Draw(this, d);
 }
 ```

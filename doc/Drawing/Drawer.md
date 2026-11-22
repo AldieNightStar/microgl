@@ -72,10 +72,11 @@ protected override void OnDraw(Drawer d)
 {
     d.DrawTexture(_body, new Rectangle(0, 0, 32, 32));
 
-    d.DrawObject(_shadow);
-    d.DrawObject(_hat, new Vector2(8f, -16f));
+    _shadow.Draw(this, d);
+    _hat.Draw(this, d);
 }
 ```
+Children are drawn by their own `Draw` method, passing the parent. `Drawer` draws only shapes, textures and text.
 
 ### Example: circular avatar
 ```csharp
