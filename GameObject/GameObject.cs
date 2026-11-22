@@ -129,8 +129,8 @@ public abstract class GameObject : IDisposable
     private DrawerTempScope _executeInTempScope(Drawer d, Transform? parent, Color blend)
     {
         _parentTransform = parent ?? Transform.Identity;
-        var renderTransform = _getPivotTransform();
-        return new DrawerTempScope(d, renderTransform, renderTransform, blend);
+        var pivotTransform = _getPivotTransform();
+        return new DrawerTempScope(d, pivotTransform, pivotTransform, blend);
     }
 
     private Transform _getPivotTransform()
