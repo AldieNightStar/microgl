@@ -43,9 +43,7 @@ public class Game : IDisposable
         }
         finally
         {
-            _game?.Dispose();
-            _drawer?.Dispose();
-            _renderer?.Dispose();
+            Dispose();
         }
     }
 
@@ -55,12 +53,12 @@ public class Game : IDisposable
         _disposed = true;
 
         _game.Dispose();
-        _drawer.Dispose();
         _renderer?.Dispose();
         Gamepad.DisposeAll();
 
         _releaseGpuDevice();
         _releaseWindow();
+        SDL.Quit();
     }
 
     private void _initSdl()
@@ -77,7 +75,6 @@ public class Game : IDisposable
         _windowHandle = SDL.CreateWindow(_title, width, height, windowFlags);
         if (_windowHandle != IntPtr.Zero) return;
 
-        SDL.Quit();
         throw new Exception($"Cannot init SDL window: {SDL.GetError()}");
     }
 
@@ -93,7 +90,6 @@ public class Game : IDisposable
         _gpuDevice = SDL.CreateGPUDevice(supportedFormats, false, null);
         if (_gpuDevice != IntPtr.Zero) return;
 
-        _abortStartup();
         throw new Exception($"Can't create GPU Device: {SDL.GetError()}");
     }
 
@@ -102,8 +98,6 @@ public class Game : IDisposable
         var rendererHandle = SDL.CreateGPURenderer(_gpuDevice, _windowHandle);
         if (rendererHandle == IntPtr.Zero)
         {
-            SDL.DestroyGPUDevice(_gpuDevice);
-            _abortStartup();
             throw new Exception($"Can't create GPU Renderer: {SDL.GetError()}");
         }
 
@@ -179,11 +173,5 @@ public class Game : IDisposable
 
         SDL.DestroyWindow(_windowHandle);
         _windowHandle = IntPtr.Zero;
-    }
-
-    private void _abortStartup()
-    {
-        SDL.DestroyWindow(_windowHandle);
-        SDL.Quit();
     }
 }

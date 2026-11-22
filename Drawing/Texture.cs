@@ -22,6 +22,8 @@ public class Texture : IDisposable
 
     public void Dispose()
     {
+        if (Surface.Pointer == IntPtr.Zero) return;
+
         FreeingResourceBus.EmitFreedTexture(this);
         Surface.Dispose();
     }
@@ -29,7 +31,7 @@ public class Texture : IDisposable
     public static Texture FromDrawing(ushort w, ushort h, Action<Drawer> act)
     {
         using SoftwareRenderer soft = new SoftwareRenderer(w, h);
-        using var drawer = new Drawer(soft)
+        var drawer = new Drawer(soft)
         {
             ScreenSize = new Vector2(w, h),
         };

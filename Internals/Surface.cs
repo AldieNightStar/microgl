@@ -42,7 +42,10 @@ public sealed class Surface : IDisposable
 
     public void Dispose()
     {
+        if (Pointer == IntPtr.Zero) return;
+
         SDL.DestroySurface(Pointer);
+        Pointer = IntPtr.Zero;
     }
 
     public static implicit operator nint(Surface s) => s.Pointer;

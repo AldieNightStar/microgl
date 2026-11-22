@@ -4,7 +4,7 @@ using SDL3;
 
 namespace microgl;
 
-public class Drawer : IDisposable
+public class Drawer
 {
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private readonly List<Rectangle> _strips = new();
@@ -41,7 +41,11 @@ public class Drawer : IDisposable
         }
     }
 
-    public Drawer(IRenderer renderer) => Renderer = renderer;
+    public Drawer(IRenderer renderer)
+    {
+        Renderer = renderer;
+        Color = Color.White;
+    }
 
     public void Clear()
     {
@@ -64,7 +68,7 @@ public class Drawer : IDisposable
 
     public void DrawObject(GameObject obj) => obj.Draw(this, WorldTransform);
 
-    public void DrawObject(GameObject obj, Vector2 localPos) => obj.Draw(this, WorldTransform * Transform.Translate(localPos));
+    public void DrawObject(GameObject obj, Vector2 localPos) => obj.Draw(this, WorldTransform.Translate(localPos));
 
     public MaskScope BeginMask(Texture mask, Rectangle dstRect)
         => new MaskScope(this, mask, dstRect);
@@ -137,5 +141,4 @@ public class Drawer : IDisposable
         TextEngine.FreeEngineForRenderer(textEnginePtr, Renderer);
     }
 
-    public void Dispose() => Renderer?.Dispose();
 }

@@ -65,7 +65,11 @@ public sealed class SoftwareRenderer : IRenderer
         Surface = new Surface(w, h);
 
         SDLRenderer = SDL.CreateSoftwareRenderer(Surface);
-        if (SDLRenderer == IntPtr.Zero) throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());
+        if (SDLRenderer == IntPtr.Zero)
+        {
+            Surface.Dispose();
+            throw new Exception("Can't create SDL Software Renderer: " + SDL.GetError());
+        }
 
         SDL.SetDefaultTextureScaleMode(SDLRenderer, SDL.ScaleMode.Nearest);
         _textureCache = new(SDLRenderer);
