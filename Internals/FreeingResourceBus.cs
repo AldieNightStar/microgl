@@ -1,16 +1,8 @@
-namespace microgl;
+﻿namespace microgl;
 
-internal class FreeingResourceBus {
-    public static event Action<Texture>? FreedTexture;
+internal static class FreeingResourceBus<T> where T : class
+{
+    internal static event Action<T>? Freeing;
 
-    public static void EmitFreedTexture(Texture texture)
-    {
-        if (texture == null) return;
-        FreedTexture?.Invoke(texture);
-    }
-
-    public static void ClearSubscribers()
-    {
-        FreedTexture = null;
-    }
+    internal static void Emit(T resource) => Freeing?.Invoke(resource);
 }

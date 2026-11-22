@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 using SDL3;
 
@@ -54,7 +54,6 @@ public class Drawer
         Color = Color.White;
     }
 
-    /// <summary>Resets all per-frame draw state. Call once at the start of each Draw pass.</summary>
     public void Reset()
     {
         Clear();
@@ -138,7 +137,6 @@ public class Drawer
             throw new Exception($"TTF.DrawRendererText failed: {SDL.GetError()}");
 
         TTF.DestroyText(obj);
-        TextEngine.FreeEngineForRenderer(textEnginePtr, Renderer);
     }
 
 }

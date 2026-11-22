@@ -1,11 +1,10 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 
 namespace microgl;
 
 public static class TweenCollection
 {
-    /// <summary>Rapid horizontal jitter as if taking damage.</summary>
     public static TweenPlanner DamageShake(GameObject obj, float intensity = 8f, float duration = 0.35f)
     {
         float originX = obj.Position.X;
@@ -20,7 +19,6 @@ public static class TweenCollection
             .Call(originX - intensity * 0.25f, originX, step, x => _setX(obj, x), Easing.EaseOutQuad);
     }
 
-    /// <summary>Flashes red twice and restores the original BlendColor.</summary>
     public static TweenPlanner DamageFlash(GameObject obj, float duration = 0.3f)
     {
         var original = obj.BlendColor;
@@ -38,7 +36,6 @@ public static class TweenCollection
             .Wait(quarter);
     }
 
-    /// <summary>Pushes the object back in a direction and smoothly recovers.</summary>
     public static TweenPlanner Knockback(GameObject obj, Vector2 impulse, float duration = 0.4f)
     {
         var start = obj.Position;
@@ -49,7 +46,6 @@ public static class TweenCollection
             .Call(0f, 1f, duration * 0.7f, t => obj.Position = Vector2.Lerp(peak, start, t), Easing.EaseInOutQuad);
     }
 
-    /// <summary>Flattens vertically and widens horizontally, then springs back.</summary>
     public static TweenPlanner Squish(GameObject obj, float amount = 0.3f, float duration = 0.45f)
     {
         var baseScale = obj.Scale;
@@ -59,7 +55,6 @@ public static class TweenCollection
             .Call(amount, 0f, duration * 0.65f, a => _setSquash(obj, baseScale, a), Easing.EaseOutElastic);
     }
 
-    /// <summary>Rises from a flattened, squeezed state back to normal with a jelly wobble.</summary>
     public static TweenPlanner RiseFromSqueezedJelly(GameObject obj, float startSquish = 0.55f, float duration = 0.85f)
     {
         var target = obj.Scale;
@@ -69,7 +64,6 @@ public static class TweenCollection
             .Call(startSquish, 0f, duration, a => _setSquash(obj, target, a), Easing.EaseOutElastic);
     }
 
-    /// <summary>Stretches tall and thin, then settles back to normal.</summary>
     public static TweenPlanner StretchVertical(GameObject obj, float amount = 0.35f, float duration = 0.45f)
     {
         var baseScale = obj.Scale;
@@ -79,7 +73,6 @@ public static class TweenCollection
             .Call(amount, 0f, duration * 0.65f, a => _setStretch(obj, baseScale, a), Easing.EaseOutElastic);
     }
 
-    /// <summary>Two-axis rubbery jelly jiggle.</summary>
     public static TweenPlanner JellyWobble(GameObject obj, float intensity = 0.25f, float duration = 0.7f)
     {
         var baseScale = obj.Scale;
@@ -90,7 +83,6 @@ public static class TweenCollection
             .Call(-intensity * 0.6f, 0f, duration * 0.4f, a => _setSquash(obj, baseScale, a), Easing.EaseOutElastic);
     }
 
-    /// <summary>Jumps straight up in place and lands cleanly.</summary>
     public static TweenPlanner JumpInPlace(GameObject obj, float height = 45f, float duration = 0.55f)
     {
         float groundY = obj.Position.Y;
@@ -100,7 +92,6 @@ public static class TweenCollection
             .Call(groundY - height, groundY, duration * 0.52f, y => _setY(obj, y), Easing.EaseInQuad);
     }
 
-    /// <summary>Anticipation crouch, jump up, and squash landing.</summary>
     public static TweenPlanner CartoonJump(GameObject obj, float height = 55f, float duration = 0.75f)
     {
         float groundY = obj.Position.Y;
@@ -117,7 +108,6 @@ public static class TweenCollection
             .Call(0.25f, 0f, duration * 0.18f, a => _setSquash(obj, baseScale, a), Easing.EaseOutBack);
     }
 
-    /// <summary>Quick upward bump, like hitting a block.</summary>
     public static TweenPlanner BumpUp(GameObject obj, float distance = 18f, float duration = 0.25f)
     {
         float startY = obj.Position.Y;
@@ -127,7 +117,6 @@ public static class TweenCollection
             .Call(startY - distance, startY, duration * 0.6f, y => _setY(obj, y), Easing.EaseOutBounce);
     }
 
-    /// <summary>Quick forward nudge or bump in any direction.</summary>
     public static TweenPlanner BumpDirection(GameObject obj, Vector2 offset, float duration = 0.25f)
     {
         var origin = obj.Position;
@@ -138,7 +127,6 @@ public static class TweenCollection
             .Call(1f, 0f, duration * 0.6f, t => obj.Position = Vector2.Lerp(origin, target, t), Easing.EaseOutBack);
     }
 
-    /// <summary>Playful left-right rotational wiggle.</summary>
     public static TweenPlanner Wiggle(GameObject obj, float degrees = 15f, float duration = 0.5f)
     {
         float baseRotation = obj.Rotation;
@@ -152,7 +140,6 @@ public static class TweenCollection
             .Call(baseRotation + radians * 0.5f, baseRotation, quarter, r => obj.Rotation = r, Easing.EaseOutQuad);
     }
 
-    /// <summary>Horizontal "No" head-shake movement.</summary>
     public static TweenPlanner ShakeNo(GameObject obj, float distance = 12f, float duration = 0.4f)
     {
         float startX = obj.Position.X;
@@ -165,7 +152,6 @@ public static class TweenCollection
             .Call(startX - distance * 0.5f, startX, step, x => _setX(obj, x), Easing.EaseOutQuad);
     }
 
-    /// <summary>Vertical "Yes" nod movement.</summary>
     public static TweenPlanner NodYes(GameObject obj, float distance = 10f, float duration = 0.4f)
     {
         float startY = obj.Position.Y;
@@ -178,7 +164,6 @@ public static class TweenCollection
             .Call(startY + distance * 0.6f, startY, step, y => _setY(obj, y), Easing.EaseOutQuad);
     }
 
-    /// <summary>Full 360-degree spin with smooth deceleration.</summary>
     public static TweenPlanner Spin360(GameObject obj, bool clockwise = true, float duration = 0.75f)
     {
         float start = obj.Rotation;
@@ -187,7 +172,6 @@ public static class TweenCollection
         return Tween.For(obj).Call(start, start + delta, duration, r => obj.Rotation = r, Easing.EaseInOutBack);
     }
 
-    /// <summary>Single heartbeat scale pulse.</summary>
     public static TweenPlanner Pulse(GameObject obj, float scaleMultiplier = 1.2f, float duration = 0.4f)
     {
         var baseScale = obj.Scale;
@@ -198,7 +182,6 @@ public static class TweenCollection
             .Call(1f, 0f, duration * 0.55f, t => obj.Scale = Vector2.Lerp(baseScale, peakScale, t), Easing.EaseInOutSine);
     }
 
-    /// <summary>Gentle idle breathing cycle that expands and relaxes.</summary>
     public static TweenPlanner Breathe(GameObject obj, float amount = 0.06f, float duration = 1.6f)
     {
         var baseScale = obj.Scale;
@@ -209,7 +192,6 @@ public static class TweenCollection
             .Call(1f, 0f, duration * 0.5f, t => obj.Scale = Vector2.Lerp(baseScale, expanded, t), Easing.EaseInOutSine);
     }
 
-    /// <summary>Gentle floating hover up and down.</summary>
     public static TweenPlanner HoverFloat(GameObject obj, float amplitude = 8f, float duration = 1.8f)
     {
         float baseY = obj.Position.Y;
@@ -219,7 +201,6 @@ public static class TweenCollection
             .Call(baseY - amplitude, baseY, duration * 0.5f, y => _setY(obj, y), Easing.EaseInOutSine);
     }
 
-    /// <summary>Pops the object into view from scale 0 with an elastic bounce.</summary>
     public static TweenPlanner PopIn(GameObject obj, float duration = 0.5f)
     {
         var targetScale = obj.Scale == Vector2.Zero ? Vector2.One : obj.Scale;
@@ -233,7 +214,6 @@ public static class TweenCollection
             .Call(0f, 1f, duration, t => obj.Scale = targetScale * t, Easing.EaseOutBack);
     }
 
-    /// <summary>Shrinks and fades out, optionally deleting the GameObject on completion.</summary>
     public static TweenPlanner PopOut(GameObject obj, bool deleteOnComplete = false, float duration = 0.35f)
     {
         var startScale = obj.Scale;
@@ -249,7 +229,6 @@ public static class TweenCollection
         return _appendDeleteIf(planner, obj, deleteOnComplete);
     }
 
-    /// <summary>Pulls back slightly for anticipation, dashes toward the target, and returns.</summary>
     public static TweenPlanner LungeAttack(GameObject obj, Vector2 targetOffset, float duration = 0.45f)
     {
         var origin = obj.Position;
@@ -262,7 +241,6 @@ public static class TweenCollection
             .Call(0f, 1f, duration * 0.50f, t => obj.Position = Vector2.Lerp(strike, origin, t), Easing.EaseOutCubic);
     }
 
-    /// <summary>Jerks backward sharply along a direction vector and eases back into place.</summary>
     public static TweenPlanner RecoilKick(GameObject obj, Vector2 kickbackOffset, float duration = 0.3f)
     {
         var origin = obj.Position;
@@ -273,7 +251,6 @@ public static class TweenCollection
             .Call(0f, 1f, duration * 0.8f, t => obj.Position = Vector2.Lerp(kicked, origin, t), Easing.EaseOutBack);
     }
 
-    /// <summary>Brief hit-stop freeze, bright cyan-white flash, and quick scale pop.</summary>
     public static TweenPlanner ParryBounce(GameObject obj, float duration = 0.35f)
     {
         var baseScale = obj.Scale;
@@ -291,7 +268,6 @@ public static class TweenCollection
             .Call(1.25f, 1f, duration * 0.7f, s => obj.Scale = baseScale * s, Easing.EaseOutElastic);
     }
 
-    /// <summary>Wobbly sway and erratic tilting, like a stunned character.</summary>
     public static TweenPlanner DizzyStagger(GameObject obj, float swayDistance = 14f, float tiltDegrees = 18f, float duration = 1.2f)
     {
         var origin = obj.Position;
@@ -322,7 +298,6 @@ public static class TweenCollection
             }, Easing.EaseOutQuad);
     }
 
-    /// <summary>Fakes a 3D coin or card spin by flipping Scale.X from 1 to -1 and back.</summary>
     public static TweenPlanner CoinSpin(GameObject obj, float duration = 0.6f)
     {
         var baseScale = obj.Scale;
@@ -332,7 +307,6 @@ public static class TweenCollection
             .Call(-1f, 1f, duration * 0.5f, sx => obj.Scale = new Vector2(baseScale.X * sx, baseScale.Y), Easing.EaseInOutSine);
     }
 
-    /// <summary>Tugs slightly backward before accelerating rapidly into the target point.</summary>
     public static TweenPlanner MagnetPull(GameObject obj, Vector2 targetPos, float duration = 0.55f)
     {
         var start = obj.Position;
@@ -345,7 +319,6 @@ public static class TweenCollection
             .Call(0f, 1f, duration * 0.72f, t => obj.Position = Vector2.Lerp(tugBack, targetPos, t), Easing.EaseInBack);
     }
 
-    /// <summary>Launches upward while spinning 360 degrees, then lands with a bounce.</summary>
     public static TweenPlanner TreasurePop(GameObject obj, float height = 65f, float duration = 0.85f)
     {
         float groundY = obj.Position.Y;
@@ -361,7 +334,6 @@ public static class TweenCollection
             .Call(0f, 1f, duration * 0.55f, t => _setY(obj, (groundY - height) + height * t), Easing.EaseOutBounce);
     }
 
-    /// <summary>Expands with a golden flash, holds at peak scale, then settles smoothly.</summary>
     public static TweenPlanner LevelUpBurst(GameObject obj, float peakMultiplier = 1.4f, float duration = 0.8f)
     {
         var baseScale = obj.Scale;
@@ -376,7 +348,6 @@ public static class TweenCollection
             .Call(peakMultiplier, 1f, duration * 0.40f, s => obj.Scale = baseScale * s, Easing.EaseInOutSine);
     }
 
-    /// <summary>Squishes inward like a button click and springs back out.</summary>
     public static TweenPlanner ButtonPress(GameObject obj, float pressScale = 0.86f, float duration = 0.25f)
     {
         var baseScale = obj.Scale;
@@ -386,7 +357,6 @@ public static class TweenCollection
             .Call(pressScale, 1f, duration * 0.65f, s => obj.Scale = baseScale * s, Easing.EaseOutBack);
     }
 
-    /// <summary>Rapidly rings left and right, like an alarm bell or notification icon.</summary>
     public static TweenPlanner AttentionRing(GameObject obj, float degrees = 20f, float duration = 0.65f)
     {
         float baseRotation = obj.Rotation;
@@ -402,7 +372,6 @@ public static class TweenCollection
             .Call(baseRotation + radians * 0.4f, baseRotation, step, r => obj.Rotation = r, Easing.EaseOutQuad);
     }
 
-    /// <summary>Stretches wide horizontally while pulling slightly, then snaps back like rubber.</summary>
     public static TweenPlanner RubberSnap(GameObject obj, float pullX = 24f, float duration = 0.5f)
     {
         float startX = obj.Position.X;
@@ -413,7 +382,6 @@ public static class TweenCollection
             .Call(1f, 0f, duration * 0.65f, t => _setPullAndStretch(obj, startX, baseScale, pullX, t), Easing.EaseOutElastic);
     }
 
-    /// <summary>Drops in from slightly above while fading alpha from 0 to 255.</summary>
     public static TweenPlanner TypewriterPop(GameObject obj, float dropDistance = 14f, float duration = 0.3f)
     {
         var targetPos = obj.Position;
@@ -433,7 +401,6 @@ public static class TweenCollection
             }, Easing.EaseOutBack);
     }
 
-    /// <summary>Falls fast from high above, slams with a wide squash, and rebounds.</summary>
     public static TweenPlanner DropSlam(GameObject obj, float dropHeight = 160f, float duration = 0.65f)
     {
         var groundPos = obj.Position;
@@ -447,7 +414,6 @@ public static class TweenCollection
             .Call(0.35f, 0f, duration * 0.35f, a => _setSquash(obj, baseScale, a), Easing.EaseOutElastic);
     }
 
-    /// <summary>Spins faster while shrinking to 0 and tinting violet into a portal.</summary>
     public static TweenPlanner PortalSwirl(GameObject obj, bool deleteOnComplete = false, float duration = 0.85f)
     {
         var startScale = obj.Scale;
@@ -470,7 +436,6 @@ public static class TweenCollection
         return _appendDeleteIf(planner, obj, deleteOnComplete);
     }
 
-    /// <summary>Floats slowly upward while tinting pale blue and fading alpha to 0.</summary>
     public static TweenPlanner GhostFadeRise(GameObject obj, float riseDistance = 55f, bool deleteOnComplete = false, float duration = 1.1f)
     {
         var startPos = obj.Position;
@@ -491,7 +456,6 @@ public static class TweenCollection
         return _appendDeleteIf(planner, obj, deleteOnComplete);
     }
 
-    /// <summary>Unfolds horizontally from Scale.X = 0 to full width, like flipping a card.</summary>
     public static TweenPlanner FlipReveal(GameObject obj, float duration = 0.45f)
     {
         var targetScale = obj.Scale == Vector2.Zero ? Vector2.One : obj.Scale;
@@ -501,7 +465,6 @@ public static class TweenCollection
             .Call(0f, 1f, duration, t => obj.Scale = new Vector2(targetScale.X * t, targetScale.Y), Easing.EaseOutBack);
     }
 
-    /// <summary>Swings smoothly back and forth, like a hanging lantern or sign.</summary>
     public static TweenPlanner PendulumSwing(GameObject obj, float maxDegrees = 25f, float duration = 1.6f)
     {
         float centerRotation = obj.Rotation;
@@ -513,7 +476,6 @@ public static class TweenCollection
             .Call(centerRotation - radians, centerRotation, duration * 0.25f, r => obj.Rotation = r, Easing.EaseInSine);
     }
 
-    /// <summary>Stretches forward, arches upward, and settles one step ahead, like a slime.</summary>
     public static TweenPlanner SlimeCrawl(GameObject obj, float stepX = 35f, float duration = 0.7f)
     {
         var startPos = obj.Position;
@@ -535,7 +497,6 @@ public static class TweenCollection
                 Easing.EaseOutBounce);
     }
 
-    /// <summary>High-frequency micro-shakes in X and Y that gradually decay to zero.</summary>
     public static TweenPlanner EarthquakeRumble(GameObject obj, float intensity = 10f, float duration = 0.8f)
     {
         var origin = obj.Position;
@@ -552,7 +513,6 @@ public static class TweenCollection
         return planner.CallFunc(() => obj.Position = origin);
     }
 
-    /// <summary>Two quick heartbeat pulses (lub-dub) followed by a rest.</summary>
     public static TweenPlanner HeartbeatDouble(GameObject obj, float beatScale = 1.22f, float duration = 0.9f)
     {
         var baseScale = obj.Scale;

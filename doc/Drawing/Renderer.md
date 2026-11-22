@@ -6,7 +6,7 @@ New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWin
 
 ### Notes
 * **`IRenderer` abstraction** (`IDisposable`) unifying native SDL3 rendering backends and GPU texture caching.
-* **`GPURenderer`** wraps an existing hardware-accelerated `SDL_Renderer` pointer and caches uploaded textures via `TextureCache`.
+* **`GPURenderer`** wraps an existing hardware-accelerated `SDL_Renderer` pointer and caches uploaded textures via `ResourceCache`.
 * **`SoftwareRenderer`** renders offscreen into an in-memory `Surface` of size `w x h` and can bake the output into a `Texture` via `ProduceTexture`.
 
 ### Usage

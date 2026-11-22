@@ -7,7 +7,7 @@ New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWin
 ### Notes
 * **2D image resource** wrapping an SDL `Surface` and implementing `IDisposable`.
 * **Supports loading from image files** (`FromPNG`, `FromBMP`) as well as **procedural offscreen generation** via `FromDrawing` using a temporary `SoftwareRenderer` and `Drawer`.
-* **Notifies `FreeingResourceBus`** on `Dispose()` before freeing the underlying `Surface` so cached GPU textures are cleaned up automatically.
+* **Notifies `FreeingResourceBus<Texture>`** on `Dispose()` before freeing the underlying `Surface` so cached GPU textures are cleaned up automatically.
 
 ### Usage
 ```csharp

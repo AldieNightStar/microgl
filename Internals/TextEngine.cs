@@ -1,59 +1,24 @@
-using SDL3;
+﻿using SDL3;
 
 namespace microgl;
 
-internal class TextEngine : IDisposable
+internal sealed class TextEngine : IDisposable
 {
-    internal static TextEngine Instance { get; private set; } = new TextEngine();
+    internal static TextEngine Instance { get; } = new();
 
-    private readonly Dictionary<nint, nint> _engineCache = new();
+    private readonly ResourceCache<IRenderer, nint> _engines;
 
-    public nint GetEngineForRenderer(IRenderer renderer)
+    private TextEngine()
     {
-        if (renderer == null)
-            throw new ArgumentNullException(nameof(renderer), "Renderer is NULL or invalid");
-
-        nint rendererPtr = renderer.GetNativePointer();
-        if (rendererPtr == IntPtr.Zero)
-            throw new ArgumentException("Renderer points to NULL", nameof(renderer));
-
-        if (_engineCache.TryGetValue(rendererPtr, out nint cachedEngine))
-            return cachedEngine;
-
-        nint newEngine = _createNativeEngine(rendererPtr);
-
-        // Cache engines only for GPU renderers
-        if (renderer is GPURenderer)
-        {
-            _engineCache[rendererPtr] = newEngine;
-        }
-
-        return newEngine;
+        _engines = new ResourceCache<IRenderer, nint>(_createEngine, TTF.DestroyRendererTextEngine);
     }
 
-    public void ClearCache()
-    {
-        foreach (nint enginePtr in _engineCache.Values)
-        {
-            if (enginePtr != IntPtr.Zero)
-                TTF.DestroyRendererTextEngine(enginePtr);
-        }
-
-        _engineCache.Clear();
-    }
-
-    private static nint _createNativeEngine(nint rendererPtr)
-    {
-        nint engine = TTF.CreateRendererTextEngine(rendererPtr);
-        if (engine == IntPtr.Zero)
-            throw new Exception($"Unable to initialize SDL Font Engine: {SDL.GetError()}");
-
-        return engine;
-    }
+    public nint GetEngineForRenderer(IRenderer renderer) => _engines.Get(renderer);
 
     public void Dispose()
     {
-        ClearCache();
+        _engines.Dispose();
+        TTF.Quit();
     }
 
     public static void Init()
@@ -61,9 +26,12 @@ internal class TextEngine : IDisposable
         if (!TTF.Init()) throw new Exception($"SDL TTF wasn't initialized successfully: {SDL.GetError()}");
     }
 
-    public static void FreeEngineForRenderer(nint enginePtr, IRenderer renderer)
+    private static nint _createEngine(IRenderer renderer)
     {
-        if (renderer is GPURenderer) return;
-        TTF.DestroyRendererTextEngine(enginePtr);
+        nint engine = TTF.CreateRendererTextEngine(renderer.GetNativePointer());
+        if (engine == IntPtr.Zero)
+            throw new Exception($"Unable to initialize SDL Font Engine: {SDL.GetError()}");
+
+        return engine;
     }
 }

@@ -52,9 +52,10 @@ public class Game : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        _game.Dispose();
-        _renderer?.Dispose();
         Gamepad.DisposeAll();
+        _game.Dispose();
+        TextEngine.Instance.Dispose();
+        _renderer?.Dispose();
 
         _releaseGpuDevice();
         _releaseWindow();
@@ -125,7 +126,7 @@ public class Game : IDisposable
         {
             float deltaTime = Time.Tick();
 
-            if (!_pumpEvents(events)) return;
+            if (!_pumpEvents(ref events)) return;
 
             _game.Update(_drawer, events.Flush(), deltaTime);
             _drawer.Reset();
@@ -134,8 +135,7 @@ public class Game : IDisposable
         }
     }
 
-    /// <summary>Returns false once a quit event is received.</summary>
-    private bool _pumpEvents(EventBuffer events)
+    private bool _pumpEvents(ref EventBuffer events)
     {
         while (SDL.PollEvent(out var sdlEvent))
         {

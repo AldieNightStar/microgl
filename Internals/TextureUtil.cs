@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using SDL3;
 
 namespace microgl;
@@ -40,9 +40,6 @@ internal class TextureUtil
         return destSurface;
     }
 
-    /// <summary>
-    /// Computes normalized UV coordinates for <paramref name="src"/> within <paramref name="texture"/>.
-    /// </summary>
     public static (float u0, float v0, float u1, float v1) ComputeUVs(Texture texture, Rectangle src)
     {
         var size = texture.Size;

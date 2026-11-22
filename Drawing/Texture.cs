@@ -1,4 +1,4 @@
-namespace microgl;
+﻿namespace microgl;
 
 using System;
 using System.Numerics;
@@ -20,11 +20,18 @@ public class Texture : IDisposable
 
     public void SetBlendMode(IRenderer renderer, SDL.BlendMode mode) => SDL.SetTextureBlendMode(renderer.GetNativeTexture(this), mode);
 
+    internal nint ToSdlTexture(nint renderer)
+    {
+        nint sdlTexture = SDL.CreateTextureFromSurface(renderer, Surface.Pointer);
+        if (sdlTexture == IntPtr.Zero) throw new Exception($"Failed to create SDL texture: {SDL.GetError()}");
+        return sdlTexture;
+    }
+
     public void Dispose()
     {
         if (Surface.Pointer == IntPtr.Zero) return;
 
-        FreeingResourceBus.EmitFreedTexture(this);
+        FreeingResourceBus<Texture>.Emit(this);
         Surface.Dispose();
     }
 

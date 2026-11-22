@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using SDL3;
 
 namespace microgl;
@@ -14,28 +14,27 @@ public interface IRenderer : IDisposable
 public sealed class GPURenderer : IRenderer
 {
     private nint _rendererPtr;
-    private TextureCache _textureCache;
+    private readonly ResourceCache<Texture, nint> _textureCache;
 
     public GPURenderer(nint renderer)
     {
         _rendererPtr = renderer;
         if (_rendererPtr == IntPtr.Zero) throw new ArgumentException("GPU Renderer is not initialized well");
 
-        _textureCache = new TextureCache(renderer);
+        _textureCache = new ResourceCache<Texture, nint>(
+            texture => texture.ToSdlTexture(renderer),
+            SDL.DestroyTexture
+        );
     }
 
     public void Dispose()
     {
-        if (_textureCache != null)
-        {
-            _textureCache.Dispose();
-            _textureCache = null;
-        }
-        if (_rendererPtr != IntPtr.Zero)
-        {
-            SDL.DestroyRenderer(_rendererPtr);
-            _rendererPtr = IntPtr.Zero;
-        }
+        if (_rendererPtr == IntPtr.Zero) return;
+
+        FreeingResourceBus<IRenderer>.Emit(this);
+        _textureCache.Dispose();
+        SDL.DestroyRenderer(_rendererPtr);
+        _rendererPtr = IntPtr.Zero;
     }
 
     public nint GetNativePointer() => _rendererPtr;
@@ -44,7 +43,7 @@ public sealed class GPURenderer : IRenderer
 
     public bool IsValid() => _rendererPtr != IntPtr.Zero;
 
-    public nint GetNativeTexture(Texture texture) => _textureCache.GetCachedSDLTexture(texture);
+    public nint GetNativeTexture(Texture texture) => _textureCache.Get(texture);
 
     public void SetShader(Shader? shader)
     {
@@ -58,7 +57,7 @@ public sealed class SoftwareRenderer : IRenderer
 {
     public nint SDLRenderer { get; private set; }
     public Surface Surface { get; private set; }
-    private TextureCache _textureCache;
+    private readonly ResourceCache<Texture, nint> _textures;
 
     public SoftwareRenderer(ushort w, ushort h)
     {
@@ -72,7 +71,9 @@ public sealed class SoftwareRenderer : IRenderer
         }
 
         SDL.SetDefaultTextureScaleMode(SDLRenderer, SDL.ScaleMode.Nearest);
-        _textureCache = new(SDLRenderer);
+
+        nint renderer = SDLRenderer;
+        _textures = new ResourceCache<Texture, nint>(texture => texture.ToSdlTexture(renderer), SDL.DestroyTexture);
     }
 
     public Texture ProduceTexture(ushort w, ushort h)
@@ -86,21 +87,13 @@ public sealed class SoftwareRenderer : IRenderer
 
     public void Dispose()
     {
-        if (_textureCache != null)
-        {
-            _textureCache.Dispose();
-            _textureCache = null;
-        }
-        if (SDLRenderer != IntPtr.Zero)
-        {
-            SDL.DestroyRenderer(SDLRenderer);
-            SDLRenderer = IntPtr.Zero;
-        }
-        if (Surface != null)
-        {
-            Surface.Dispose();
-            Surface = null;
-        }
+        if (SDLRenderer == IntPtr.Zero) return;
+
+        FreeingResourceBus<IRenderer>.Emit(this);
+        _textures.Dispose();
+        SDL.DestroyRenderer(SDLRenderer);
+        SDLRenderer = IntPtr.Zero;
+        Surface.Dispose();
     }
 
     public nint GetNativePointer() => SDLRenderer;
@@ -109,7 +102,7 @@ public sealed class SoftwareRenderer : IRenderer
 
     public bool IsValid() => SDLRenderer != IntPtr.Zero;
 
-    public nint GetNativeTexture(Texture texture) => _textureCache.GetCachedSDLTexture(texture);
+    public nint GetNativeTexture(Texture texture) => _textures.Get(texture);
 
     public void SetShader(Shader? shader) =>
         throw new NotSupportedException("Shaders are not supported on SoftwareRenderer.");
