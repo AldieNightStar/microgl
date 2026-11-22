@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using SDL3;
 
 namespace microgl;
@@ -155,6 +155,7 @@ public class Game : IDisposable
         if (Mouse.IsMouseEvent(ref sdlEvent)) Mouse.ProcessEvent(_drawer, ref sdlEvent);
         else if (Keyboard.IsKeyboardEvent(ref sdlEvent)) Keyboard.ProcessEvent(ref sdlEvent);
         else if (Gamepad.IsGamepadEvent(ref sdlEvent)) Gamepad.ProcessEvent(ref sdlEvent);
+        else if (TouchScreen.IsTouchEvent(ref sdlEvent)) TouchScreen.ProcessEvent(_drawer, ref sdlEvent);
         else if (sdlEvent.Type == (uint)SDL.EventType.WindowFocusLost) _releaseHeldInput();
     }
 
@@ -162,6 +163,7 @@ public class Game : IDisposable
     {
         Keyboard.ReleaseAll();
         Mouse.ReleaseAll();
+        TouchScreen.ReleaseAll();
     }
 
     private (int Width, int Height) _windowDimensions() => ((int)_windowSize.X, (int)_windowSize.Y);

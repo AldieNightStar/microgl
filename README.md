@@ -1,4 +1,4 @@
-﻿# microgl
+# microgl
 
 **microgl** is a small code-first 2D game framework for C#, built on **SDL3** (`SDL3-CS`). It gives you a game loop, hierarchical objects, drawing, masks, input, and tweens without an editor or engine overhead.
 
@@ -8,7 +8,7 @@
 * **Drawing and textures**: hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing through `Drawer`, with `Texture`, `AtlasTexture` sprite sheets, `DynamicTexture`, `Shader` effects, and TrueType fonts (`GameFont`).
 * **Masked drawing**: `BeginMask` clips content to a mask texture (circles, rounded cards, liquid fills, soft vignettes). The `Masks` factory builds common masks.
 * **Scene objects**: `GameObject` and `GameObjectGroup` with hierarchical position, rotation, scale and pivot.
-* **Input**: `Mouse` (game coordinates), `Keyboard` (held keys and a direction helper), and `Gamepad` (per-controller ids, radial deadzones and rumble).
+* **Input**: `Mouse` (game coordinates), `Keyboard` (held keys and a direction helper), and `Gamepad` (per-controller ids, radial deadzones and rumble), and `TouchScreen` (per-finger down, move and up events).
 * **Timing and animation**: `Time`, `GameTimer`, 31 `Easing` curves, `Tween`, `TweenPlanner`, `TweenSequence`, and 40 ready-made `TweenCollection` effects.
 
 ## Getting Started
@@ -95,6 +95,7 @@ public class MyGame : IGame
 
 ### Input
 * [Mouse](doc/Input/Mouse.md): Cursor position in game coordinates and button, move and wheel events.
+* [TouchScreen](doc/Input/TouchScreen.md): Active fingers and their positions, with down, move and up events.
 * [Keyboard](doc/Input/Keyboard.md): Held keys, press and release events, and a direction from four keys.
 * [Gamepad](doc/Input/Gamepad.md): Id-based controller input, connection events, deadzones and rumble.
 
