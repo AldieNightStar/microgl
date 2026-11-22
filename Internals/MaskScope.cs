@@ -8,16 +8,6 @@ public ref struct MaskScope
 {
     private const int QuadVertexCount = 4;
 
-    private static readonly SDL.BlendMode MaskMultiplyMode = SDL.ComposeCustomBlendMode(
-        SDL.BlendFactor.Zero, SDL.BlendFactor.SrcAlpha, SDL.BlendOperation.Add,
-        SDL.BlendFactor.Zero, SDL.BlendFactor.SrcAlpha, SDL.BlendOperation.Add
-    );
-
-    private static readonly SDL.BlendMode PremultipliedBlit = SDL.ComposeCustomBlendMode(
-        SDL.BlendFactor.One, SDL.BlendFactor.OneMinusSrcAlpha, SDL.BlendOperation.Add,
-        SDL.BlendFactor.One, SDL.BlendFactor.OneMinusSrcAlpha, SDL.BlendOperation.Add
-    );
-
     private readonly Drawer        _drawer;
     private readonly Texture       _mask;
     private readonly Rectangle     _dstRect;
@@ -45,11 +35,11 @@ public ref struct MaskScope
         if (_disposed) return;
         _disposed = true;
 
-        SDL.SetTextureBlendMode(_drawer.Renderer.GetNativeTexture(_mask), MaskMultiplyMode);
+        _mask.SetBlendMode(_drawer.Renderer, BlendModes.MaskMultiplyMode);
         _drawer.DrawTexture(_mask, _dstRect);
 
         RenderTarget.SetTarget(_drawer.Renderer, _prevTarget);
-        _target.SetBlendMode(PremultipliedBlit);
+        _target.SetBlendMode(BlendModes.PremultipliedBlit);
         _drawComposite();
 
         _target.Dispose();

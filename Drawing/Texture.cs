@@ -18,6 +18,8 @@ public class Texture : IDisposable
 
     public Vector2 Size => Surface.Size;
 
+    public void SetBlendMode(IRenderer renderer, SDL.BlendMode mode) => SDL.SetTextureBlendMode(renderer.GetNativeTexture(this), mode);
+
     public void Dispose()
     {
         FreeingResourceBus.EmitFreedTexture(this);
