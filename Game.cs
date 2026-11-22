@@ -5,9 +5,9 @@ namespace microgl;
 
 public class Game : IDisposable
 {
-    private const int VsyncEveryFrame = 1;
-    private const int VsyncDisabled = 0;
-    private const int EventBufferCapacity = 64;
+    private const int _vsyncEveryFrame = 1;
+    private const int _vsyncDisabled = 0;
+    private const int _eventBufferCapacity = 64;
 
     private readonly string _title;
     private readonly Vector2 _windowSize;
@@ -116,7 +116,7 @@ public class Game : IDisposable
         var rendererPointer = _renderer.GetNativePointer();
 
         SDL.SetDefaultTextureScaleMode(rendererPointer, SDL.ScaleMode.Nearest);
-        SDL.SetRenderVSync(rendererPointer, VSync ? VsyncEveryFrame : VsyncDisabled);
+        SDL.SetRenderVSync(rendererPointer, VSync ? _vsyncEveryFrame : _vsyncDisabled);
 
         // The swapchain dimensions must exist before the logical presentation is set.
         SDL.RenderPresent(rendererPointer);
@@ -125,7 +125,7 @@ public class Game : IDisposable
 
     private void _runGameLoop()
     {
-        var events = new EventBuffer(EventBufferCapacity);
+        var events = new EventBuffer(_eventBufferCapacity);
 
         while (true)
         {

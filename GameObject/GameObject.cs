@@ -13,8 +13,6 @@ public abstract class GameObject : IDisposable
     public Vector2 CenterPoint { get; set; } = Vector2.Zero;
     public Color BlendColor { get; set; } = Color.White;
 
-    // == Local Transform ======================================================
-
     public Vector2 Position { get => field; set { field = value; _dirty = true; } }
     public float Rotation { get => field; set { field = value; _dirty = true; } }
     public Vector2 Scale { get => field; set { field = value; _dirty = true; } } = Vector2.One;
@@ -38,8 +36,6 @@ public abstract class GameObject : IDisposable
             return _localTransform;
         }
     }
-
-    // == Global Transform =====================================================
 
     public Transform GlobalTransform => _parentTransform * Transform;
 
@@ -73,8 +69,6 @@ public abstract class GameObject : IDisposable
         }
     }
 
-    // == Spatial Helpers ======================================================
-
     public Vector2 Right => new(MathF.Cos(GlobalRotation), MathF.Sin(GlobalRotation));
     public Vector2 Down => new(-MathF.Sin(GlobalRotation), MathF.Cos(GlobalRotation));
 
@@ -96,8 +90,6 @@ public abstract class GameObject : IDisposable
 
     public Vector2 ToLocal(Vector2 worldPos) => GlobalTransform.ToLocal(worldPos);
     public Vector2 ToGlobal(Vector2 localPos) => GlobalTransform.ToGlobal(localPos);
-
-    // == Lifecycle ============================================================
 
     public void Init(Drawer d, Transform? parent = null)
     {

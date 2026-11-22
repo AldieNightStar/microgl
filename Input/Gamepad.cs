@@ -5,7 +5,7 @@ namespace microgl;
 
 public static class Gamepad
 {
-    private static readonly uint[] GAMEPAD_EVENTS =
+    private static readonly uint[] _gamepadEvents =
     [
         (uint)SDL.EventType.GamepadAdded,
         (uint)SDL.EventType.GamepadRemoved,
@@ -74,7 +74,7 @@ public static class Gamepad
     }
 
     internal static bool IsGamepadEvent(ref SDL.Event ev) =>
-        Array.IndexOf(GAMEPAD_EVENTS, ev.Type) >= 0;
+        Array.IndexOf(_gamepadEvents, ev.Type) >= 0;
 
     internal static void ProcessEvent(ref SDL.Event ev)
     {
@@ -133,7 +133,7 @@ public static class Gamepad
             case SDL.EventType.GamepadAxisMotion:
                 {
                     var axis = (SDL.GamepadAxis)ev.GAxis.Axis;
-                    float rawNorm = NormalizeRaw(axis, ev.GAxis.Value);
+                    float rawNorm = _normalizeRaw(axis, ev.GAxis.Value);
                     _rawAxes[axis] = rawNorm;
 
                     switch (axis)
@@ -143,7 +143,7 @@ public static class Gamepad
                                 var rawVec = new Vector2(
                                     _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftX),
                                     _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftY));
-                                var filtered = ApplyRadialDeadzone(rawVec);
+                                var filtered = _applyRadialDeadzone(rawVec);
 
                                 if (filtered != _leftStick)
                                 {
@@ -159,7 +159,7 @@ public static class Gamepad
                                 var rawVec = new Vector2(
                                     _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightX),
                                     _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightY));
-                                var filtered = ApplyRadialDeadzone(rawVec);
+                                var filtered = _applyRadialDeadzone(rawVec);
 
                                 if (filtered != _rightStick)
                                 {
@@ -199,7 +199,7 @@ public static class Gamepad
         }
     }
 
-    private static float NormalizeRaw(SDL.GamepadAxis axis, short rawValue)
+    private static float _normalizeRaw(SDL.GamepadAxis axis, short rawValue)
     {
         if (axis is SDL.GamepadAxis.LeftTrigger or SDL.GamepadAxis.RightTrigger)
             return Math.Clamp(rawValue / 32767f, 0f, 1f);
@@ -208,7 +208,7 @@ public static class Gamepad
         return Math.Clamp(norm, -1f, 1f);
     }
 
-    private static Vector2 ApplyRadialDeadzone(Vector2 stick)
+    private static Vector2 _applyRadialDeadzone(Vector2 stick)
     {
         float len = stick.Length();
         if (len < Deadzone) return Vector2.Zero;

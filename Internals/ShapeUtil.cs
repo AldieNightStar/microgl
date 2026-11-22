@@ -4,7 +4,7 @@ namespace microgl;
 
 internal static class ShapeUtil
 {
-    private const float PIXEL_CENTER = 0.5f;
+    private const float _pixelCenter = 0.5f;
 
     public static List<Rectangle> RoundedStrips(Rectangle rect, int radius, List<Rectangle> strips)
     {
@@ -13,7 +13,7 @@ internal static class ShapeUtil
 
         for (int row = 0; row < r; row++)
         {
-            int inset = CornerInset(r, row);
+            int inset = _cornerInset(r, row);
             int width = rect.Width - inset * 2;
             strips.Add(new Rectangle(rect.X + inset, rect.Y + row, width, 1));
             strips.Add(new Rectangle(rect.X + inset, rect.Bottom - row - 1, width, 1));
@@ -31,9 +31,9 @@ internal static class ShapeUtil
         (float)(inner.Right - outer.Left) / outer.Width,
         (float)(inner.Bottom - outer.Top) / outer.Height);
 
-    private static int CornerInset(int radius, int row)
+    private static int _cornerInset(int radius, int row)
     {
-        float dy = radius - row - PIXEL_CENTER;
+        float dy = radius - row - _pixelCenter;
         return (int)MathF.Round(radius - MathF.Sqrt(radius * radius - dy * dy));
     }
 }

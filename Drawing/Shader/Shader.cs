@@ -19,20 +19,20 @@ public sealed class Shader : IDisposable
     {
         var rendererPtr = _validateRenderer(renderer, out _device);
 
-        _shaderHandle = _CreateShaderHandle(_device, bytecode, format, entryPoint, numUniformBuffers, numSamplers);
+        _shaderHandle = _createShaderHandle(_device, bytecode, format, entryPoint, numUniformBuffers, numSamplers);
         if (_shaderHandle == IntPtr.Zero)
         {
             throw new Exception($"Can't create GPU shader: {SDL.GetError()}");
         }
 
-        StateHandle = _CreateRenderState(rendererPtr, _device, _shaderHandle);
+        StateHandle = _createRenderState(rendererPtr, _device, _shaderHandle);
     }
 
     private Shader(nint rendererPtr, nint device, nint shaderHandle)
     {
         _device = device;
         _shaderHandle = shaderHandle;
-        StateHandle = _CreateRenderState(rendererPtr, _device, _shaderHandle);
+        StateHandle = _createRenderState(rendererPtr, _device, _shaderHandle);
     }
 
     public static Shader FromFile(
@@ -75,7 +75,7 @@ public sealed class Shader : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!_SetFragmentUniforms(StateHandle, slotIndex, in data))
+        if (!_setFragmentUniforms(StateHandle, slotIndex, in data))
         {
             throw new Exception($"Can't set fragment uniform at slot {slotIndex}: {SDL.GetError()}");
         }
@@ -116,7 +116,7 @@ public sealed class Shader : IDisposable
         return rendererPtr;
     }
 
-    private static nint _CreateRenderState(nint rendererPtr, nint device, nint shaderHandle)
+    private static nint _createRenderState(nint rendererPtr, nint device, nint shaderHandle)
     {
         var stateInfo = new SDL.GPURenderStateCreateInfo
         {
@@ -133,7 +133,7 @@ public sealed class Shader : IDisposable
         return stateHandle;
     }
 
-    private static unsafe nint _CreateShaderHandle(
+    private static unsafe nint _createShaderHandle(
         nint device,
         ReadOnlySpan<byte> bytecode,
         SDL.GPUShaderFormat format,
@@ -158,7 +158,7 @@ public sealed class Shader : IDisposable
         }
     }
 
-    private static unsafe bool _SetFragmentUniforms<T>(nint stateHandle, uint slotIndex, in T data) where T : unmanaged
+    private static unsafe bool _setFragmentUniforms<T>(nint stateHandle, uint slotIndex, in T data) where T : unmanaged
     {
         fixed (T* ptr = &data)
         {

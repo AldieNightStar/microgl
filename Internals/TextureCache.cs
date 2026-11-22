@@ -14,7 +14,7 @@ internal sealed class TextureCache : IDisposable
             throw new ArgumentException("Renderer pointer cannot be null.", nameof(sdlRenderer));
 
         _renderer = sdlRenderer;
-        FreeingResourceBus.FreedTexture += OnTextureFreed;
+        FreeingResourceBus.FreedTexture += _onTextureFreed;
     }
 
     public nint GetCachedSDLTexture(Texture texture)
@@ -36,7 +36,7 @@ internal sealed class TextureCache : IDisposable
         return sdlTexture;
     }
 
-    private void OnTextureFreed(Texture texture)
+    private void _onTextureFreed(Texture texture)
     {
         if (_disposed) return;
         if (_cache.Remove(texture, out nint deletedTexture) && deletedTexture != IntPtr.Zero)
@@ -49,7 +49,7 @@ internal sealed class TextureCache : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        FreeingResourceBus.FreedTexture -= OnTextureFreed;
+        FreeingResourceBus.FreedTexture -= _onTextureFreed;
 
         foreach (var sdlTexture in _cache.Values)
         {

@@ -2,21 +2,21 @@ namespace microgl;
 
 public static class Easing
 {
-    private const float PI2 = 2f * PI;
-    private const float PI = MathF.PI;
-    private const float C1 = 1.70158f;
-    private const float C2 = C1 * 1.525f;
-    private const float C3 = C1 + 1f;
-    private const float C4 = PI2 / 3f;
-    private const float C5 = PI2 / 4.5f;
+    private const float _pi2 = 2f * _pi;
+    private const float _pi = MathF.PI;
+    private const float _c1 = 1.70158f;
+    private const float _c2 = _c1 * 1.525f;
+    private const float _c3 = _c1 + 1f;
+    private const float _c4 = _pi2 / 3f;
+    private const float _c5 = _pi2 / 4.5f;
 
     // Linear
     public static float Linear(float t) => t;
 
     // Sine
-    public static float EaseInSine(float t) => 1f - MathF.Cos((t * PI) / 2f);
-    public static float EaseOutSine(float t) => MathF.Sin((t * PI) / 2f);
-    public static float EaseInOutSine(float t) => -(MathF.Cos(PI * t) - 1f) / 2f;
+    public static float EaseInSine(float t) => 1f - MathF.Cos((t * _pi) / 2f);
+    public static float EaseOutSine(float t) => MathF.Sin((t * _pi) / 2f);
+    public static float EaseInOutSine(float t) => -(MathF.Cos(_pi * t) - 1f) / 2f;
 
     // Quad
     public static float EaseInQuad(float t) => t * t;
@@ -66,35 +66,35 @@ public static class Easing
             : (MathF.Sqrt(1f - MathF.Pow(-2f * t + 2f, 2f)) + 1f) / 2f;
 
     // Back
-    public static float EaseInBack(float t) => C3 * t * t * t - C1 * t * t;
+    public static float EaseInBack(float t) => _c3 * t * t * t - _c1 * t * t;
     public static float EaseOutBack(float t) =>
-        1f + C3 * MathF.Pow(t - 1f, 3f) + C1 * MathF.Pow(t - 1f, 2f);
+        1f + _c3 * MathF.Pow(t - 1f, 3f) + _c1 * MathF.Pow(t - 1f, 2f);
     public static float EaseInOutBack(float t) =>
         t < 0.5f
-            ? (MathF.Pow(2f * t, 2f) * ((C2 + 1f) * 2f * t - C2)) / 2f
-            : (MathF.Pow(2f * t - 2f, 2f) * ((C2 + 1f) * (t * 2f - 2f) + C2) + 2f) / 2f;
+            ? (MathF.Pow(2f * t, 2f) * ((_c2 + 1f) * 2f * t - _c2)) / 2f
+            : (MathF.Pow(2f * t - 2f, 2f) * ((_c2 + 1f) * (t * 2f - 2f) + _c2) + 2f) / 2f;
 
     // Elastic
     public static float EaseInElastic(float t) => t switch
     {
         0f => 0f,
         1f => 1f,
-        _ => -MathF.Pow(2f, 10f * t - 10f) * MathF.Sin((t * 10f - 10.75f) * C4)
+        _ => -MathF.Pow(2f, 10f * t - 10f) * MathF.Sin((t * 10f - 10.75f) * _c4)
     };
 
     public static float EaseOutElastic(float t) => t switch
     {
         0f => 0f,
         1f => 1f,
-        _ => MathF.Pow(2f, -10f * t) * MathF.Sin((t * 10f - 0.75f) * C4) + 1f
+        _ => MathF.Pow(2f, -10f * t) * MathF.Sin((t * 10f - 0.75f) * _c4) + 1f
     };
 
     public static float EaseInOutElastic(float t) => t switch
     {
         0f => 0f,
         1f => 1f,
-        < 0.5f => -(MathF.Pow(2f, 20f * t - 10f) * MathF.Sin((20f * t - 11.125f) * C5)) / 2f,
-        _ => (MathF.Pow(2f, -20f * t + 10f) * MathF.Sin((20f * t - 11.125f) * C5)) / 2f + 1f
+        < 0.5f => -(MathF.Pow(2f, 20f * t - 10f) * MathF.Sin((20f * t - 11.125f) * _c5)) / 2f,
+        _ => (MathF.Pow(2f, -20f * t + 10f) * MathF.Sin((20f * t - 11.125f) * _c5)) / 2f + 1f
     };
 
     // Bounce

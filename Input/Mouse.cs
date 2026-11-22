@@ -9,7 +9,7 @@ public static class Mouse
     public const uint MIDDLE = 2;
     public const uint RIGHT = 3;
 
-    private static uint[] MOUSE_EVENTS = [
+    private static uint[] _mouseEvents = [
         (uint) SDL.EventType.MouseMotion,
         (uint) SDL.EventType.MouseButtonDown,
         (uint) SDL.EventType.MouseButtonUp,
@@ -64,5 +64,5 @@ public static class Mouse
     private static void _setHeld(uint button) => _heldMask |= 1u << (int)button;
     private static void _unsetHeld(uint button) => _heldMask &= ~(1u << (int)button);
 
-    internal static bool IsMouseEvent(ref SDL.Event ev) => MOUSE_EVENTS.Contains(ev.Type);
+    internal static bool IsMouseEvent(ref SDL.Event ev) => _mouseEvents.Contains(ev.Type);
 }

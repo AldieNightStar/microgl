@@ -9,8 +9,6 @@ public class Drawer : IDisposable
     private readonly SDL.Vertex[] _verts = new SDL.Vertex[4];
     private readonly List<Rectangle> _strips = new();
 
-    // == State ================================================================
-
     public IRenderer Renderer { get; set; }
     public Vector2 ScreenSize { get; internal set; }
     public Rectangle ScreenBounds => new(0, 0, (int)ScreenSize.X, (int)ScreenSize.Y);
@@ -43,11 +41,7 @@ public class Drawer : IDisposable
         }
     }
 
-    // == Construction =========================================================
-
     public Drawer(IRenderer renderer) => Renderer = renderer;
-
-    // == Frame lifecycle ======================================================
 
     public void Clear()
     {
@@ -68,18 +62,12 @@ public class Drawer : IDisposable
         Shader = null;
     }
 
-    // == Object drawing =======================================================
-
     public void DrawObject(GameObject obj) => obj.Draw(this, WorldTransform);
 
     public void DrawObject(GameObject obj, Vector2 localPos) => obj.Draw(this, WorldTransform * Transform.Translate(localPos));
 
-    // == Masked drawing =======================================================
-
     public MaskScope BeginMask(Texture mask, Rectangle dstRect)
         => new MaskScope(this, mask, dstRect);
-
-    // == Primitive drawing ====================================================
 
     public void DrawTexture(Texture texture, Rectangle dstRect, Rectangle? srcRect = null)
     {

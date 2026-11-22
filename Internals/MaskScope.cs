@@ -6,7 +6,7 @@ namespace microgl;
 
 public ref struct MaskScope
 {
-    private const int QuadVertexCount = 4;
+    private const int _quadVertexCount = 4;
 
     private readonly Drawer        _drawer;
     private readonly Texture       _mask;
@@ -48,7 +48,7 @@ public ref struct MaskScope
     private void _drawComposite()
     {
         var verts = _buildCompositeQuad();
-        if (!SDL.RenderGeometry(_drawer.Renderer.GetNativePointer(), _target.Handle, verts, QuadVertexCount, QuadUtil.QUAD_INDICES, QuadUtil.QUAD_INDICES.Length))
+        if (!SDL.RenderGeometry(_drawer.Renderer.GetNativePointer(), _target.Handle, verts, _quadVertexCount, QuadUtil.QUAD_INDICES, QuadUtil.QUAD_INDICES.Length))
             throw new Exception($"RenderGeometry failed: {SDL.GetError()}");
     }
 
@@ -57,9 +57,9 @@ public ref struct MaskScope
         var size = _drawer.ScreenSize;
         var color = ColorUtil.ToSDLColor(Color.White);
         var corners = _localCorners();
-        var verts = new SDL.Vertex[QuadVertexCount];
+        var verts = new SDL.Vertex[_quadVertexCount];
 
-        for (int i = 0; i < QuadVertexCount; i++)
+        for (int i = 0; i < _quadVertexCount; i++)
         {
             var g = _drawer.Transform.ToGlobal(corners[i]);
             verts[i] = new SDL.Vertex
