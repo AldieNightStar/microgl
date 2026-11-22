@@ -26,7 +26,7 @@ public void Draw(Drawer d, float dt)
 * **Inside a `GameObject`** the drawer is moved to the object: `Transform` holds its position, rotation, scale and `CenterPoint`, so draw at `(0, 0)`. The previous state is restored when the object is done.
 * **Text**: `DrawText` needs `Font` set, or it throws. It builds the text on every call.
 * **Masks**: `BeginMask` clips drawing to a mask texture. See [Masking](Masking.md).
-* **Offscreen drawing**: create your own `Drawer` over a `SoftwareRenderer` to draw into a texture.
+* **Offscreen drawing**: `Texture.FromDrawing` and `DynamicTexture` draw into a texture on the same `Renderer` as the screen.
 
 ### Usage
 ```csharp

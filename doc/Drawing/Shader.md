@@ -4,7 +4,7 @@ A GPU effect for textures, such as grayscale or a hit flash. Set `drawer.Shader`
 
 ## Notes
 - Wraps a fragment shader (`SDL_GPUShader`) and its `SDL_GPURenderState` for `GPURenderer`.
-- Requires an `IRenderer` backed by an active `SDL_GPUDevice` (`SoftwareRenderer` is not supported).
+- Requires an `IRenderer` backed by an active `SDL_GPUDevice`, which `Game` creates for you.
 - Supports precompiled bytecode (`SPIRV`, `DXIL`, `MSL`) or runtime HLSL compilation via `SDL_shadercross`.
 - Implements `IDisposable` to release native GPU shader and render state handles.
 

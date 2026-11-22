@@ -35,15 +35,30 @@ public class Texture : IDisposable
         Surface.Dispose();
     }
 
-    public static Texture FromDrawing(ushort w, ushort h, Action<Drawer> act)
+    public static Texture FromDrawing(IRenderer renderer, ushort w, ushort h, Action<Drawer> act)
     {
-        using SoftwareRenderer soft = new SoftwareRenderer(w, h);
-        var drawer = new Drawer(soft)
+        var previousTarget = RenderTarget.GetTarget(renderer);
+        using var target = RenderTarget.CreateTargetTexture(renderer, w, h);
+        try
         {
-            ScreenSize = new Vector2(w, h),
-        };
-        act(drawer);
-        var texture = soft.ProduceTexture(w, h);
-        return texture;
+            RenderTarget.SetTarget(renderer, target);
+            _drawOnTarget(renderer, w, h, act);
+            return new Texture(new Surface(SDL.RenderReadPixels(renderer.GetNativePointer(), null)));
+        }
+        finally
+        {
+            RenderTarget.SetTarget(renderer, previousTarget);
+        }
+    }
+
+    private static void _drawOnTarget(IRenderer renderer, ushort w, ushort h, Action<Drawer> act)
+    {
+        nint native = renderer.GetNativePointer();
+        SDL.GetRenderDrawColor(native, out byte r, out byte g, out byte b, out byte a);
+        renderer.SetShader(null);
+        SDL.SetRenderDrawColor(native, 0, 0, 0, 0);
+        SDL.RenderClear(native);
+        act(new Drawer(renderer) { ScreenSize = new Vector2(w, h) });
+        SDL.SetRenderDrawColor(native, r, g, b, a);
     }
 }

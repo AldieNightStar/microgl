@@ -10,7 +10,7 @@ A texture you draw with code and redraw when its content changes, for example a 
 ### Usage
 ```csharp
 // Create a dynamic texture of size w x h with a drawing callback
-new DynamicTexture(ushort w, ushort h, Action<Drawer> drawing);
+new DynamicTexture(IRenderer renderer, ushort w, ushort h, Action<Drawer> drawing);
 
 // Read pixel dimensions or access the baked Texture (triggers lazy generation if not yet built)
 dynTex.Width;
@@ -28,7 +28,7 @@ dynTex.Dispose();
 ### Example
 ```csharp
 int score = 10;
-var dynTex = new DynamicTexture(128, 32, d =>
+var dynTex = new DynamicTexture(drawer.Renderer, 128, 32, d =>
 {
     d.Font = font;
     d.DrawText($"Score: {score}", Vector2.Zero);

@@ -4,6 +4,7 @@ public class DynamicTexture : IDisposable
 {
     public ushort Width { get; private set; }
     public ushort Height { get; private set; }
+    private readonly IRenderer _renderer;
     private Action<Drawer> _draw;
     private Texture? _texture;
 
@@ -16,8 +17,9 @@ public class DynamicTexture : IDisposable
         }
     }
 
-    public DynamicTexture(ushort w, ushort h, Action<Drawer> drawing)
+    public DynamicTexture(IRenderer renderer, ushort w, ushort h, Action<Drawer> drawing)
     {
+        _renderer = renderer;
         Width = w;
         Height = h;
         _draw = drawing;
@@ -34,7 +36,7 @@ public class DynamicTexture : IDisposable
     public void UpdateTexture()
     {
         _texture?.Dispose();
-        _texture = Texture.FromDrawing(Width, Height, _draw);
+        _texture = Texture.FromDrawing(_renderer, Width, Height, _draw);
     }
 
     public void Dispose()

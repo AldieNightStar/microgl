@@ -5,7 +5,7 @@
 ## Features
 
 * **Game loop**: `IGame` lifecycle (`Init`, `Update`, `Draw`, `Dispose`), `Nearest` pixel-art scaling, `Letterbox` window resizing, and VSync on by default.
-* **Drawing and textures**: hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) drawing through `Drawer`, with `Texture`, `AtlasTexture` sprite sheets, `DynamicTexture`, `Shader` effects, and TrueType fonts (`GameFont`).
+* **Drawing and textures**: GPU drawing through `Drawer` and `GPURenderer`, including textures baked on the GPU, with `Texture`, `AtlasTexture` sprite sheets, `DynamicTexture`, `Shader` effects, and TrueType fonts (`GameFont`).
 * **Masked drawing**: `BeginMask` clips content to a mask texture (circles, rounded cards, liquid fills, soft vignettes). The `Masks` factory builds common masks.
 * **Scene objects**: `GameObject` and `GameObjectGroup` with hierarchical position, rotation, scale and pivot.
 * **Input**: `Mouse` (game coordinates), `Keyboard` (held keys and a direction helper), and `Gamepad` (per-controller ids, radial deadzones and rumble), and `TouchScreen` (per-finger down, move and up events).
@@ -80,7 +80,7 @@ public class MyGame : IGame
 
 ### Drawing
 * [Drawer](doc/Drawing/Drawer.md): 2D drawing context for shapes, textures, text, objects, and masks.
-* [Renderer](doc/Drawing/Renderer.md): Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) rendering backends.
+* [Renderer](doc/Drawing/Renderer.md): GPU rendering backend (`GPURenderer`).
 * [Texture](doc/Drawing/Texture.md): Image loading (`PNG`, `BMP`) and procedural texture creation.
 * [AtlasTexture](doc/Drawing/AtlasTexture.md): Sprite-sheet sub-regions and grid slicing.
 * [DynamicTexture](doc/Drawing/DynamicTexture.md): Offscreen texture redrawn on demand.

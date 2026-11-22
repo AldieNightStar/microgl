@@ -32,8 +32,7 @@ public ref struct MaskScope
         if (_disposed) return;
         _disposed = true;
 
-        if (_drawer.Renderer is SoftwareRenderer) _composeOnCpu();
-        else _composeOnGpu();
+        _composeOnGpu();
 
         _target.Dispose();
     }
@@ -46,14 +45,5 @@ public ref struct MaskScope
         RenderTarget.SetTarget(_drawer.Renderer, _prevTarget);
         _target.SetBlendMode(BlendModes.PremultipliedBlit);
         _drawer.DrawScreenQuad(_target.Handle, _dstRect);
-    }
-
-    private void _composeOnCpu()
-    {
-        using var content = new Surface(SDL.RenderReadPixels(_drawer.Renderer.GetNativePointer(), null));
-        RenderTarget.SetTarget(_drawer.Renderer, _prevTarget);
-
-        using var masked = SoftwareMask.Apply(content, _mask, _dstRect);
-        _drawer.DrawTexture(masked, _dstRect);
     }
 }

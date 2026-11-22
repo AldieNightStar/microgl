@@ -1,16 +1,10 @@
-﻿using System.Drawing;
-using SDL3;
+﻿using SDL3;
 
 namespace microgl;
 
 public static class Masks
 {
-    public static Texture Rectangle(int width, int height) =>
-        Texture.FromDrawing((ushort)width, (ushort)height, d =>
-        {
-            d.Color = Color.White;
-            d.DrawRect(new Rectangle(0, 0, width, height));
-        });
+    public static Texture Rectangle(int width, int height) => _fromCoverage(width, height, (_, _) => true);
 
     public static Texture Circle(int size)
     {

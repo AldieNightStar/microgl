@@ -6,7 +6,7 @@ Clip drawing to any shape using `MaskScope` and a mask `Texture`.
 * **`ref struct`** — stack-allocated, no GC pressure. Always use with `using`.
 * **`DrawTexture` works as normal** inside the scope — no separate method needed.
 * **Partial draws are truly invisible** — undrawn areas stay transparent; the background shows through with no black, white, or color bleed.
-* **Requires `GPURenderer`**, the renderer `Game` creates. `SoftwareRenderer` (used by `Texture.FromDrawing`) is not supported.
+* **Requires `GPURenderer`**, the renderer `Game` creates.
 * **Local coordinates**: `dstRect` is in the same space as the drawing inside the scope. It follows `drawer.Transform`, so inside a `GameObject` the mask moves, rotates and scales with the object.
 * **The mask is stretched** over `dstRect`.
 * Create mask textures once in `Init` and reuse every frame.
@@ -43,7 +43,7 @@ Texture mask = Masks.FromGrayscale(Texture.FromPNG("vignette.png"), disposeOlder
 Texture mask = Texture.FromPNG("bottle_mask.png");
 
 // Drawn procedurally — use Surface.WritePixel(x, y, Color) for per-pixel control
-Texture mask = Texture.FromDrawing(128, 128, d =>
+Texture mask = Texture.FromDrawing(drawer.Renderer, 128, 128, d =>
 {
     d.Color = Color.White;
     // draw any shape here
