@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using SDL3;
 
 namespace microgl;
@@ -32,6 +32,7 @@ public class Game : IDisposable
         try
         {
             _initSdl();
+            AudioDevice.Init();
             _createWindowOrThrow();
             _initGpuDeviceAndRenderer();
             _configureRenderer();
@@ -56,6 +57,7 @@ public class Game : IDisposable
         _game.Dispose();
         TextEngine.Instance.Dispose();
         _renderer?.Dispose();
+        AudioDevice.Shutdown();
 
         _releaseGpuDevice();
         _releaseWindow();
@@ -64,7 +66,7 @@ public class Game : IDisposable
 
     private void _initSdl()
     {
-        if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Gamepad))
+        if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Gamepad | SDL.InitFlags.Audio))
             throw new Exception($"Can't Init SDL: {SDL.GetError()}");
     }
 
@@ -125,6 +127,7 @@ public class Game : IDisposable
         while (true)
         {
             float deltaTime = Time.Tick();
+            AudioDevice.Update();
 
             if (!_pumpEvents(ref events)) return;
 

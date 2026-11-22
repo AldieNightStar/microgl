@@ -9,6 +9,7 @@
 * **Masked drawing**: `BeginMask` clips content to a mask texture (circles, rounded cards, liquid fills, soft vignettes). The `Masks` factory builds common masks.
 * **Scene objects**: `GameObject` and `GameObjectGroup` with hierarchical position, rotation, scale and pivot.
 * **Input**: `Mouse` (game coordinates), `Keyboard` (held keys and a direction helper), and `Gamepad` (per-controller ids, radial deadzones and rumble), and `TouchScreen` (per-finger down, move and up events).
+* **Audio**: `Sound` WAV loading with `Play`, `Pause`, `Stop`, seeking, looping, volume and speed.
 * **Timing and animation**: `Time`, `GameTimer`, 31 `Easing` curves, `Tween`, `TweenPlanner`, `TweenSequence`, and 40 ready-made `TweenCollection` effects.
 
 ## Getting Started
@@ -98,6 +99,9 @@ public class MyGame : IGame
 * [TouchScreen](doc/Input/TouchScreen.md): Active fingers and their positions, with down, move and up events.
 * [Keyboard](doc/Input/Keyboard.md): Held keys, press and release events, and a direction from four keys.
 * [Gamepad](doc/Input/Gamepad.md): Id-based controller input, connection events, deadzones and rumble.
+
+### Audio
+* [Sound](doc/Audio/Sound.md): WAV sound with `Play`, `Pause`, `Stop`, seeking, looping, volume and speed.
 
 ### Timing
 * [Time](doc/Timing/Time.md): Clamped frame `DeltaTime` and clocks.
