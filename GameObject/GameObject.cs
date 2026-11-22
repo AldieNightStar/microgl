@@ -125,9 +125,9 @@ public abstract class GameObject : IDisposable
         }
     }
 
-    public void Init(Drawer d, GameObject parent) => Init(d, parent.GlobalTransform);
-    public void Update(Drawer d, GameObject parent) => Update(d, parent.GlobalTransform);
-    public void Draw(Drawer d, GameObject parent) => Draw(d, parent.GlobalTransform);
+    public void Init(GameObject parent, Drawer d) => Init(d, parent.GlobalTransform);
+    public void Update(GameObject parent, Drawer d) => Update(d, parent.GlobalTransform);
+    public void Draw(GameObject parent, Drawer d) => Draw(d, parent.GlobalTransform);
 
     protected abstract void OnInit(Drawer d);
     protected abstract void OnUpdate(Drawer d);
