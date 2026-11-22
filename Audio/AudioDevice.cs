@@ -4,6 +4,8 @@ namespace microgl;
 
 internal static class AudioDevice
 {
+    private const uint _noDevice = 0;
+
     private static uint _device;
     private static SDL.AudioSpec _spec;
     private static readonly HashSet<Sound> _playing = new();
@@ -14,7 +16,7 @@ internal static class AudioDevice
     internal static void Init()
     {
         _device = SDL.OpenAudioDevice(SDL.AudioDeviceDefaultPlayback, IntPtr.Zero);
-        if (_device == IntPtr.Zero)
+        if (_device == _noDevice)
         {
             throw new Exception($"Can't open audio device: {SDL.GetError()}");
         }
@@ -28,16 +30,16 @@ internal static class AudioDevice
 
     internal static void Update()
     {
-        foreach (var sound in _playing) sound.Update();
+        foreach (var sound in _playing.ToArray()) sound.Update();
     }
 
     internal static void Shutdown()
     {
-        foreach (var sound in _playing) sound.Stop();
+        foreach (var sound in _playing.ToArray()) sound.Stop();
         _playing.Clear();
-        if (_device == 0) return;
+        if (_device == _noDevice) return;
 
         SDL.CloseAudioDevice(_device);
-        _device = 0;
+        _device = _noDevice;
     }
 }

@@ -12,6 +12,7 @@ public sealed class Sound : IDisposable
     private readonly int _length;
     private readonly int _frameBytes;
     private readonly int _bytesPerSecond;
+
     private nint _stream;
     private bool _paused;
     private bool _disposed;
@@ -30,7 +31,7 @@ public sealed class Sound : IDisposable
         _spec = spec;
         _buffer = buffer;
         _length = (int)length;
-        _frameBytes = ((int)spec.Format & _bitsizeMask) / _bitsPerByte * spec.Channels;
+        _frameBytes = _frameSize(spec);
         _bytesPerSecond = _frameBytes * spec.Freq;
     }
 
@@ -38,11 +39,11 @@ public sealed class Sound : IDisposable
 
     public bool Loop { get; set; }
 
-    public float Duration => _length / (float)_bytesPerSecond;
+    public float Duration => _secondsFromBytes(_length);
 
     public float Position
     {
-        get => IsStopped ? _startOffset / (float)_bytesPerSecond : _consumedBytes() / (float)_bytesPerSecond;
+        get => _secondsFromBytes(IsStopped ? _startOffset : _consumedBytes());
         set => _seekTo(_frameAlignedOffset(value));
     }
 
@@ -72,21 +73,17 @@ public sealed class Sound : IDisposable
 
     public void Play()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(Sound));
+        _throwIfDisposed();
         if (IsPlaying) return;
-        if (IsPaused)
-        {
-            _paused = false;
-            _bind();
-            return;
-        }
 
-        _startStream(_startOffset);
+        if (IsPaused) _resume();
+        else _startStream(_startOffset);
     }
 
     public void Pause()
     {
         if (!IsPlaying) return;
+
         SDL.UnbindAudioStream(_stream);
         _paused = true;
     }
@@ -101,6 +98,7 @@ public sealed class Sound : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
+
         _disposed = true;
         Stop();
         SDL.Free(_buffer);
@@ -108,17 +106,25 @@ public sealed class Sound : IDisposable
 
     internal void Update()
     {
-        if (!IsPlaying || SDL.GetAudioStreamQueued(_stream) > 0) return;
-        if (!Loop)
-        {
-            Stop();
-            return;
-        }
+        if (!IsPlaying || _queuedBytes() > 0) return;
 
-        _queue(0, _length);
+        if (Loop) _queue(0, _length);
+        else Stop();
     }
 
-    private int _consumedBytes() => (_startOffset + _fedBytes - SDL.GetAudioStreamQueued(_stream)) % _length;
+    private static int _frameSize(SDL.AudioSpec spec) =>
+        ((int)spec.Format & _bitsizeMask) / _bitsPerByte * spec.Channels;
+
+    private void _throwIfDisposed()
+    {
+        if (_disposed) throw new ObjectDisposedException(nameof(Sound));
+    }
+
+    private float _secondsFromBytes(int bytes) => bytes / (float)_bytesPerSecond;
+
+    private int _queuedBytes() => SDL.GetAudioStreamQueued(_stream);
+
+    private int _consumedBytes() => (_startOffset + _fedBytes - _queuedBytes()) % _length;
 
     private int _frameAlignedOffset(float seconds)
     {
@@ -145,7 +151,14 @@ public sealed class Sound : IDisposable
         _fedBytes = 0;
         _queue(offset, _length - offset);
         AudioDevice.Track(this);
+
         if (!_paused) _bind();
+    }
+
+    private void _resume()
+    {
+        _paused = false;
+        _bind();
     }
 
     private nint _createStream()
