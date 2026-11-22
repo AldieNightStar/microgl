@@ -3,11 +3,6 @@ using SDL3;
 
 namespace microgl;
 
-/// <summary>
-/// Factory methods for common mask textures.
-/// Each method returns a <see cref="Texture"/> whose alpha channel defines
-/// the clip shape — pass it to <see cref="Drawer.BeginMask"/>.
-/// </summary>
 public static class Masks
 {
     public static Texture Rectangle(int width, int height) =>
