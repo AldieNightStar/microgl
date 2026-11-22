@@ -5,6 +5,7 @@ public class GameObjectGroup : GameObject
     private readonly List<GameObject> _list;
     private readonly List<GameObject> _queued = new();
     private readonly IReadOnlyList<GameObject> _readOnlyList;
+    private bool _addingLocked = false;
 
     public event Action? OnChildrenChanged;
 
@@ -51,11 +52,13 @@ public class GameObjectGroup : GameObject
     {
         if (_queued.Count == 0) return false;
 
+        _addingLocked = true;
         foreach (var el in _queued)
         {
             _list.Add(el);
             el.Init(d, d.WorldTransform);
         }
+        _addingLocked = false;
         _queued.Clear();
         return true;
     }
@@ -74,9 +77,11 @@ public class GameObjectGroup : GameObject
         Clear();
     }
 
-    public void Add(GameObject obj)
+    public bool Add(GameObject obj)
     {
+        if (_addingLocked) return false;
         _queued.Add(obj);
+        return true;
     }
 
     public IReadOnlyList<GameObject> GetChildren() => _readOnlyList;
