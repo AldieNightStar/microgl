@@ -104,7 +104,6 @@ public class Drawer : IDisposable
     }
 
     public void DrawTexture(AtlasTexture texture, Rectangle rect) => DrawTexture(texture.Texture, rect, texture.Bounds);
-    public void DrawTexture(AnimatedTexture texture, Rectangle rect) => DrawTexture(texture.CurrentFrame, rect);
     public void DrawTexture(DynamicTexture texture, Rectangle rect) => DrawTexture(texture.Texture, rect);
 
     public void DrawRect(Rectangle rect)
