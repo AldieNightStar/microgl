@@ -86,7 +86,6 @@ public class MyGame : IGame
 * [Renderer](doc/Drawing/Renderer.md) — Hardware (`GPURenderer`) and offscreen (`SoftwareRenderer`) rendering backends.
 * [Texture](doc/Drawing/Texture.md) — 2D image loading (`PNG`/`BMP`) and procedural texture creation.
 * [AtlasTexture](doc/Drawing/AtlasTexture.md) — Lightweight sprite-sheet sub-regions and grid slicing.
-* [AnimatedTexture](doc/Drawing/AnimatedTexture.md) — Frame-by-frame animation over equally sized `AtlasTexture` frames.
 * [DynamicTexture](doc/Drawing/DynamicTexture.md) — Mutable offscreen texture updated on demand.
 * [GameFont](doc/Drawing/GameFont.md) — TrueType (`.ttf`) font loading and text measurement.
 * [Transform](doc/Drawing/Transform.md) — Immutable 2D affine matrix transformations and coordinate conversions.
