@@ -9,6 +9,7 @@ public sealed class Sound : IDisposable
 
     private readonly SDL.AudioSpec _spec;
     private readonly nint _buffer;
+    private readonly Action<nint> _release;
     private readonly int _length;
     private readonly int _frameBytes;
     private readonly int _bytesPerSecond;
@@ -21,21 +22,29 @@ public sealed class Sound : IDisposable
     private float _volume = 1f;
     private float _speed = 1f;
 
-    public Sound(string filename)
+    public Sound(string filename) : this(AudioLoader.FromFile(filename))
     {
-        if (!SDL.LoadWAV(filename, out var spec, out var buffer, out uint length))
-        {
-            throw new Exception($"Sound \"{filename}\" wasn't loaded successfully: {SDL.GetError()}");
-        }
+    }
 
-        _spec = spec;
-        _buffer = buffer;
-        _length = (int)length;
-        _frameBytes = _frameSize(spec);
-        _bytesPerSecond = _frameBytes * spec.Freq;
+    public Sound(SDL.AudioSpec spec, byte[] pcm) : this(AudioLoader.FromPcm(spec, pcm))
+    {
+    }
+
+    internal Sound(AudioData data)
+    {
+        _spec = data.Spec;
+        _buffer = data.Buffer;
+        _release = data.Release;
+        _length = data.Length;
+        _frameBytes = _frameSize(data.Spec);
+        _bytesPerSecond = _frameBytes * data.Spec.Freq;
     }
 
     public static Sound FromWAV(string filename) => new(filename);
+
+    public static Sound FromWAVBytes(byte[] bytes) => new(AudioLoader.FromWavBytes(bytes));
+
+    public static Sound FromSamples(float[] samples, int sampleRate) => new(AudioLoader.FromSamples(samples, sampleRate));
 
     public bool Loop { get; set; }
 
@@ -71,10 +80,21 @@ public sealed class Sound : IDisposable
     public bool IsPaused => !IsStopped && _paused;
     public bool IsStopped => _stream == IntPtr.Zero;
 
-    public void Play()
+    public void Play(bool replay = false)
     {
         _throwIfDisposed();
-        if (IsPlaying) return;
+        if (IsPlaying)
+        {
+            if (replay)
+            {
+                Stop();
+                Play();
+            }
+            else
+            {
+                return;
+            }
+        }
 
         if (IsPaused) _resume();
         else _startStream(_startOffset);
@@ -101,7 +121,7 @@ public sealed class Sound : IDisposable
 
         _disposed = true;
         Stop();
-        SDL.Free(_buffer);
+        _release(_buffer);
     }
 
     internal void Update()
@@ -202,4 +222,13 @@ public sealed class Sound : IDisposable
         SDL.DestroyAudioStream(_stream);
         _stream = IntPtr.Zero;
     }
+}
+
+public enum SoundWaveform
+{
+    Sine,
+    Square,
+    Triangle,
+    Sawtooth,
+    Noise,
 }

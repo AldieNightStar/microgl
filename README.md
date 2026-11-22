@@ -9,7 +9,7 @@
 * **Masked drawing**: `BeginMask` clips content to a mask texture (circles, rounded cards, liquid fills, soft vignettes). The `Masks` factory builds common masks.
 * **Scene objects**: `GameObject` and `GameObjectGroup` with hierarchical position, rotation, scale and pivot.
 * **Input**: `Mouse` (game coordinates), `Keyboard` (held keys and a direction helper), and `Gamepad` (per-controller ids, radial deadzones and rumble), and `TouchScreen` (per-finger down, move and up events).
-* **Audio**: `Sound` WAV loading with `Play`, `Pause`, `Stop`, seeking, looping, volume and speed.
+* **Audio**: `Sound` loaded from WAV files or memory, with `Play`, `Pause`, `Stop`, seeking, looping, volume and speed. `SoundFX` generates sounds in code (tone, square, noise, laser, coin, explosion, bell).
 * **Timing and animation**: `Time`, `GameTimer`, 31 `Easing` curves, `Tween`, `TweenPlanner`, `TweenSequence`, and 40 ready-made `TweenCollection` effects.
 
 ## Getting Started
@@ -101,7 +101,8 @@ public class MyGame : IGame
 * [Gamepad](doc/Input/Gamepad.md): Id-based controller input, connection events, deadzones and rumble.
 
 ### Audio
-* [Sound](doc/Audio/Sound.md): WAV sound with `Play`, `Pause`, `Stop`, seeking, looping, volume and speed.
+* [Sound](doc/Audio/Sound.md): Sound from WAV files or memory, with `Play`, `Pause`, `Stop`, seeking, looping, volume and speed.
+* [SoundFX](doc/Audio/SoundFX.md): Procedural sound effects with settings records for waveform, pitch, duration and envelope.
 
 ### Timing
 * [Time](doc/Timing/Time.md): Clamped frame `DeltaTime` and clocks.
