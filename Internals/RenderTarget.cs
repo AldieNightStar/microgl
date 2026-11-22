@@ -28,7 +28,7 @@ internal struct RenderTarget : IDisposable
 
     public void RenderToScreen(IRenderer renderer, SDL.FRect dstRect)
     {
-        SDL.RenderTexture(renderer.GetNativePointer(), Handle, IntPtr.Zero, ref dstRect);
+        SDL.RenderTexture(renderer.GetNativePointer(), Handle, IntPtr.Zero, in dstRect);
     }
 
     public void SetBlendMode(SDL.BlendMode mode)
