@@ -130,7 +130,7 @@ public abstract class GameObject : IDisposable
     {
         _parentTransform = parent ?? Transform.Identity;
         var renderTransform = _getPivotTransform();
-        return new DrawerTempScope(d, renderTransform, GlobalTransform, blend);
+        return new DrawerTempScope(d, renderTransform, renderTransform, blend);
     }
 
     private Transform _getPivotTransform()
