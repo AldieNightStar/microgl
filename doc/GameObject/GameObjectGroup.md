@@ -24,7 +24,7 @@ public void Dispose() => _world.Dispose();
 * **Children follow the group**: they are placed relative to the group, so moving, rotating or scaling the group moves all of them.
 * **Adding is delayed**: `Add` queues the object, and the group inits it on its next `Update`. `Add` returns `false` only while the group is starting queued objects.
 * **Removing**: `group.Remove(obj)` or `obj.IsAlive = false`. An object in the list is disposed and removed on the group's next `Update`. A queued object is disposed and removed right away.
-* **`Clear()`** disposes all children now.
+* **`Clear()`** marks all children dead (`IsAlive = false`) and disposes them now, so tweens that target them stop.
 * **Finding children**: `GetChildren()` returns a read-only view of the active list. `CollectChildren<T>(list)` fills a list you keep with children of one type, queued ones included, and allocates nothing.
 * **`OnChildrenChanged`** fires after an `Update` in which children were added or removed, and right away when `Remove` drops a queued object or `Clear` empties a non-empty group.
 * **`Dispose()`** removes all `OnChildrenChanged` subscribers, then disposes every child.

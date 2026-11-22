@@ -113,7 +113,7 @@ public class GameObjectGroup : GameObject
     private void _removeFromQueued(GameObject obj)
     {
         if (!_queued.Remove(obj)) return;
-        obj.Dispose();
+        _kill(obj);
         _emitChildrenChanged();
     }
 
@@ -129,8 +129,14 @@ public class GameObjectGroup : GameObject
     private static void _disposeAll(List<GameObject> objects)
     {
         foreach (var el in objects)
-            el.Dispose();
+            _kill(el);
         objects.Clear();
+    }
+
+    private static void _kill(GameObject obj)
+    {
+        obj.IsAlive = false;
+        obj.Dispose();
     }
 
     private void _emitChildrenChanged() => OnChildrenChanged?.Invoke();
