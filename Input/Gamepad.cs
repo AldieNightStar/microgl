@@ -5,6 +5,12 @@ namespace microgl;
 
 public static class Gamepad
 {
+    private const float _defaultDeadzone = 0.15f;
+    private const float _maxDeadzone = 0.99f;
+    private const float _positiveAxisMax = 32767f;
+    private const float _negativeAxisMax = 32768f;
+    private const float _triggerMax = 32767f;
+
     private static readonly uint[] _gamepadEvents =
     [
         (uint)SDL.EventType.GamepadAdded,
@@ -26,26 +32,23 @@ public static class Gamepad
     public static float Deadzone
     {
         get => field;
-        set => field = Math.Clamp(value, 0f, 0.99f);
-    } = 0.15f;
-    
+        set => field = Math.Clamp(value, 0f, _maxDeadzone);
+    } = _defaultDeadzone;
+
     public static bool IsConnected => _openGamepads.Count > 0;
     public static int ConnectedCount => _openGamepads.Count;
 
-    // Connection & Button Events
     public static event Action<uint>? OnConnected;
     public static event Action<uint>? OnDisconnected;
     public static event Action<SDL.GamepadButton>? OnDown;
     public static event Action<SDL.GamepadButton>? OnUp;
 
-    // Axis, Stick & Trigger Events
     public static event Action<SDL.GamepadAxis, float>? OnAxisMove;
     public static event Action<Vector2>? OnLeftStickMove;
     public static event Action<Vector2>? OnRightStickMove;
     public static event Action<float>? OnLeftTriggerMove;
     public static event Action<float>? OnRightTriggerMove;
 
-    // Stick & Trigger Properties
     public static Vector2 LeftStick => _leftStick;
     public static Vector2 RightStick => _rightStick;
     public static float LeftTrigger => _leftTrigger;
@@ -78,133 +81,109 @@ public static class Gamepad
 
     internal static void ProcessEvent(ref SDL.Event ev)
     {
-        var type = (SDL.EventType)ev.Type;
-
-        switch (type)
+        switch ((SDL.EventType)ev.Type)
         {
-            case SDL.EventType.GamepadAdded:
-                {
-                    uint instanceId = ev.GDevice.Which;
-                    nint handle = SDL.OpenGamepad(instanceId);
-                    if (handle != IntPtr.Zero)
-                    {
-                        _openGamepads[instanceId] = handle;
-                        OnConnected?.Invoke(instanceId);
-                    }
-                    break;
-                }
-
-            case SDL.EventType.GamepadRemoved:
-                {
-                    uint instanceId = ev.GDevice.Which;
-                    if (_openGamepads.Remove(instanceId, out nint handle))
-                        SDL.CloseGamepad(handle);
-
-                    if (_openGamepads.Count == 0)
-                    {
-                        _pressedButtons.Clear();
-                        _rawAxes.Clear();
-                        _leftStick = Vector2.Zero;
-                        _rightStick = Vector2.Zero;
-                        _leftTrigger = 0f;
-                        _rightTrigger = 0f;
-                    }
-
-                    OnDisconnected?.Invoke(instanceId);
-                    break;
-                }
-
-            case SDL.EventType.GamepadButtonDown:
-                {
-                    var button = (SDL.GamepadButton)ev.GButton.Button;
-                    _pressedButtons.Add(button);
-                    OnDown?.Invoke(button);
-                    break;
-                }
-
-            case SDL.EventType.GamepadButtonUp:
-                {
-                    var button = (SDL.GamepadButton)ev.GButton.Button;
-                    _pressedButtons.Remove(button);
-                    OnUp?.Invoke(button);
-                    break;
-                }
-
-            case SDL.EventType.GamepadAxisMotion:
-                {
-                    var axis = (SDL.GamepadAxis)ev.GAxis.Axis;
-                    float rawNorm = _normalizeRaw(axis, ev.GAxis.Value);
-                    _rawAxes[axis] = rawNorm;
-
-                    switch (axis)
-                    {
-                        case SDL.GamepadAxis.LeftX or SDL.GamepadAxis.LeftY:
-                            {
-                                var rawVec = new Vector2(
-                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftX),
-                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.LeftY));
-                                var filtered = _applyRadialDeadzone(rawVec);
-
-                                if (filtered != _leftStick)
-                                {
-                                    _leftStick = filtered;
-                                    OnAxisMove?.Invoke(axis, axis == SDL.GamepadAxis.LeftX ? filtered.X : filtered.Y);
-                                    OnLeftStickMove?.Invoke(filtered);
-                                }
-                                break;
-                            }
-
-                        case SDL.GamepadAxis.RightX or SDL.GamepadAxis.RightY:
-                            {
-                                var rawVec = new Vector2(
-                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightX),
-                                    _rawAxes.GetValueOrDefault(SDL.GamepadAxis.RightY));
-                                var filtered = _applyRadialDeadzone(rawVec);
-
-                                if (filtered != _rightStick)
-                                {
-                                    _rightStick = filtered;
-                                    OnAxisMove?.Invoke(axis, axis == SDL.GamepadAxis.RightX ? filtered.X : filtered.Y);
-                                    OnRightStickMove?.Invoke(filtered);
-                                }
-                                break;
-                            }
-
-                        case SDL.GamepadAxis.LeftTrigger:
-                            {
-                                float filtered = rawNorm < Deadzone ? 0f : (rawNorm - Deadzone) / (1f - Deadzone);
-                                if (filtered != _leftTrigger)
-                                {
-                                    _leftTrigger = filtered;
-                                    OnAxisMove?.Invoke(axis, filtered);
-                                    OnLeftTriggerMove?.Invoke(filtered);
-                                }
-                                break;
-                            }
-
-                        case SDL.GamepadAxis.RightTrigger:
-                            {
-                                float filtered = rawNorm < Deadzone ? 0f : (rawNorm - Deadzone) / (1f - Deadzone);
-                                if (filtered != _rightTrigger)
-                                {
-                                    _rightTrigger = filtered;
-                                    OnAxisMove?.Invoke(axis, filtered);
-                                    OnRightTriggerMove?.Invoke(filtered);
-                                }
-                                break;
-                            }
-                    }
-                    break;
-                }
+            case SDL.EventType.GamepadAdded: _onAdded(ev.GDevice.Which); break;
+            case SDL.EventType.GamepadRemoved: _onRemoved(ev.GDevice.Which); break;
+            case SDL.EventType.GamepadButtonDown: _onButtonDown((SDL.GamepadButton)ev.GButton.Button); break;
+            case SDL.EventType.GamepadButtonUp: _onButtonUp((SDL.GamepadButton)ev.GButton.Button); break;
+            case SDL.EventType.GamepadAxisMotion: _onAxisMotion((SDL.GamepadAxis)ev.GAxis.Axis, ev.GAxis.Value); break;
         }
+    }
+
+    internal static void DisposeAll()
+    {
+        foreach (var handle in _openGamepads.Values)
+            SDL.CloseGamepad(handle);
+
+        _openGamepads.Clear();
+        _resetState();
+    }
+
+    private static void _onAdded(uint instanceId)
+    {
+        nint handle = SDL.OpenGamepad(instanceId);
+        if (handle == IntPtr.Zero) return;
+
+        _openGamepads[instanceId] = handle;
+        OnConnected?.Invoke(instanceId);
+    }
+
+    private static void _onRemoved(uint instanceId)
+    {
+        if (_openGamepads.Remove(instanceId, out nint handle))
+            SDL.CloseGamepad(handle);
+
+        if (_openGamepads.Count == 0) _resetState();
+        OnDisconnected?.Invoke(instanceId);
+    }
+
+    private static void _onButtonDown(SDL.GamepadButton button)
+    {
+        _pressedButtons.Add(button);
+        OnDown?.Invoke(button);
+    }
+
+    private static void _onButtonUp(SDL.GamepadButton button)
+    {
+        _pressedButtons.Remove(button);
+        OnUp?.Invoke(button);
+    }
+
+    private static void _onAxisMotion(SDL.GamepadAxis axis, short rawValue)
+    {
+        float rawNorm = _normalizeRaw(axis, rawValue);
+        _rawAxes[axis] = rawNorm;
+
+        if (axis is SDL.GamepadAxis.LeftX or SDL.GamepadAxis.LeftY)
+            _updateStick(axis, SDL.GamepadAxis.LeftX, SDL.GamepadAxis.LeftY, ref _leftStick, OnLeftStickMove);
+        else if (axis is SDL.GamepadAxis.RightX or SDL.GamepadAxis.RightY)
+            _updateStick(axis, SDL.GamepadAxis.RightX, SDL.GamepadAxis.RightY, ref _rightStick, OnRightStickMove);
+        else if (axis == SDL.GamepadAxis.LeftTrigger)
+            _updateTrigger(axis, rawNorm, ref _leftTrigger, OnLeftTriggerMove);
+        else if (axis == SDL.GamepadAxis.RightTrigger)
+            _updateTrigger(axis, rawNorm, ref _rightTrigger, OnRightTriggerMove);
+    }
+
+    private static void _updateStick(
+        SDL.GamepadAxis axis, SDL.GamepadAxis xAxis, SDL.GamepadAxis yAxis,
+        ref Vector2 stick, Action<Vector2>? onMove)
+    {
+        var raw = new Vector2(_rawAxes.GetValueOrDefault(xAxis), _rawAxes.GetValueOrDefault(yAxis));
+        var filtered = _applyRadialDeadzone(raw);
+        if (filtered == stick) return;
+
+        stick = filtered;
+        OnAxisMove?.Invoke(axis, axis == xAxis ? filtered.X : filtered.Y);
+        onMove?.Invoke(filtered);
+    }
+
+    private static void _updateTrigger(SDL.GamepadAxis axis, float rawNorm, ref float trigger, Action<float>? onMove)
+    {
+        float filtered = rawNorm < Deadzone ? 0f : (rawNorm - Deadzone) / (1f - Deadzone);
+        if (filtered == trigger) return;
+
+        trigger = filtered;
+        OnAxisMove?.Invoke(axis, filtered);
+        onMove?.Invoke(filtered);
+    }
+
+    private static void _resetState()
+    {
+        _pressedButtons.Clear();
+        _rawAxes.Clear();
+        _leftStick = Vector2.Zero;
+        _rightStick = Vector2.Zero;
+        _leftTrigger = 0f;
+        _rightTrigger = 0f;
     }
 
     private static float _normalizeRaw(SDL.GamepadAxis axis, short rawValue)
     {
         if (axis is SDL.GamepadAxis.LeftTrigger or SDL.GamepadAxis.RightTrigger)
-            return Math.Clamp(rawValue / 32767f, 0f, 1f);
+            return Math.Clamp(rawValue / _triggerMax, 0f, 1f);
 
-        float norm = rawValue < 0 ? rawValue / 32768f : rawValue / 32767f;
+        float norm = rawValue < 0 ? rawValue / _negativeAxisMax : rawValue / _positiveAxisMax;
         return Math.Clamp(norm, -1f, 1f);
     }
 
@@ -215,19 +194,5 @@ public static class Gamepad
 
         float rescaled = Math.Clamp((len - Deadzone) / (1f - Deadzone), 0f, 1f);
         return (stick / len) * rescaled;
-    }
-
-    internal static void DisposeAll()
-    {
-        foreach (var handle in _openGamepads.Values)
-            SDL.CloseGamepad(handle);
-
-        _openGamepads.Clear();
-        _pressedButtons.Clear();
-        _rawAxes.Clear();
-        _leftStick = Vector2.Zero;
-        _rightStick = Vector2.Zero;
-        _leftTrigger = 0f;
-        _rightTrigger = 0f;
     }
 }

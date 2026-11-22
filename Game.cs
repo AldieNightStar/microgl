@@ -155,6 +155,13 @@ public class Game : IDisposable
         if (Mouse.IsMouseEvent(ref sdlEvent)) Mouse.ProcessEvent(_drawer, ref sdlEvent);
         else if (Keyboard.IsKeyboardEvent(ref sdlEvent)) Keyboard.ProcessEvent(ref sdlEvent);
         else if (Gamepad.IsGamepadEvent(ref sdlEvent)) Gamepad.ProcessEvent(ref sdlEvent);
+        else if (sdlEvent.Type == (uint)SDL.EventType.WindowFocusLost) _releaseHeldInput();
+    }
+
+    private static void _releaseHeldInput()
+    {
+        Keyboard.ReleaseAll();
+        Mouse.ReleaseAll();
     }
 
     private (int Width, int Height) _windowDimensions() => ((int)_windowSize.X, (int)_windowSize.Y);

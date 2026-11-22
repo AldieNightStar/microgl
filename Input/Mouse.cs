@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using SDL3;
 
 namespace microgl;
@@ -9,7 +9,9 @@ public static class Mouse
     public const uint MIDDLE = 2;
     public const uint RIGHT = 3;
 
-    private static uint[] _mouseEvents = [
+    private const int _buttonCount = 32;
+
+    private static readonly uint[] _mouseEvents = [
         (uint) SDL.EventType.MouseMotion,
         (uint) SDL.EventType.MouseButtonDown,
         (uint) SDL.EventType.MouseButtonUp,
@@ -58,6 +60,16 @@ public static class Mouse
             var wheel = ev.Wheel;
             float dir = wheel.Direction == SDL.MouseWheelDirection.Flipped ? -1f : 1f;
             OnWheel?.Invoke(new Vector2(wheel.X * dir, wheel.Y * dir));
+        }
+    }
+
+    internal static void ReleaseAll()
+    {
+        for (uint button = 0; button < _buttonCount; button++)
+        {
+            if (!IsDown(button)) continue;
+            _unsetHeld(button);
+            OnUp?.Invoke(button);
         }
     }
 

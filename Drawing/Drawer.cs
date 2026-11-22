@@ -124,6 +124,7 @@ public class Drawer
 
     public void DrawText(string text, Vector2 pos)
     {
+        if (Font is null) throw new InvalidOperationException("No font set: assign Drawer.Font before DrawText.");
         var p = Transform.ToGlobal(pos);
         var textEnginePtr = TextEngine.Instance.GetEngineForRenderer(Renderer);
 

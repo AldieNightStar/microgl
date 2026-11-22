@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using SDL3;
 
 namespace microgl;
@@ -35,6 +35,11 @@ public static class Keyboard
 
         if (ev.Type == (uint)SDL.EventType.KeyDown) _press(key, ev.Key.Repeat);
         else _release(key);
+    }
+
+    internal static void ReleaseAll()
+    {
+        foreach (var key in _pressedKeys.ToArray()) _release(key);
     }
 
     private static void _press(SDL.Keycode key, bool repeated)

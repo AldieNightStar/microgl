@@ -1,4 +1,4 @@
-namespace microgl;
+﻿namespace microgl;
 
 public class GameObjectGroup : GameObject
 {
@@ -33,17 +33,16 @@ public class GameObjectGroup : GameObject
     private bool _updateAndRemoveDead(Drawer d)
     {
         int countBefore = _list.Count;
-        for (int i = _list.Count - 1; i >= 0; i--)
+        int lastIndex = _list.Count - 1;
+        for (int i = lastIndex; i >= 0; i--)
         {
+            if (i >= _list.Count) continue;
             var gameObject = _list[i];
             if (gameObject.IsAlive) gameObject.Update(d, d.WorldTransform);
+            if (!_isStillAt(i, gameObject) || gameObject.IsAlive) continue;
 
-            // If after update object is dead
-            if (!gameObject.IsAlive)
-            {
-                gameObject.Dispose();
-                _list.RemoveAt(i);
-            }
+            gameObject.Dispose();
+            _list.RemoveAt(i);
         }
         return _list.Count != countBefore;
     }
@@ -53,22 +52,24 @@ public class GameObjectGroup : GameObject
         if (_queued.Count == 0) return false;
 
         _addingLocked = true;
-        foreach (var el in _queued)
+        while (_queued.Count > 0)
         {
+            var el = _queued[0];
+            _queued.RemoveAt(0);
             _list.Add(el);
             el.Init(d, d.WorldTransform);
         }
         _addingLocked = false;
-        _queued.Clear();
         return true;
     }
 
+    private bool _isStillAt(int index, GameObject gameObject) =>
+        index < _list.Count && ReferenceEquals(_list[index], gameObject);
+
     protected override void OnDraw(Drawer d)
     {
-        foreach (var el in _list)
-        {
-            el.Draw(d, d.WorldTransform);
-        }
+        for (int i = 0; i < _list.Count; i++)
+            _list[i].Draw(d, d.WorldTransform);
     }
 
     public override void Dispose()

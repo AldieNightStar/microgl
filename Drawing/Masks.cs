@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using SDL3;
 
 namespace microgl;
@@ -14,48 +14,42 @@ public static class Masks
 
     public static Texture Circle(int size)
     {
-        float cx = size / 2f;
-        float cy = size / 2f;
+        float center = size / 2f;
         float radius = size / 2f;
 
-        return Texture.FromDrawing((ushort)size, (ushort)size, d =>
+        return _fromCoverage(size, size, (x, y) =>
         {
-            d.Color = Color.White;
-            for (int y = 0; y < size; y++)
-                for (int x = 0; x < size; x++)
-                {
-                    float dx = x - cx;
-                    float dy = y - cy;
-                    if (MathF.Sqrt(dx * dx + dy * dy) <= radius)
-                        d.DrawRect(new System.Drawing.Rectangle(x, y, 1, 1));
-                }
+            float dx = x - center;
+            float dy = y - center;
+            return dx * dx + dy * dy <= radius * radius;
         });
     }
 
-    public static Texture RoundedRectangle(int width, int height, int cornerRadius)
+    public static Texture RoundedRectangle(int width, int height, int cornerRadius) =>
+        _fromCoverage(width, height, (x, y) => _insideRoundedRect(x, y, width, height, cornerRadius));
+
+    private static bool _insideRoundedRect(int x, int y, int width, int height, int r)
     {
-        int r = cornerRadius;
+        if ((x >= r && x < width - r) || (y >= r && y < height - r)) return true;
 
-        return Texture.FromDrawing((ushort)width, (ushort)height, d =>
-        {
-            d.Color = Color.White;
+        float cornerX = x < r ? r : width - r;
+        float cornerY = y < r ? r : height - r;
+        float dx = x - cornerX;
+        float dy = y - cornerY;
+        return dx * dx + dy * dy <= r * r;
+    }
 
-            // Centre cross
-            d.DrawRect(new Rectangle(r, 0, width - r * 2, height));
-            d.DrawRect(new Rectangle(0, r, width, height - r * 2));
+    private static Texture _fromCoverage(int width, int height, Func<int, int, bool> covered)
+    {
+        var surface = new Surface(width, height);
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                if (covered(x, y)) surface.WritePixel(x, y, 255, 255, 255, 255);
+                else surface.WritePixel(x, y, 0, 0, 0, 0);
+            }
 
-            // Four corner circles
-            var corners = new[] { (r, r), (width - r, r), (r, height - r), (width - r, height - r) };
-            foreach (var (cx, cy) in corners)
-                for (int y = 0; y < height; y++)
-                    for (int x = 0; x < width; x++)
-                    {
-                        float dx = x - cx;
-                        float dy = y - cy;
-                        if (MathF.Sqrt(dx * dx + dy * dy) <= r)
-                            d.DrawRect(new System.Drawing.Rectangle(x, y, 1, 1));
-                    }
-        });
+        return new Texture(surface);
     }
 
     public static Texture Vignette(int width, int height, float strength = 0.8f)

@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using SDL3;
@@ -25,7 +25,7 @@ public sealed class Surface : IDisposable
 
     internal Surface(nint surface)
     {
-        if (surface == IntPtr.Zero) throw new Exception("Got NULL Surface");
+        if (surface == IntPtr.Zero) throw new Exception("Got NULL Surface: " + SDL.GetError());
         Pointer = surface;
     }
 

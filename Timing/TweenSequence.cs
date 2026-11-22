@@ -1,4 +1,4 @@
-namespace microgl;
+﻿namespace microgl;
 
 public sealed class TweenSequence : ITween
 {
@@ -7,8 +7,8 @@ public sealed class TweenSequence : ITween
     private int _index;
 
     public bool Repeat { get; set; }
-    public float Duration => _steps.Sum(s => s.Duration);
-    public float Elapsed => _steps.Sum(s => s.Elapsed);
+    public float Duration => _totalDuration();
+    public float Elapsed => _totalElapsed();
     public float Progress => TweenUtil.Progress(Elapsed, Duration);
     public bool IsPaused { get; set; }
     public bool IsFinished { get; private set; }
@@ -67,6 +67,20 @@ public sealed class TweenSequence : ITween
         {
             step.Dispose();
         }
+    }
+
+    private float _totalDuration()
+    {
+        float total = 0f;
+        foreach (var step in _steps) total += step.Duration;
+        return total;
+    }
+
+    private float _totalElapsed()
+    {
+        float total = 0f;
+        foreach (var step in _steps) total += step.Elapsed;
+        return total;
     }
 
     private float _advanceSteps(float dt)

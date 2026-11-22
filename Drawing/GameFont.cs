@@ -1,11 +1,13 @@
-using System.Numerics;
+﻿using System.Numerics;
 using SDL3;
 
 namespace microgl;
 
-public readonly struct GameFont : IDisposable
+public sealed class GameFont : IDisposable
 {
-    internal readonly nint _fontResource { get; init; }
+    private bool _disposed;
+
+    internal nint _fontResource { get; private set; }
 
     public GameFont(string filename, float size)
     {
@@ -17,14 +19,14 @@ public readonly struct GameFont : IDisposable
         }
     }
 
-    public static GameFont FromTTF(string filename, float size)
-    {
-        return new GameFont(filename, size);
-    }
+    public static GameFont FromTTF(string filename, float size) => new(filename, size);
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         TTF.CloseFont(_fontResource);
+        _fontResource = IntPtr.Zero;
     }
 
     public Vector2 MeasureText(string text)
