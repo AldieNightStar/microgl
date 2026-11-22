@@ -28,9 +28,9 @@ public ref struct MaskScope
         _mask = mask;
         _dstRect = new SDL.FRect { X = dstRect.X, Y = dstRect.Y, W = dstRect.Width, H = dstRect.Height };
 
-        _target = _renderer.CreateTargetTexture(dstRect.Width, dstRect.Height);
-        _prevTarget = _renderer.GetRenderTarget();
-        _renderer.SetRenderTarget(_target);
+        _target = RenderTarget.CreateTargetTexture(_renderer, dstRect.Width, dstRect.Height);
+        _prevTarget = RenderTarget.GetTarget(_renderer);
+        RenderTarget.SetTarget(_renderer, _target);
 
         // Clear to transparent — content draws normally on top of this
         SDL.SetRenderDrawColor(_renderer.GetNativePointer(), 0, 0, 0, 0);
@@ -47,11 +47,11 @@ public ref struct MaskScope
         SDL.SetTextureBlendMode(_renderer.GetNativeTexture(_mask), MaskMultiplyMode);
         SDL.RenderTexture(_renderer.GetNativePointer(), _renderer.GetNativeTexture(_mask), IntPtr.Zero, IntPtr.Zero);
 
-        _renderer.SetRenderTarget(_prevTarget);
+        RenderTarget.SetTarget(_renderer, _prevTarget);
 
         var dst = _dstRect;
-        _renderer.SetRenderTargetBlendMode(_target, PremultipliedBlit);
-        _renderer.RenderTargetToScreen(_target, dst);
+        _target.SetBlendMode(PremultipliedBlit);
+        _target.RenderToScreen(_renderer, dst);
 
         _target.Dispose();
     }

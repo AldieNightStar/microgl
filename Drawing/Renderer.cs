@@ -7,19 +7,8 @@ public interface IRenderer : IDisposable
 {
     nint GetNativePointer();
     void RenderPresent();
-    bool IsValid();
     nint GetNativeTexture(Texture texture);
     void SetShader(Shader? shader);
-
-    RenderTarget CreateTargetTexture(int width, int height);
-
-    RenderTarget? GetRenderTarget();
-
-    void SetRenderTarget(RenderTarget? target);
-
-    void SetRenderTargetBlendMode(RenderTarget target, SDL.BlendMode mode);
-
-    void RenderTargetToScreen(RenderTarget target, SDL.FRect dstRect);
 }
 
 public sealed class GPURenderer : IRenderer
@@ -63,29 +52,6 @@ public sealed class GPURenderer : IRenderer
         if (!SDL.SetGPURenderState(_rendererPtr, statePtr))
             throw new Exception($"Can't set GPU render state for shader: {SDL.GetError()}");
     }
-
-    public RenderTarget CreateTargetTexture(int width, int height)
-    {
-        var handle = SDL.CreateTexture(_rendererPtr, SDL.PixelFormat.RGBA8888, SDL.TextureAccess.Target, width, height);
-        if (handle == IntPtr.Zero)
-            throw new Exception($"CreateTargetTexture failed: {SDL.GetError()}");
-        return new RenderTarget(handle);
-    }
-
-    public RenderTarget? GetRenderTarget()
-    {
-        var handle = SDL.GetRenderTarget(_rendererPtr);
-        return handle == IntPtr.Zero ? null : new RenderTarget(handle);
-    }
-
-    public void SetRenderTarget(RenderTarget? target) =>
-        SDL.SetRenderTarget(_rendererPtr, target?.Handle ?? IntPtr.Zero);
-
-    public void SetRenderTargetBlendMode(RenderTarget target, SDL.BlendMode mode) =>
-        SDL.SetTextureBlendMode(target.Handle, mode);
-
-    public void RenderTargetToScreen(RenderTarget target, SDL.FRect dstRect) =>
-        SDL.RenderTexture(_rendererPtr, target.Handle, IntPtr.Zero, ref dstRect);
 }
 
 public sealed class SoftwareRenderer : IRenderer
@@ -143,27 +109,4 @@ public sealed class SoftwareRenderer : IRenderer
 
     public void SetShader(Shader? shader) =>
         throw new NotSupportedException("Shaders are not supported on SoftwareRenderer.");
-
-    public RenderTarget CreateTargetTexture(int width, int height)
-    {
-        var handle = SDL.CreateTexture(SDLRenderer, SDL.PixelFormat.RGBA8888, SDL.TextureAccess.Target, width, height);
-        if (handle == IntPtr.Zero)
-            throw new Exception($"CreateTargetTexture failed: {SDL.GetError()}");
-        return new RenderTarget(handle);
-    }
-
-    public RenderTarget? GetRenderTarget()
-    {
-        var handle = SDL.GetRenderTarget(SDLRenderer);
-        return handle == IntPtr.Zero ? null : new RenderTarget(handle);
-    }
-
-    public void SetRenderTarget(RenderTarget? target) =>
-        SDL.SetRenderTarget(SDLRenderer, target?.Handle ?? IntPtr.Zero);
-
-    public void SetRenderTargetBlendMode(RenderTarget target, SDL.BlendMode mode) =>
-        SDL.SetTextureBlendMode(target.Handle, mode);
-
-    public void RenderTargetToScreen(RenderTarget target, SDL.FRect dstRect) =>
-        SDL.RenderTexture(SDLRenderer, target.Handle, IntPtr.Zero, ref dstRect);
 }

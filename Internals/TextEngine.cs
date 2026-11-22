@@ -10,7 +10,7 @@ internal class TextEngine : IDisposable
 
     public nint GetEngineForRenderer(IRenderer renderer)
     {
-        if (renderer == null || !renderer.IsValid())
+        if (renderer == null)
             throw new ArgumentNullException(nameof(renderer), "Renderer is NULL or invalid");
 
         nint rendererPtr = renderer.GetNativePointer();
