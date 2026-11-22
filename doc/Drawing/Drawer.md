@@ -68,8 +68,8 @@ drawer.DrawRoundedTexture(Texture texture, Rectangle dstRect, int cornerRadius);
 drawer.DrawObject(GameObject obj);
 drawer.DrawObject(GameObject obj, Vector2 localPos);
 
-// Masks (GPURenderer only)
-using (drawer.BeginMask(Texture mask, int width, int height, Rectangle dstRect)) { ... }
+// Masks: clip drawing inside dstRect (local coordinates) to a mask texture
+using (drawer.BeginMask(Texture mask, Rectangle dstRect)) { ... }
 
 drawer.Dispose();
 ```
@@ -89,7 +89,7 @@ protected override void OnDraw(Drawer d)
 ```csharp
 public void Draw(Drawer d, float dt)
 {
-    using (d.BeginMask(_circleMask, 128, 128, new Rectangle(20, 20, 128, 128)))
+    using (d.BeginMask(_circleMask, new Rectangle(0, 0, 128, 128)))
         d.DrawTexture(_playerPhoto, new Rectangle(0, 0, 128, 128));
 }
 ```

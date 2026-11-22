@@ -7,17 +7,16 @@ Clip drawing to any shape using `MaskScope` and a mask `Texture`.
 * **`DrawTexture` works as normal** inside the scope — no separate method needed.
 * **Partial draws are truly invisible** — undrawn areas stay transparent; the background shows through with no black, white, or color bleed.
 * **Requires `GPURenderer`**, the renderer `Game` creates. `SoftwareRenderer` (used by `Texture.FromDrawing`) is not supported.
-* **The mask is stretched** over the whole `width` x `height` canvas, so a mask of the same size gives a 1:1 shape.
-* **Two coordinate spaces**: `dstRect` is where the result lands on screen. Inside the scope you draw on a `width` x `height` canvas with `(0, 0)` at its top-left.
-* **`dstRect` ignores `drawer.Transform`**, while drawing inside the scope still uses it. Begin masks in `IGame.Draw`, where the transform is identity, or set `drawer.Transform = Transform.Identity` first inside a `GameObject`.
+* **Local coordinates**: `dstRect` is in the same space as the drawing inside the scope. It follows `drawer.Transform`, so inside a `GameObject` the mask moves, rotates and scales with the object.
+* **The mask is stretched** over `dstRect`.
 * Create mask textures once in `Init` and reuse every frame.
 
 ### Usage
 
 ```csharp
-using (drawer.BeginMask(mask, width, height, dstRect))
+using (drawer.BeginMask(mask, dstRect))
 {
-    drawer.DrawTexture(texture, new Rectangle(0, 0, width, height));
+    drawer.DrawTexture(texture, new Rectangle(0, 0, 50, 50));
 }
 ```
 
@@ -59,7 +58,7 @@ For masks that change each frame, use `DynamicTexture` and call `UpdateTexture()
 ```csharp
 _circleMask = Masks.Circle(128);
 
-using (d.BeginMask(_circleMask, 128, 128, new Rectangle(20, 20, 128, 128)))
+using (d.BeginMask(_circleMask, new Rectangle(0, 0, 128, 128)))
     d.DrawTexture(_playerPhoto, new Rectangle(0, 0, 128, 128));
 ```
 
@@ -67,7 +66,7 @@ using (d.BeginMask(_circleMask, 128, 128, new Rectangle(20, 20, 128, 128)))
 ```csharp
 _cardMask = Masks.RoundedRectangle(300, 200, cornerRadius: 20);
 
-using (d.BeginMask(_cardMask, 300, 200, new Rectangle(100, 100, 300, 200)))
+using (d.BeginMask(_cardMask, new Rectangle(0, 0, 300, 200)))
     d.DrawTexture(_cardArt, new Rectangle(0, 0, 300, 200));
 ```
 
@@ -76,7 +75,7 @@ using (d.BeginMask(_cardMask, 300, 200, new Rectangle(100, 100, 300, 200)))
 _bottleMask = Texture.FromPNG("bottle_mask.png");
 
 int fillH = (int)(160 * _fillRatio);
-using (d.BeginMask(_bottleMask, 64, 160, new Rectangle(40, 500, 64, 160)))
+using (d.BeginMask(_bottleMask, new Rectangle(0, 0, 64, 160)))
     d.DrawTexture(_liquidTex, new Rectangle(0, 160 - fillH, 64, fillH));
 ```
 
@@ -84,6 +83,15 @@ using (d.BeginMask(_bottleMask, 64, 160, new Rectangle(40, 500, 64, 160)))
 ```csharp
 _vignetteMask = Masks.Vignette(960, 720, strength: 0.8f);
 
-using (d.BeginMask(_vignetteMask, 960, 720, new Rectangle(0, 0, 960, 720)))
+using (d.BeginMask(_vignetteMask, new Rectangle(0, 0, 960, 720)))
     d.DrawTexture(_scene, new Rectangle(0, 0, 960, 720));
+```
+
+**Inside a GameObject** the mask follows the object's transform
+```csharp
+protected override void OnDraw(Drawer d)
+{
+    using (d.BeginMask(_mask, new Rectangle(0, 0, 100, 100)))
+        d.DrawTexture(_texture, new Rectangle(0, 0, 50, 50));
+}
 ```

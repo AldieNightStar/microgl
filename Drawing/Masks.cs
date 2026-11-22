@@ -9,7 +9,7 @@ public static class Masks
         Texture.FromDrawing((ushort)width, (ushort)height, d =>
         {
             d.Color = Color.White;
-            d.DrawRect(new System.Drawing.Rectangle(0, 0, width, height));
+            d.DrawRect(new Rectangle(0, 0, width, height));
         });
 
     public static Texture Circle(int size)
@@ -41,8 +41,8 @@ public static class Masks
             d.Color = Color.White;
 
             // Centre cross
-            d.DrawRect(new System.Drawing.Rectangle(r, 0, width - r * 2, height));
-            d.DrawRect(new System.Drawing.Rectangle(0, r, width, height - r * 2));
+            d.DrawRect(new Rectangle(r, 0, width - r * 2, height));
+            d.DrawRect(new Rectangle(0, r, width, height - r * 2));
 
             // Four corner circles
             var corners = new[] { (r, r), (width - r, r), (r, height - r), (width - r, height - r) };
