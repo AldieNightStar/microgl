@@ -18,7 +18,7 @@ public class Drawer
 
     public Color BlendColor { get; set; } = Color.White;
     public Color FontColor { get; set; } = Color.White;
-    public GameFont Font { get; set; }
+    public GameFont? Font { get; set; }
 
     public Color Color
     {
@@ -61,7 +61,7 @@ public class Drawer
         WorldTransform = Transform.Identity;
         BlendColor = Color.White;
         FontColor = Color.White;
-        Font = default;
+        Font = null;
         Shader = null;
     }
 
@@ -107,6 +107,13 @@ public class Drawer
     {
         foreach (var strip in ShapeUtil.RoundedStrips(rect, cornerRadius, _strips))
             DrawRect(strip);
+    }
+
+    internal void DrawScreenQuad(nint nativeTexture, Rectangle rect)
+    {
+        QuadUtil.FillScreenQuad(_verts, rect, Transform, ScreenSize, ColorUtil.ToSDLColor(Color.White));
+        if (!SDL.RenderGeometry(Renderer.GetNativePointer(), nativeTexture, _verts, _verts.Length, QuadUtil.QUAD_INDICES, QuadUtil.QUAD_INDICES.Length))
+            throw new Exception($"RenderGeometry failed: {SDL.GetError()}");
     }
 
     public void DrawLine(Vector2 a, Vector2 b)

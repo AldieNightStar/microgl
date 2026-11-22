@@ -1,4 +1,4 @@
-# GameObjectGroup
+﻿# GameObjectGroup
 
 A `GameObject` that holds other game objects and runs them: it inits, updates, draws and disposes all of its children. Use one for your game world, for each screen, or to move several objects together.
 
@@ -27,7 +27,7 @@ public void Dispose() => _world.Dispose();
 * **Adding is delayed**: `Add()` queues the object, and the group inits it on its next `Update()`. That makes it safe to add objects at any time, even from a child's `OnUpdate`.
 * **Removing**: call `obj.Delete()` or `group.Remove(obj)`. The group disposes and removes the object on its next `Update()`. A queued object is removed and disposed right away.
 * **`Clear()`** disposes all children at once.
-* **Finding children**: `GetChildren()` returns the active list. `GetChildren<T>()` returns children of one type, queued ones included. `CollectChildren<T>(list)` does the same into a list you keep and allocates nothing, so prefer it in code that runs every frame.
+* **Finding children**: `GetChildren()` returns the active list. `CollectChildren<T>(list)` fills a list you keep with children of one type, queued ones included, and allocates nothing, so use it in code that runs every frame.
 * **`OnChildrenChanged`** fires once per `Update()` in which children were added or removed, and right away when `Remove()` drops a queued object or `Clear()` empties a non-empty group. `UITable` uses it to re-layout.
 * **`Dispose()`** removes all `OnChildrenChanged` subscribers, then disposes every child.
 
@@ -41,7 +41,6 @@ group.Remove(GameObject obj);
 group.Clear();
 
 group.GetChildren();                    // IReadOnlyList<GameObject>
-group.GetChildren<T>();                 // IEnumerable<T>, queued included
 group.CollectChildren<T>(List<T> list); // no allocation
 
 group.OnChildrenChanged;

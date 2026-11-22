@@ -1,13 +1,10 @@
-using System.Drawing;
-using System.Numerics;
+﻿using System.Drawing;
 using SDL3;
 
 namespace microgl;
 
 public ref struct MaskScope
 {
-    private const int _quadVertexCount = 4;
-
     private readonly Drawer        _drawer;
     private readonly Texture       _mask;
     private readonly Rectangle     _dstRect;
@@ -45,38 +42,5 @@ public ref struct MaskScope
         _target.Dispose();
     }
 
-    private void _drawComposite()
-    {
-        var verts = _buildCompositeQuad();
-        if (!SDL.RenderGeometry(_drawer.Renderer.GetNativePointer(), _target.Handle, verts, _quadVertexCount, QuadUtil.QUAD_INDICES, QuadUtil.QUAD_INDICES.Length))
-            throw new Exception($"RenderGeometry failed: {SDL.GetError()}");
-    }
-
-    private SDL.Vertex[] _buildCompositeQuad()
-    {
-        var size = _drawer.ScreenSize;
-        var color = ColorUtil.ToSDLColor(Color.White);
-        var corners = _localCorners();
-        var verts = new SDL.Vertex[_quadVertexCount];
-
-        for (int i = 0; i < _quadVertexCount; i++)
-        {
-            var g = _drawer.Transform.ToGlobal(corners[i]);
-            verts[i] = new SDL.Vertex
-            {
-                Position = new SDL.FPoint { X = g.X, Y = g.Y },
-                Color = color,
-                TexCoord = new SDL.FPoint { X = g.X / size.X, Y = g.Y / size.Y },
-            };
-        }
-        return verts;
-    }
-
-    private Vector2[] _localCorners() =>
-    [
-        new(_dstRect.Left,  _dstRect.Top),
-        new(_dstRect.Right, _dstRect.Top),
-        new(_dstRect.Right, _dstRect.Bottom),
-        new(_dstRect.Left,  _dstRect.Bottom),
-    ];
+    private void _drawComposite() => _drawer.DrawScreenQuad(_target.Handle, _dstRect);
 }

@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 using SDL3;
 
@@ -25,6 +25,32 @@ internal static class QuadUtil
         verts[1] = new SDL.Vertex { Position = new SDL.FPoint { X = p1.X, Y = p1.Y }, Color = color, TexCoord = new SDL.FPoint { X = u1, Y = v0 } };
         verts[2] = new SDL.Vertex { Position = new SDL.FPoint { X = p2.X, Y = p2.Y }, Color = color, TexCoord = new SDL.FPoint { X = u1, Y = v1 } };
         verts[3] = new SDL.Vertex { Position = new SDL.FPoint { X = p3.X, Y = p3.Y }, Color = color, TexCoord = new SDL.FPoint { X = u0, Y = v1 } };
+    }
+
+    public static void FillScreenQuad(
+        SDL.Vertex[] verts,
+        Rectangle    rect,
+        Transform    transform,
+        Vector2      screenSize,
+        SDL.FColor   color)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            var corner = i switch
+            {
+                0 => new Vector2(rect.Left, rect.Top),
+                1 => new Vector2(rect.Right, rect.Top),
+                2 => new Vector2(rect.Right, rect.Bottom),
+                _ => new Vector2(rect.Left, rect.Bottom),
+            };
+            var g = transform.ToGlobal(corner);
+            verts[i] = new SDL.Vertex
+            {
+                Position = new SDL.FPoint { X = g.X, Y = g.Y },
+                Color = color,
+                TexCoord = new SDL.FPoint { X = g.X / screenSize.X, Y = g.Y / screenSize.Y },
+            };
+        }
     }
 
     public static Rectangle TransformedBounds(Transform transform, Vector2 size)

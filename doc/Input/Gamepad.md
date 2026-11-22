@@ -1,54 +1,55 @@
-# Gamepad
+﻿# Gamepad
 
-Reads game controllers: buttons, sticks, triggers and rumble. It works with Xbox, PlayStation, Switch and other controllers, and handles plugging them in and out.
+Static input for game controllers. Every call takes the controller's SDL id, so input from one controller never mixes with another. Events also carry that id.
 
 New to this? See [Tutorial 1: First window and drawing](../Tutorials/01-FirstWindow.md).
 
 ### Notes
-* **Static gamepad input handler** backed by SDL3's unified Gamepad API (supporting Xbox, PlayStation, Switch, and standard controllers).
-* **Applies radial deadzone filtering** (configurable via `Deadzone`, default `0.15f`) to analog sticks and linear deadzone rescaling to triggers.
-* **Supports both polling and events** (`OnConnected`, `OnDisconnected`, `OnDown`, `OnUp`, `OnAxisMove`, `OnLeftStickMove`, `OnRightStickMove`, `OnLeftTriggerMove`, `OnRightTriggerMove`) plus controller vibration via `Rumble`.
+* **Id-based static API**: pass the id from `CollectConnectedIds` or from a connection event. No state objects. No allocations per frame.
+* **Radial deadzone** on sticks and linear rescaling on triggers, set globally with `Deadzone` (default `0.15f`).
+* **Events** carry the controller id as the first argument.
 
 ### Usage
 ```csharp
-// Connection state and radial deadzone threshold (0.0f to 1.0f, default 0.15f)
-Gamepad.IsConnected;
+// Connected controllers
+Gamepad.CollectConnectedIds(List<uint> target);   // fills your list, allocates nothing
 Gamepad.ConnectedCount;
-Gamepad.Deadzone;
+Gamepad.IsConnected(uint id);
+Gamepad.Deadzone;                  // 0.0f to 0.99f
 
-// Polling buttons, individual axes, analog sticks (-1..1), and triggers (0..1)
-Gamepad.IsButtonDown(SDL.GamepadButton button);
-Gamepad.GetAxis(SDL.GamepadAxis axis);
-Gamepad.LeftStick; Gamepad.RightStick;
-Gamepad.LeftTrigger; Gamepad.RightTrigger;
+// Polling per controller
+Gamepad.IsButtonDown(uint id, SDL.GamepadButton button);
+Gamepad.GetAxis(uint id, SDL.GamepadAxis axis);     // -1..1 for sticks, 0..1 for triggers
+Gamepad.LeftStick(uint id);
+Gamepad.RightStick(uint id);
+Gamepad.LeftTrigger(uint id);
+Gamepad.RightTrigger(uint id);
 
-// Vibrate all connected controllers with low/high motor intensities (0.0f to 1.0f) for durationMs
-Gamepad.Rumble(float lowFrequency, float highFrequency, uint durationMs);
+// Vibration for one controller (low/high motor 0.0f to 1.0f for durationMs)
+Gamepad.Rumble(uint id, float lowFrequency, float highFrequency, uint durationMs);
 
-// Connection, button press/release, and filtered axis/stick/trigger events
-Gamepad.OnConnected; Gamepad.OnDisconnected;
-Gamepad.OnDown; Gamepad.OnUp;
-Gamepad.OnAxisMove;
-Gamepad.OnLeftStickMove; Gamepad.OnRightStickMove;
-Gamepad.OnLeftTriggerMove; Gamepad.OnRightTriggerMove;
+// Events
+Gamepad.OnConnected;               // Action<uint id>
+Gamepad.OnDisconnected;            // Action<uint id>
+Gamepad.OnDown; Gamepad.OnUp;      // Action<uint id, SDL.GamepadButton>
+Gamepad.OnAxisMove;                // Action<uint id, SDL.GamepadAxis, float>
+Gamepad.OnLeftStickMove; Gamepad.OnRightStickMove;     // Action<uint id, Vector2>
+Gamepad.OnLeftTriggerMove; Gamepad.OnRightTriggerMove; // Action<uint id, float>
 ```
 
 ### Example
 ```csharp
-// Event-driven input and rumble
-Gamepad.OnDown += btn =>
+Gamepad.OnDown += (id, btn) =>
 {
-    if (btn == SDL.GamepadButton.East)
-    {
-        Gamepad.Rumble(0.8f, 0.8f, 250);
-    }
+    if (btn == SDL.GamepadButton.East) Gamepad.Rumble(id, 0.8f, 0.8f, 250);
 };
 
-Gamepad.OnLeftStickMove += stick => player.Velocity = stick * 200f;
+Gamepad.OnLeftStickMove += (id, stick) => players[id].Velocity = stick * 200f;
 
 // Frame polling
-if (Gamepad.IsConnected && Gamepad.IsButtonDown(SDL.GamepadButton.South))
+Gamepad.CollectConnectedIds(connectedIds);
+foreach (var id in connectedIds)
 {
-    player.Jump();
+    if (Gamepad.IsButtonDown(id, SDL.GamepadButton.South)) players[id].Jump();
 }
 ```

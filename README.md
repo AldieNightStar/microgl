@@ -1,4 +1,4 @@
-# microgl
+﻿# microgl
 
 **microgl** is a lightweight, code-first 2D game framework for C# built on top of **SDL3** (`SDL3-CS`). It provides a clean, object-oriented API for 2D rendering, hierarchical transforms, input handling, timers, tweens, and UI layouts without heavy engine overhead.
 
@@ -99,7 +99,7 @@ public class MyGame : IGame
 ### Input
 * [Mouse](doc/Input/Mouse.md) — Cursor coordinates (mapped to logical render space) and button events.
 * [Keyboard](doc/Input/Keyboard.md) — Held, pressed and released keys, a direction from arrows or WASD (`GetVectorFromKeys`), modifier states and key events.
-* [Gamepad](doc/Input/Gamepad.md) — Controller hot-plugging, button/axis events, radial deadzones, and rumble.
+* [Gamepad](doc/Input/Gamepad.md) — Id-based static API with per-controller events, hot-plugging, radial deadzones, and rumble.
 
 ### Timing
 * [Time](doc/Timing/Time.md) — Clamped frame `DeltaTime` and high-resolution millisecond clock.

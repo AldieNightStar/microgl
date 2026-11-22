@@ -87,9 +87,6 @@ public class GameObjectGroup : GameObject
 
     public IReadOnlyList<GameObject> GetChildren() => _readOnlyList;
 
-    public IEnumerable<T> GetChildren<T>() where T : GameObject
-        => _list.OfType<T>().Concat(_queued.OfType<T>());
-
     public void CollectChildren<T>(List<T> target) where T : GameObject
     {
         target.Clear();
