@@ -50,7 +50,7 @@ public static class SoundFX
 
         for (int partial = 1; partial <= bell.Partials; partial++)
         {
-            layers.Add(Synth.Render(bell with
+            layers.Add(SoundSynth.Render(bell with
             {
                 Frequency = bell.Frequency * partial,
                 EndFrequency = bell.EndFrequency * partial,
@@ -58,9 +58,9 @@ public static class SoundFX
             }));
         }
 
-        return Sound.FromSamples(Synth.Mix(layers), bell.SampleRate);
+        return Sound.FromSamples(SoundSynth.Mix(layers), bell.SampleRate);
     }
 
     private static Sound _create(SynthSettings settings) =>
-        Sound.FromSamples(Synth.Render(settings), settings.SampleRate);
+        Sound.FromSamples(SoundSynth.Render(settings), settings.SampleRate);
 }

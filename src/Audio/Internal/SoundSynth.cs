@@ -1,6 +1,6 @@
 namespace microgl;
 
-internal static class Synth
+internal static class SoundSynth
 {
     private const float _twoPi = MathF.PI * 2f;
 
