@@ -10,9 +10,9 @@ public abstract class GameObject : IDisposable
     private bool _dirty = true;
 
     public virtual bool IsAlive { get; set; } = true;
-    public Vector2 CenterPoint { get; set; } = Vector2.Zero;
     public Color BlendColor { get; set; } = Color.White;
 
+    public Vector2 CenterPoint { get => field; set { field = value; _dirty = true; } }
     public Vector2 Position { get => field; set { field = value; _dirty = true; } }
     public float Rotation { get => field; set { field = value; _dirty = true; } }
     public Vector2 Scale { get => field; set { field = value; _dirty = true; } } = Vector2.One;
@@ -30,7 +30,10 @@ public abstract class GameObject : IDisposable
         {
             if (_dirty)
             {
-                _localTransform = Transform.Create(Position, Rotation, Scale, Skew);
+                var baseTransform = Transform.Create(Position, Rotation, Scale, Skew);
+                _localTransform = CenterPoint == Vector2.Zero
+                    ? baseTransform
+                    : baseTransform.Translate(-CenterPoint);
                 _dirty = false;
             }
             return _localTransform;
@@ -115,14 +118,7 @@ public abstract class GameObject : IDisposable
     private DrawerTempScope _executeInTempScope(Drawer d, Transform? parent, Color blend)
     {
         _parentTransform = parent ?? Transform.Identity;
-        var pivotTransform = _getPivotTransform();
-        return new DrawerTempScope(d, pivotTransform, pivotTransform, blend);
-    }
-
-    private Transform _getPivotTransform()
-    {
-        return CenterPoint == Vector2.Zero
-            ? GlobalTransform
-            : GlobalTransform.Translate(-CenterPoint);
+        var global = GlobalTransform;
+        return new DrawerTempScope(d, global, global, blend);
     }
 }
