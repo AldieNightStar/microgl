@@ -22,11 +22,13 @@ public sealed class Sound : IDisposable
     private float _volume = 1f;
     private float _speed = 1f;
 
-    public Sound(string filename) : this(AudioLoader.FromFile(filename))
+    public Sound(string filename)
+        : this(AudioLoader.FromFile(filename))
     {
     }
 
-    public Sound(SDL.AudioSpec spec, byte[] pcm) : this(AudioLoader.FromPcm(spec, pcm))
+    public Sound(SDL.AudioSpec spec, byte[] pcm)
+        : this(AudioLoader.FromPcm(spec, pcm))
     {
     }
 
@@ -44,7 +46,8 @@ public sealed class Sound : IDisposable
 
     public static Sound FromWAVBytes(byte[] bytes) => new(AudioLoader.FromWavBytes(bytes));
 
-    public static Sound FromSamples(float[] samples, int sampleRate) => new(AudioLoader.FromSamples(samples, sampleRate));
+    public static Sound FromSamples(float[] samples, int sampleRate) =>
+        new(AudioLoader.FromSamples(samples, sampleRate));
 
     public bool Loop { get; set; }
 
@@ -77,23 +80,21 @@ public sealed class Sound : IDisposable
     }
 
     public bool IsPlaying => !IsStopped && !_paused;
+
     public bool IsPaused => !IsStopped && _paused;
+
     public bool IsStopped => _stream == IntPtr.Zero;
 
     public void Play(bool replay = false)
     {
         _throwIfDisposed();
+
         if (IsPlaying)
         {
-            if (replay)
-            {
-                Stop();
-                Play();
-            }
-            else
-            {
-                return;
-            }
+            if (!replay) return;
+
+            Stop();
+            Play();
         }
 
         if (IsPaused) _resume();
@@ -126,7 +127,7 @@ public sealed class Sound : IDisposable
 
     internal void Update()
     {
-        if (!IsPlaying || _queuedBytes() > 0) return;
+        if (!IsPlaying || _hasStreamBytes) return;
 
         if (Loop) _queue(0, _length);
         else Stop();
@@ -186,7 +187,7 @@ public sealed class Sound : IDisposable
         var sourceSpec = _spec;
         var deviceSpec = AudioDevice.Spec;
         var stream = SDL.CreateAudioStream(ref sourceSpec, ref deviceSpec);
-        if (stream == IntPtr.Zero)
+        if (stream == nint.Zero)
         {
             throw new Exception($"Can't create audio stream: {SDL.GetError()}");
         }
@@ -220,8 +221,10 @@ public sealed class Sound : IDisposable
 
         AudioDevice.Untrack(this);
         SDL.DestroyAudioStream(_stream);
-        _stream = IntPtr.Zero;
+        _stream = nint.Zero;
     }
+
+    private bool _hasStreamBytes => _queuedBytes() > 0;
 }
 
 public enum SoundWaveform
