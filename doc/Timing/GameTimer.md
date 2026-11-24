@@ -19,6 +19,8 @@ A countdown that fires `OnComplete` when it ends, once or over and over. Use it 
 * `timer.Dispose()`
   Pauses the timer, clears `OnComplete` subscribers, and resets `Elapsed`.
 
+Properties: `Duration`, `Loop` and `IsPaused` can be set. `Elapsed`, `Progress`, `Remaining` and `IsFinished` are read-only.
+
 ### Example
 ```csharp
 private const float SPAWN_INTERVAL = 2f;

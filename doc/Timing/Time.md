@@ -6,6 +6,7 @@ Frame time and clocks. `Game` updates it for you every frame.
 * **Static high-resolution frame timer** backed by SDL3 performance counters.
 * **Updated automatically** each frame by `Game` via `Time.Tick()`.
 * **Clamps `DeltaTime`** to `DeltaTimeMax` (default `0.25f` seconds) to prevent physics or movement spikes during frame drops or window dragging.
+* **First frame**: `DeltaTime` is `0`, because there is no earlier frame to measure from.
 
 ### Usage
 * `Time.DeltaTime`

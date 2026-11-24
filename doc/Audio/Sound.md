@@ -5,7 +5,7 @@ A WAV sound loaded into memory, with its own playback controls: `Play`, `Pause`,
 ### Notes
 * **Load once, dispose once.** Load in `Init`, dispose in `Dispose`, never every frame.
 * **Sources**: a WAV file, WAV bytes in memory, raw PCM bytes with a format, or float samples (mono, from `SoundFX`).
-* **One playback per sound.** `Play` on a playing sound does nothing; to overlap, load the sound twice.
+* **One playback per sound.** `Play` on a playing sound does nothing. `Play(replay: true)` restarts it. To overlap two playbacks, load the sound twice.
 * **`Play`** starts from `Position`. After `Pause` it resumes where it stopped. After `Stop` it starts from the beginning.
 * **`Pause`** keeps the position. **`Stop`** ends the playback and resets the position to `0`.
 * **`Position`** is in seconds. Setting it while stopped sets where the next `Play` starts.
@@ -23,7 +23,7 @@ Sound.FromWAVBytes(byte[] bytes);
 new Sound(SDL.AudioSpec spec, byte[] pcm);
 Sound.FromSamples(float[] samples, int sampleRate);
 
-sound.Play();
+sound.Play(bool replay = false);
 sound.Pause();
 sound.Stop();
 sound.Dispose();

@@ -4,7 +4,7 @@ Generates sound effects in code, with no files. Every method returns a `Sound` y
 
 ### Notes
 * **Settings records** control everything: waveform, duration, pitch (`Frequency`, and `EndFrequency` for a sweep), volume, and the envelope (`Attack`, `Decay`, `Sustain`, `Release`).
-* **Passing `null`** uses that effect's preset. Pass your own settings to tweak it.
+* **Passing `null`** uses defaults: the standard settings for `Tone`, `Square` and `Noise`, and a preset for `Laser`, `Coin`, `Explosion` and `Bell`. Pass your own `SynthSettings` to change them. `Square` and `Noise` always set their own waveform, even when you pass settings.
 * **Generated sounds are mono, 44100 Hz by default.**
 
 ### Usage
@@ -28,10 +28,12 @@ SoundFX.Bell(SynthSettings? settings = null);
 * `SampleRate`: samples per second.
 * `Partials` (number of overtones) and `Brightness` (how quickly overtones get quieter) are used by `Bell`.
 
+Defaults: `Sine`, 0.5 s, 44100 Hz, 440 Hz, volume 0.5, attack 0.01, decay 0.1, sustain 0.7, release 0.2, duty cycle 0.5, 3 partials, brightness 0.5.
+
 ### Example: laser and coin
 ```csharp
 _laser = SoundFX.Laser();
-_coin = SoundFX.Coin(new SynthSettings { Waveform = Waveform.Triangle, Frequency = 660f, EndFrequency = 990f, Duration = 0.2f });
+_coin = SoundFX.Coin(new SynthSettings { Waveform = SoundWaveform.Triangle, Frequency = 660f, EndFrequency = 990f, Duration = 0.2f });
 
 _laser.Play();
 ```

@@ -4,7 +4,7 @@ Static input for game controllers. Every call takes the controller's SDL id, so 
 
 ### Notes
 * **Id-based**: get ids from `CollectConnectedIds` or from `OnConnected`. There are no per-controller objects.
-* **Deadzone**: `Deadzone` (default `0.15f`, max `0.99f`) applies radial filtering to sticks and rescaling to triggers. It is global.
+* **Deadzone**: `Deadzone` (default `0.15f`, clamped to `0` through `0.99f`) applies radial filtering to sticks and rescaling to triggers. It is global.
 * **Connections**: a reconnected controller gets a new id. Drop an id when `OnDisconnected` fires, and use the new one from `OnConnected`. Calls with an unknown id return zero or `false`, and `Rumble` does nothing.
 
 ### Usage

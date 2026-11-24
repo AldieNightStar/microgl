@@ -4,10 +4,10 @@ Opens the window and runs your game. Create one in `Main`, pass it your `IGame`,
 
 ### Notes
 * **Entry point and lifecycle manager** for a `microgl` application, implementing `IDisposable`.
-* **Initializes SDL3 subsystems** (`Video` and `Gamepad`), creates a resizable window, configures `Nearest` pixel-art scaling with `Letterbox` logical presentation, and sets `Drawer.ScreenSize` to the logical window dimensions.
-* **Runs the main loop** by ticking `Time`, routing input events (`Mouse`, `Keyboard`, `Gamepad`), batching frame events without heap allocations, and calling `IGame.Update` (with `ReadOnlySpan<SDL.Event>`) and `IGame.Draw` once per frame.
-* **VSync is on by default** (`VSync = true`), capping the loop at the display refresh rate. Set it to `false` before `Start()` for an uncapped loop, which burns CPU and multiplies per-frame allocations.
-* **Automatically cleans up** game resources, renderer, connected gamepads, and the native window when the loop exits.
+* **Initializes SDL3 subsystems** (`Video`, `Gamepad` and `Audio`), creates a resizable window, configures `Nearest` pixel-art scaling with `Letterbox` logical presentation, and sets `Drawer.ScreenSize` to the logical window dimensions.
+* **Runs the main loop** by ticking `Time`, routing input events (`Mouse`, `Keyboard`, `Gamepad`, `TouchScreen`), and releasing held input when the window loses focus. Each frame it calls `IGame.Update` (with the frame's events as a `ReadOnlySpan<SDL.Event>`), then `Drawer.Reset()`, then `IGame.Draw`.
+* **VSync is on by default** (`VSync = true`), capping the loop at the display refresh rate. It is applied once at startup, so set it before `Start()`. `false` gives an uncapped loop that uses more CPU.
+* **Automatically cleans up** game resources, text engine, audio, renderer, connected gamepads, the GPU device and the native window when the loop exits.
 
 ### Usage
 ```csharp
@@ -20,7 +20,7 @@ game.VSync = true;
 // Initialize SDL, open the window, run the blocking main loop, and clean up on exit
 game.Start();
 
-// Manually release IGame, Drawer, active gamepads, and window handle
+// Release everything; Start() already does this, so a second call does nothing
 game.Dispose();
 ```
 

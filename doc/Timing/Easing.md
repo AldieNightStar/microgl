@@ -4,7 +4,7 @@ Curves that shape how a tween moves: start slow, end slow, overshoot, bounce. Pa
 
 ### Notes
 * **Static curves** that map progress `t` from `0` to `1` to an eased value.
-* **Families**: `Linear`, then `Sine`, `Quad`, `Cubic`, `Quart`, `Quint`, `Expo`, `Circ`, `Back`, `Elastic` and `Bounce`. Each has `EaseIn`, `EaseOut` and `EaseInOut` versions.
+* **Families**: `Linear`, then `Sine`, `Quad`, `Cubic`, `Quart`, `Quint`, `Expo`, `Circ`, `Back`, `Elastic` and `Bounce`. Each family except `Linear` has `EaseIn`, `EaseOut` and `EaseInOut` versions.
 * **Choosing**: `EaseOut` starts fast and stops softly, for things that arrive. `EaseIn` starts softly and stops fast, for things that leave. `EaseInOut` is soft at both ends, for moving between two places.
 * **Overshoot**: `Back` overshoots a little, `Elastic` springs, `Bounce` bounces.
 

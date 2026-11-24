@@ -4,7 +4,7 @@ One piece of a bigger image, such as a sprite on a sprite sheet or a tile of a t
 
 ### Notes
 * **Lightweight `readonly struct` view** representing a rectangular sub-region (`source`) inside a parent `Texture` without duplicating pixel data.
-* **Supports grid slicing** from an entire texture (`FromTexture`), a specific sub-region (`FromRegion`), or an existing atlas slice (`SliceGrid`), with optional `spacing` and `margin`.
+* **Supports grid slicing** from an entire texture (`FromTexture`), a specific sub-region (`FromRegion`), or an existing atlas slice (`SliceGrid`), with optional `spacing`, and a `margin` for `FromTexture`.
 * **Does not own the underlying `Texture`**: disposing the parent `Texture` frees the shared image memory.
 * **Validates input**: `SliceGrid` throws for non-positive tile sizes or negative spacing, and `SubRegion` throws when the region falls outside the atlas bounds.
 

@@ -6,6 +6,7 @@ Static touch input: active fingers and their positions in game coordinates, with
 * **Driven by the `Game` loop**: positions are converted to the logical size you gave `Game`, the same space as `Mouse.Position`.
 * **Fingers** are identified by a `ulong` id that lasts from touch down to touch up.
 * **Mouse events**: the platform also sends mouse events for touches, so `Mouse` may still fire for a single finger.
+* **Only active fingers move**: `OnMove` ignores a finger that has not gone down. A canceled finger is released and fires `OnUp`.
 * **Focus loss** releases every active finger and fires `OnUp` for each.
 
 ### Usage

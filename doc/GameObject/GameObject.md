@@ -45,10 +45,10 @@ Most of the time you add objects to a [GameObjectGroup](GameObjectGroup.md), whi
 * **Draw at `(0, 0)`**: in `OnDraw` the drawer is already moved, rotated and scaled to the object.
 * **Frame time**: `OnUpdate` gets no `dt`. Use `Time.DeltaTime`.
 * **`CenterPoint` is the pivot**: rotation and scale happen around it, and `Position` is where that pivot sits.
-* **`BlendColor` tints textures**: it is set as the drawer's blend color during `OnDraw`. Shapes drawn with `drawer.Color` are not tinted.
+* **`BlendColor` tints textures**: it is set as the drawer's blend color during `Init`, `Update` and `Draw`. Shapes drawn with `drawer.Color` are not tinted.
 * **Global values**: `GlobalPosition`, `GlobalRotation` and `GlobalScale` are on screen, and can be set. They use the parent passed to the last `Init`, `Update` or `Draw`, or `Transform.Identity` before that.
 * **Removing**: set `IsAlive = false`. `Update` and `Draw` skip dead objects, and the owning group disposes and removes them on its next update.
-* **Drawer state is restored** after each `On...` method, so an object never changes how the caller draws.
+* **Drawer state is restored** after each `Init`, `Update` and `Draw` call. `Transform` and `BlendColor` go back to the caller's values. `Color`, `Font`, `FontColor` and `Shader` are not restored, so set them back if the caller depends on them.
 
 ### Usage
 ```csharp

@@ -11,7 +11,7 @@ The interface your game class implements. `Game` calls its four methods for you:
 * `void Init(Drawer d)`
   Called once after the window and renderer are created to load assets and initialize objects.
 * `void Update(Drawer d, ReadOnlySpan<SDL.Event> events, float dt)`
-  Called once per frame after event polling with all `SDL.Event` instances collected during the frame (empty if idle) and frame delta time `dt` in seconds.
+  Called once per frame after event polling with all `SDL.Event` instances collected during the frame (empty if idle) and frame delta time `dt` in seconds. Anything drawn here is cleared before `Draw` runs.
 * `void Draw(Drawer d, float dt)`
   Called once per frame after `Drawer.Reset()` to render the scene with frame delta time `dt`.
 * `void Dispose()`

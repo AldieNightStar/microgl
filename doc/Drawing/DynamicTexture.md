@@ -5,7 +5,7 @@ A texture you draw with code and redraw when its content changes, for example a 
 ### Notes
 * **Mutable procedural texture wrapper** implementing `IDisposable` that bakes drawing commands into an offscreen `Texture`.
 * **Uses lazy generation**: the underlying `Texture` is only created on first access to the `Texture` property, or when `UpdateTexture()` or `Resize()` is called.
-* **Supports resizing and re-rendering on demand**: `Resize(w, h)` updates `Width` and `Height` and regenerates the underlying `Texture` only when the dimensions actually change.
+* **Supports resizing and re-rendering on demand**: `Resize(w, h)` updates `Width` and `Height` and regenerates the underlying `Texture` only when the dimensions actually change. Reading `Texture` after `Dispose()` builds it again.
 
 ### Usage
 ```csharp

@@ -21,12 +21,12 @@ public void Draw(Drawer d, float dt)
 ```
 
 ### Notes
-* **Reset before each frame**: `Game` calls `Reset()` before `IGame.Draw`. It clears the screen to black and restores `Transform`, `BlendColor`, `FontColor`, `Font` and `Shader` to their defaults. `Color` goes back to white.
+* **Reset between Update and Draw**: `Game` calls `IGame.Update`, then `Reset()`, then `IGame.Draw`. `Reset` clears the screen to black and restores `Transform`, `BlendColor`, `FontColor`, `Font` and `Shader` to their defaults. `Color` goes back to white. Anything drawn in `Update` is erased, so draw only in `Draw`.
 * **Sticky state**: `Color` (shapes and lines), `BlendColor` (texture tint), `FontColor`, `Font` and `Shader` stay as you set them until you change them or the frame ends.
-* **Inside a `GameObject`** the drawer is moved to the object: `Transform` holds its position, rotation, scale and `CenterPoint`, so draw at `(0, 0)`. The previous state is restored when the object is done.
+* **Inside a `GameObject`** the drawer is moved to the object: `Transform` holds its position, rotation, scale and `CenterPoint`, so draw at `(0, 0)`. `Transform` and `BlendColor` are restored when the object is done.
 * **Text**: `DrawText` needs `Font` set, or it throws. It builds the text on every call.
 * **Masks**: `BeginMask` clips drawing to a mask texture. See [Masking](Masking.md).
-* **Offscreen drawing**: `Texture.FromDrawing` and `DynamicTexture` draw into a texture on the same `Renderer` as the screen.
+* **Offscreen drawing**: `Texture.FromDrawing(IRenderer renderer, ushort w, ushort h, Action<Drawer> act)` and `DynamicTexture` draw into a texture on the same `Renderer` as the screen. Their `Drawer` has its own `ScreenSize` of `w` by `h`.
 
 ### Usage
 ```csharp
